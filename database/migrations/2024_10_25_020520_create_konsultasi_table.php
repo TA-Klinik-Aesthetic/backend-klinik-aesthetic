@@ -33,16 +33,18 @@ return new class extends Migration
 
         Schema::create('tb_konsultasi', function (Blueprint $table) {
             $table->increments('id'); // Menggunakan tipe int untuk id
-            $table->unsignedInteger('id_user');
-            $table->foreign('id_user')->references('id')->on('tb_user')->onDelete('cascade');
-            $table->unsignedInteger('id_dokter');
-            $table->foreign('id_dokter')->references('id')->on('tb_dokter')->onDelete('cascade');
-            $table->unsignedInteger('id_detail_konsultasi');
-            $table->foreign('id_detail_konsultasi')->references('id')->on('tb_detail_konsultasi')->onDelete('cascade');
-            $table->unsignedInteger('id_feedback');
-            $table->foreign('id_feedback')->references('id')->on('tb_feedback')->onDelete('cascade');
-            $table->dateTime('waktu_konsultasi');
+            $table->unsignedInteger('id_user')->nullable(); // Mengubah menjadi nullable
+            $table->unsignedInteger('id_dokter')->nullable(false); // Tetap wajib ada
+            $table->unsignedInteger('id_detail_konsultasi')->nullable(); // Mengubah menjadi nullable
+            $table->unsignedInteger('id_feedback')->nullable(); // Mengubah menjadi nullable
+            $table->dateTime('waktu_konsultasi')->nullable();
             $table->timestamps();
+    
+            // Tambahkan foreign key constraints
+            $table->foreign('id_user')->references('id')->on('tb_user')->onDelete('cascade');
+            $table->foreign('id_dokter')->references('id')->on('tb_dokter')->onDelete('cascade');
+            $table->foreign('id_detail_konsultasi')->references('id')->on('tb_detail_konsultasi')->onDelete('cascade');
+            $table->foreign('id_feedback')->references('id')->on('tb_feedback')->onDelete('cascade');
         });
     }
 
