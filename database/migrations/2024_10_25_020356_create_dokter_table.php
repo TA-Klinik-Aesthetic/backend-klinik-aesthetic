@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nama_dokter',50);
             $table->string('no_telp',50);
             $table->string('email_dokter',50);
-            $table->string('password',50);
+            $table->string('password');
             $table->string('nomor_izin_praktik',50);
             $table->timestamps();
         });
