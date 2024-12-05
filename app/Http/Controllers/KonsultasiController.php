@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Konsultasi;
+use App\Models\DetailKonsultasi;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,7 +17,7 @@ class KonsultasiController extends Controller
     public function index()
     {
         // Mendapatkan seluruh data konsultasi beserta relasinya
-        $konsultasi = Konsultasi::with(['user', 'dokter', 'detailKonsultasi', 'feedback'])->get();
+        $konsultasi = Konsultasi::with(['user', 'dokter'])->get();
 
         // Mengembalikan data dalam bentuk JSON
         return response()->json([
@@ -38,15 +40,14 @@ class KonsultasiController extends Controller
      */
     public function store(Request $request)
     {
-         // Validasi data request
-         $validator = Validator::make($request->all(), [
+        // Validasi data request
+        $validator = Validator::make($request->all(), [
             'id_user' => 'nullable|exists:tb_user,id',
-            'id_dokter' => 'required|exists:tb_dokter,id',
-            'id_detail_konsultasi' => 'nullable|exists:tb_detail_konsultasi,id',
-            'id_feedback' => 'nullable|exists:tb_feedback,id',
-            'waktu_konsultasi' => 'nullable|date',
+            'nama_pelanggan' => 'nullable|string|max:255',
+            'waktu_konsultasi' => 'required|date|after:now',
+            'id_dokter' => 'nullable|exists:tb_dokter,id',
         ]);
-
+    
         // Jika validasi gagal, kembalikan respon error
         if ($validator->fails()) {
             return response()->json([
@@ -55,33 +56,43 @@ class KonsultasiController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-
+    
         // Buat data konsultasi
         $konsultasi = Konsultasi::create([
             'id_user' => $request->id_user,
-            'id_dokter' => $request->id_dokter,
-            'id_detail_konsultasi' => $request->id_detail_konsultasi,
-            'id_feedback' => $request->id_feedback,
+            'nama_pelanggan' => $request->nama_pelanggan,
             'waktu_konsultasi' => $request->waktu_konsultasi,
+            'id_dokter' => $request->id_dokter,
         ]);
-
-        // Kembalikan respon sukses
+    
+        // Buat entri baru di tabel detail_konsultasi dengan id_konsultasi yang sama
+        $detailKonsultasi = DetailKonsultasi::create([
+            'id_konsultasi' => $konsultasi->id,
+            'keluhan_pelanggan' => '',
+            'saran_tindakan' => '',
+        ]);
+    
+        // Include data konsultasi di dalam detail konsultasi
+        $detailKonsultasi->load('konsultasi');
+    
+        // Kembalikan respon sukses dengan data konsultasi dan detail konsultasi
         return response()->json([
             'success' => true,
-            'message' => 'Data konsultasi berhasil ditambahkan',
-            'data' => $konsultasi
+            'message' => 'Data konsultasi dan detail konsultasi berhasil ditambahkan',
+            'data' => [
+                'konsultasi' => $konsultasi,
+                'detail_konsultasi' => $detailKonsultasi,
+            ]
         ], 201);
     }
+    
 
     // Menambahkan atau memperbarui konsultasi berdasarkan id_konsultasi
     public function updateByKonsultasi(Request $request, $id_konsultasi)
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'id_user' => 'nullable|exists:tb_user,id',
-            'id_detail_konsultasi' => 'nullable|exists:tb_detail_konsultasi,id',
-            'id_feedback' => 'nullable|exists:tb_feedback,id',
-            'waktu_konsultasi' => 'nullable|date', // Pastikan waktu konsultasi valid
+            'id_dokter' => 'required|exists:tb_dokter,id',
         ]);
 
         // Jika validasi gagal
@@ -104,28 +115,13 @@ class KonsultasiController extends Controller
             ], 404);
         }
 
-        // Ambil id_dokter dari konsultasi yang ada
-        $id_dokter = $konsultasi->id_dokter;
-
-        // Menyusun array data yang akan diupdate
-        $updatedData = [];
-
-        // Periksa setiap field dan perbarui hanya jika ada data yang valid
-        if ($request->has('id_user')) {
-            $updatedData['id_user'] = $request->id_user;
-        }
-        if ($request->has('id_detail_konsultasi')) {
-            $updatedData['id_detail_konsultasi'] = $request->id_detail_konsultasi;
-        }
-        if ($request->has('id_feedback')) {
-            $updatedData['id_feedback'] = $request->id_feedback;
-        }
-        if ($request->has('waktu_konsultasi')) {
-            $updatedData['waktu_konsultasi'] = $request->waktu_konsultasi;
+        // Perbarui id_dokter jika ada dalam permintaan
+        if ($request->has('id_dokter')) {
+            $konsultasi->id_dokter = $request->id_dokter;
         }
 
-        // Perbarui data konsultasi dengan data baru (hanya yang ada)
-        $konsultasi->update($updatedData);
+        // Simpan perubahan
+        $konsultasi->save();
 
         // Kembalikan response sukses
         return response()->json([
@@ -140,7 +136,21 @@ class KonsultasiController extends Controller
      */
     public function show(string $id)
     {
-        //
+
+        // Cari data konsultasi dengan relasi user dan dokter
+        $konsultasi = Konsultasi::with(['user', 'dokter'])->find($id);
+
+        if (!$konsultasi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data konsultasi tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $konsultasi,
+        ]);
     }
 
     /**

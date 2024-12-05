@@ -9,23 +9,17 @@ class Feedback extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_feedback'; // Nama tabel di database
+    protected $table = 'tb_feedback_konsultasi'; // Nama tabel di database
     protected $fillable = [
-        'id_user',
+        'id_konsultasi',
         'rating',
         'teks_feedback',
         'balasan_feedback'
     ];
 
     // Relasi ke model User
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'id_user');
-    }
-
-    // Relasi ke model Konsultasi
     public function konsultasi()
     {
-        return $this->hasMany(Konsultasi::class, 'id_feedback');
+        return $this->belongsTo(Konsultasi::class, 'id_konsultasi', 'id');
     }
 }
