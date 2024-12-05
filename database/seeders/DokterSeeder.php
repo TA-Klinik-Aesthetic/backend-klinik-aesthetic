@@ -18,8 +18,7 @@ class DokterSeeder extends Seeder
                 'nama_dokter' => 'Dr. Rani Rahmawati',
                 'no_telp' => '081234567890',
                 'email_dokter' => 'drrani@example.com',
-                'password' => bcrypt('password123'),
-                'nomor_izin_praktik' => '1234567890',
+                'NIP' => '1234567890',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\DokterController;
 use App\Http\Controllers\KonsultasiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
@@ -23,10 +25,14 @@ use App\Http\Controllers\FeedbackController;
 
 //authentikasi {
 //endpoint untuk register
-
 Route::post('/register', [AuthController::class, 'register']);
+
+//endpoint untuk login
 Route::post('/login', [AuthController::class, 'login']);
+
+//endpoint untuk logout
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+//}
 
 //informasi tiap entitas{
 // Route untuk mendapatkan semua pengguna
@@ -39,7 +45,14 @@ Route::get('/dokters', [DokterController::class, 'index']);
 //konsultasi{
 // Endpoint untuk menampilkan seluruh data konsultasi
 Route::get('/konsultasi', [KonsultasiController::class, 'index']);
+
+// Endpoint untuk menampilkan data konsultasi berdasarkan id
+Route::get('/konsultasi/{id}', [KonsultasiController::class, 'show']);
+
+// Endpoint untuk memasukkan data konsultasi seperti user dan waktu konsultasi
 Route::post('/konsultasi', [KonsultasiController::class, 'store']);
+
+// Endpoint untuk mengupdate informasi konsultasi (seperti memasukkan nama dokter)
 Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateByKonsultasi']);
 
 // Endpoint untuk menghubungkan konsultasi ke detail konsultasi
