@@ -18,18 +18,15 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DokterController;
 use App\Http\Controllers\KonsultasiController;
-<<<<<<< Updated upstream
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 
 // Authentication Routes
-=======
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\FeedbackController;
 
 //authentikasi {
 //endpoint untuk register
->>>>>>> Stashed changes
 Route::post('/register', [AuthController::class, 'register']);
 
 //endpoint untuk login
@@ -37,10 +34,6 @@ Route::post('/login', [AuthController::class, 'login']);
 
 //endpoint untuk logout
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-<<<<<<< Updated upstream
-
-// Konsultasi Routes
-=======
 //}
 
 //informasi tiap entitas{
@@ -53,7 +46,6 @@ Route::get('/dokters', [DokterController::class, 'index']);
 
 //konsultasi{
 // Endpoint untuk menampilkan seluruh data konsultasi
->>>>>>> Stashed changes
 Route::get('/konsultasi', [KonsultasiController::class, 'index']);
 
 // Endpoint untuk menampilkan data konsultasi berdasarkan id
@@ -65,7 +57,6 @@ Route::post('/konsultasi', [KonsultasiController::class, 'store']);
 // Endpoint untuk mengupdate informasi konsultasi (seperti memasukkan nama dokter)
 Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateByKonsultasi']);
 
-<<<<<<< Updated upstream
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
@@ -83,7 +74,6 @@ Route::prefix('produk')->group(function () {
     Route::put('/{id}', [ProdukController::class, 'update']); // Update a product
     Route::delete('/{id}', [ProdukController::class, 'destroy']); // Delete a product
 });
-=======
 // Endpoint untuk menghubungkan konsultasi ke detail konsultasi
 Route::post('/detail-konsultasi/connect', [DetailKonsultasiController::class, 'connect']);
 
@@ -100,4 +90,3 @@ Route::post('/feedback/{id_konsultasi}/teks', [FeedbackController::class, 'store
 Route::post('/feedback/{id_konsultasi}/balasan', [FeedbackController::class, 'storeBalasanFeedback']);
 //}
 
->>>>>>> Stashed changes
