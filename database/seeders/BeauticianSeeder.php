@@ -3,22 +3,22 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
-
-class DetailKonsultasiSeeder extends Seeder
+class BeauticianSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        DB::table('tb_detail_konsultasi')->insert([
+        DB::table('tb_beautician')->insert([
             [
-                'id_konsultasi' => 1,
-                'keluhan_pelanggan' => 'Sakit kepala dan demam',
-                'saran_tindakan' => 'Istirahat cukup dan minum obat pereda nyeri',
+                'nama_beautician' => 'Dr. Rian Rahmat',
+                'no_telp' => '081234567789',
+                'email_beautician' => 'drrian@example.com',
+                'NIP' => '1234567891',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

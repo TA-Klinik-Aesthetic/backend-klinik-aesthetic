@@ -7,17 +7,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 
-class FeedbackSeeder extends Seeder
+class FeedbackKonsultasiSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        DB::table('tb_feedback')->insert([
+        DB::table('tb_feedback_konsultasi')->insert([
             [
-                'id_user' => 1, // Pastikan id_user ini sudah ada di tabel tb_user
-                'rating' => 4,
+                'id_konsultasi' => 1,
+                'rating' => 5,
                 'teks_feedback' => 'Pelayanan dokter sangat baik dan ramah.',
                 'balasan_feedback' => 'Terima kasih atas feedback Anda!',
                 'created_at' => now(),

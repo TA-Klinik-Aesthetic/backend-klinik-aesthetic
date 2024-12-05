@@ -5,27 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Konsultasi extends Model
+class BookingTreatment extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_konsultasi'; // Nama tabel di database
+    protected $table = 'tb_booking_treatment'; // Nama tabel di database
     protected $fillable = [
         'id_user',
-        'nama_pelanggan',
-        'id_dokter',
-        'waktu_konsultasi'
+        'waktu_treatment',
+        'status_booking_treatment',
     ];
 
     // Relasi ke model User
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user');
-    }
-
-    // Relasi ke model Dokter
-    public function dokter()
-    {
-        return $this->belongsTo(Dokter::class, 'id_dokter');
     }
 }
