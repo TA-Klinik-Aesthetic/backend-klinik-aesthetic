@@ -36,7 +36,6 @@ Route::post('/login', [AuthController::class, 'login']);
 //endpoint untuk logout
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
-
 //informasi tiap entitas{
 // Route untuk mendapatkan semua pengguna
 Route::get('/users', [UserController::class, 'index']);
@@ -47,7 +46,6 @@ Route::get('/dokters', [DokterController::class, 'index']);
 
 //konsultasi{
 // Endpoint untuk menampilkan seluruh data konsultasi
-
 Route::get('/konsultasi', [KonsultasiController::class, 'index']);
 
 // Endpoint untuk menampilkan data konsultasi berdasarkan id
@@ -74,7 +72,6 @@ Route::post('/feedback/{id_konsultasi}/teks', [FeedbackController::class, 'store
 // Endpoint untuk Menyimpan atau memperbarui balasan feedback
 Route::post('/feedback/{id_konsultasi}/balasan', [FeedbackController::class, 'storeBalasanFeedback']);
 //}
-
 
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
