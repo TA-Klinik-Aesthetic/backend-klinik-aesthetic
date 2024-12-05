@@ -22,6 +22,15 @@ class DokterSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
+
+            [
+                'nama_dokter' => 'Dr. Rahmat suprianto',
+                'no_telp' => '081234567450',
+                'email_dokter' => 'drrani@example.com',
+                'NIP' => '1234567890',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
             // Tambahkan data dummy lainnya jika diperlukan
         ]);
     }
