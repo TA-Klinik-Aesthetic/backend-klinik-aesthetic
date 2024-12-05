@@ -23,8 +23,11 @@ use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\FeedbackController;
 
+
+
 //authentikasi {
 //endpoint untuk register
+
 Route::post('/register', [AuthController::class, 'register']);
 
 //endpoint untuk login
@@ -32,7 +35,6 @@ Route::post('/login', [AuthController::class, 'login']);
 
 //endpoint untuk logout
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-//}
 
 //informasi tiap entitas{
 // Route untuk mendapatkan semua pengguna
@@ -88,7 +90,4 @@ Route::prefix('produk')->group(function () {
     Route::put('/{id}', [ProdukController::class, 'update']); // Update a product
     Route::delete('/{id}', [ProdukController::class, 'destroy']); // Delete a product
 });
-
-
-
 
