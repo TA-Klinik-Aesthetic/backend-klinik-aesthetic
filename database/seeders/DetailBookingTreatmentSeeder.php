@@ -16,18 +16,20 @@ class DetailBookingTreatmentSeeder extends Seeder
          // Seeder untuk tb_detail_booking_treatment
          DB::table('tb_detail_booking_treatment')->insert([
             [
-                'id_booking' => 1,
+                'id_booking_treatment' => 1,
                 'id_treatment' => 1,
-                'harga_treatment' => 250000,
+                'harga_akhir_treatment' => 250000,
+                'potongan_harga' => '10%',
                 'id_dokter' => 1,
                 'id_beautician' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
-                'id_booking' => 1,
+                'id_booking_treatment' => 1,
                 'id_treatment' => 2,
-                'harga_treatment' => 300000,
+                'harga_akhir_treatment' => 300000,
+                'potongan_harga' => '15%',
                 'id_dokter' => 1,
                 'id_beautician' => 1,
                 'created_at' => now(),

@@ -25,7 +25,7 @@ class BookingTreatmentSeeder extends Seeder
             [
                 'id_user' => 2,
                 'waktu_treatment' => now()->addDay(),
-                'status_booking_treatment' => 'Dibatalkan',
+                'status_booking_treatment' => 'Verifikasi',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

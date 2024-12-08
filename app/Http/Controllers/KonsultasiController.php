@@ -43,7 +43,6 @@ class KonsultasiController extends Controller
         // Validasi data request
         $validator = Validator::make($request->all(), [
             'id_user' => 'nullable|exists:tb_user,id',
-            'nama_pelanggan' => 'nullable|string|max:255',
             'waktu_konsultasi' => 'required|date|after:now',
             'id_dokter' => 'nullable|exists:tb_dokter,id',
         ]);
@@ -60,7 +59,6 @@ class KonsultasiController extends Controller
         // Buat data konsultasi
         $konsultasi = Konsultasi::create([
             'id_user' => $request->id_user,
-            'nama_pelanggan' => $request->nama_pelanggan,
             'waktu_konsultasi' => $request->waktu_konsultasi,
             'id_dokter' => $request->id_dokter,
         ]);
