@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_user', function (Blueprint $table) {
-            $table->increments('id'); // Menggunakan tipe int untuk id
+            $table->increments('id_user'); // Menggunakan tipe int untuk id
             $table->string('nama_user');
             $table->string('no_telp')->unique();
             $table->string('email')->unique();

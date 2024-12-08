@@ -13,32 +13,32 @@ return new class extends Migration
     {
         // Tabel tb_konsultasi
         Schema::create('tb_konsultasi', function (Blueprint $table) {
-            $table->increments('id'); // Primary key
+            $table->increments('id_konsultasi'); // Primary key
             $table->unsignedInteger('id_user')->nullable(); // Foreign key ke tabel tb_user
             $table->unsignedInteger('id_dokter')->nullable(); // Foreign key ke tabel tb_dokter
             $table->dateTime('waktu_konsultasi');
             $table->timestamps();
 
             // Foreign key constraints
-            $table->foreign('id_user')->references('id')->on('tb_user')->onDelete('cascade');
-            $table->foreign('id_dokter')->references('id')->on('tb_dokter')->onDelete('cascade');
+            $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');
+            $table->foreign('id_dokter')->references('id_dokter')->on('tb_dokter')->onDelete('cascade');
         });
 
         // Tabel tb_detail_konsultasi
         Schema::create('tb_detail_konsultasi', function (Blueprint $table) {
-            $table->increments('id'); // Primary key
+            $table->increments('id_detail_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             $table->string('keluhan_pelanggan');
             $table->string('saran_tindakan');
             $table->timestamps();
 
             // Foreign key constraints
-            $table->foreign('id_konsultasi')->references('id')->on('tb_konsultasi')->onDelete('cascade');
+            $table->foreign('id_konsultasi')->references('id_konsultasi')->on('tb_konsultasi')->onDelete('cascade');
         });
 
         // Tabel tb_feedback
         Schema::create('tb_feedback_konsultasi', function (Blueprint $table) {
-            $table->increments('id'); // Primary key
+            $table->increments('id_feedback_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             $table->tinyInteger('rating')->unsigned(); // Rating dengan nilai maksimal 5
             $table->text('teks_feedback');
@@ -46,7 +46,7 @@ return new class extends Migration
             $table->timestamps();
         
             // Foreign key constraints
-            $table->foreign('id_konsultasi')->references('id')->on('tb_konsultasi')->onDelete('cascade');
+            $table->foreign('id_konsultasi')->references('id_konsultasi')->on('tb_konsultasi')->onDelete('cascade');
         });
     }
 

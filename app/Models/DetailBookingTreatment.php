@@ -11,9 +11,10 @@ class DetailBookingTreatment extends Model
 
     protected $table = 'tb_detail_booking_treatment'; // Nama tabel di database
     protected $fillable = [
-        'id_booking',
+        'id_booking_treatment',
         'id_treatment',
-        'harga_treatment',
+        'harga_akhir_treatment',
+        'potongan_harga',
         'id_dokter',
         'id_beautician',
     ];

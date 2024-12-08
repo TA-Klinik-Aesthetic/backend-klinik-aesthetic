@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_beautician', function (Blueprint $table) {
-            $table->increments('id'); // Menggunakan tipe int untuk id
+            $table->increments('id_beautician'); // Menggunakan tipe int untuk id
             $table->string('nama_beautician',50);
             $table->string('no_telp',50);
             $table->string('email_beautician',50);
@@ -21,7 +21,7 @@ return new class extends Migration
         });
 
         Schema::create('tb_jadwal_praktik_beautician', function (Blueprint $table) {
-            $table->increments('id');
+            $table->increments('id_jadwal_praktik_beautician');
             $table->unsignedInteger('id_beautician'); // Relasi ke tabel tb_dokter
             $table->enum('hari', ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu']);
             $table->date('tgl_kerja'); 
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->time('jam_selesai');
             $table->timestamps();
             
-            $table->foreign('id_beautician')->references('id')->on('tb_beautician')->onDelete('cascade');
+            $table->foreign('id_beautician')->references('id_beautician')->on('tb_beautician')->onDelete('cascade');
         });
     }
 

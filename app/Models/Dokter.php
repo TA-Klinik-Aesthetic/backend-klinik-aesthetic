@@ -30,4 +30,10 @@ class Dokter extends Model
     {
         return $this->hasMany(DetailBookingTreatment::class, 'id_dokter');
     }
+
+    // Relasi ke model jadwal praktik dokter
+    public function jadwal_praktik_dokter()
+    {
+        return $this->hasMany(JadwalPraktikDokter::class, 'id_dokter');
+    }
 }
