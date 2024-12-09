@@ -10,7 +10,12 @@ class Feedback extends Model
     use HasFactory;
 
     protected $table = 'tb_feedback_konsultasi'; // Nama tabel di database
+
     protected $primaryKey = 'id_feedback_konsultasi'; // Nama tabel di database
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
 
     protected $fillable = [
         'id_konsultasi',

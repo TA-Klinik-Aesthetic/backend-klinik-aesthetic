@@ -24,6 +24,10 @@ use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
+use App\Http\Controllers\Api\BookingTreatmentController;
+use App\Http\Controllers\Api\DetailBookingTreatmentController;
+use App\Http\Controllers\Api\FeedbackControllerKonsultasi;
+
 
 
 
@@ -93,12 +97,7 @@ Route::prefix('produk')->group(function () {
 
 
 
-
-//adawdawdawdwa
-// Route::apiResource('treatments', TreatmentController::class);
-// Route::apiResource('jenis-treatments', JenisTreatmentController::class);
-
-
+//ALL about TREATMENTSSSSSSS
 Route::prefix('treatments')->group(function () {
     Route::apiResource('/', TreatmentController::class)
         ->parameters(['' => 'treatment']);
@@ -107,4 +106,22 @@ Route::prefix('treatments')->group(function () {
 Route::prefix('jenisTreatments')->group(function () {
     Route::apiResource('/', JenisTreatmentController::class)
         ->parameters(['' => 'jenisTreatment']);
+        
+});
+
+Route::prefix('bookingTreatments')->group(function () {
+    Route::apiResource('/', BookingTreatmentController::class)
+        ->parameters(['' => 'bookingTreatment']);
+});
+
+Route::prefix('detailBookingTreatments')->group(function () {
+    Route::apiResource('/', DetailBookingTreatmentController::class)
+        ->parameters(['' => 'detailBookingTreatment']);
+});
+
+
+//ALL ABOUTTT FEEDBACKK
+Route::prefix('feedbacks')->group(function () {
+    Route::apiResource('/', FeedbackControllerKonsultasi::class)
+        ->parameters(['' => 'feedback']);
 });

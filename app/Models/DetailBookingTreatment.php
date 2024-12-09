@@ -10,6 +10,13 @@ class DetailBookingTreatment extends Model
     use HasFactory;
 
     protected $table = 'tb_detail_booking_treatment'; // Nama tabel di database
+
+    protected $primaryKey = 'id_detail_booking_treatment';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
     protected $fillable = [
         'id_booking_treatment',
         'id_treatment',
