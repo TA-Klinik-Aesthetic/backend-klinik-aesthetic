@@ -29,4 +29,10 @@ class Konsultasi extends Model
     {
         return $this->belongsTo(Dokter::class, 'id_dokter', 'id_dokter');
     }
+
+    // Relasi dengan model DetailKonsultasi
+    public function detail_konsultasi()
+    {
+        return $this->hasOne(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
+    }
 }

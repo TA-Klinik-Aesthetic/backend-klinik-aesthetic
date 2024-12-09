@@ -27,8 +27,7 @@ use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
 use App\Http\Controllers\Api\DetailBookingTreatmentController;
 use App\Http\Controllers\Api\FeedbackControllerKonsultasi;
-
-
+use App\Http\Controllers\Api\FeedbackTreatmentApiController;
 
 
 //authentikasi {
@@ -66,14 +65,8 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateB
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
 Route::put('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
-// Endpoint untuk menghubungkan konsultasi dengan feedback
-Route::post('/feedback/connect', [FeedbackController::class, 'connect']);
-
-// Endpoint untuk menyimpan atau memperbarui teks feedback
-Route::post('/feedback/{id_konsultasi}/teks', [FeedbackController::class, 'storeTeksFeedback']);
-
-// Endpoint untuk Menyimpan atau memperbarui balasan feedback
-Route::post('/feedback/{id_konsultasi}/balasan', [FeedbackController::class, 'storeBalasanFeedback']);
+// Route untuk delete konsultasi
+Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
 //}
 
 // Kategori Routes
@@ -122,4 +115,9 @@ Route::prefix('detailBookingTreatments')->group(function () {
 Route::prefix('feedbacks')->group(function () {
     Route::apiResource('/', FeedbackControllerKonsultasi::class)
         ->parameters(['' => 'feedback']);
+});
+
+Route::prefix('feedbackTreatments')->group(function () {
+    Route::apiResource('/', FeedbackTreatmentApiController::class)
+        ->parameters(['' => 'feedbackTreatment']);
 });

@@ -17,7 +17,7 @@ class KonsultasiController extends Controller
     public function index()
     {
         // Mendapatkan seluruh data konsultasi beserta relasinya
-        $konsultasi = Konsultasi::with(['user', 'dokter'])->get();
+        $konsultasi = Konsultasi::with(['user', 'dokter', 'detail_konsultasi'])->get();
 
         // Mengembalikan data dalam bentuk JSON
         return response()->json([
@@ -170,8 +170,25 @@ class KonsultasiController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id_konsultasi)
     {
-        //
+        // Cari data konsultasi berdasarkan ID
+    $konsultasi = Konsultasi::find($id_konsultasi);
+
+    // Jika konsultasi tidak ditemukan
+    if (!$konsultasi) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data konsultasi tidak ditemukan',
+        ], 404);
+    }
+
+    // Hapus data konsultasi beserta detailnya
+    $konsultasi->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Data konsultasi dan detail konsultasi berhasil dihapus',
+    ], 200);
     }
 }
