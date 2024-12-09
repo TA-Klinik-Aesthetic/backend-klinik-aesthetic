@@ -54,17 +54,29 @@ return new class extends Migration
             $table->unsignedInteger('id_dokter')->nullable(); // Relasi ke tabel tb_dokter
             $table->unsignedInteger('id_beautician')->nullable(); // Foreign key ke tabel tb_beautician
             $table->timestamps();
-        
+
             // Foreign key constraints
             $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
             $table->foreign('id_treatment')->references('id_treatment')->on('tb_treatment')->onDelete('cascade');
             $table->foreign('id_dokter')->references('id_dokter')->on('tb_dokter')->onDelete('cascade');
             $table->foreign('id_beautician')->references('id_beautician')->on('tb_beautician')->onDelete('cascade');
-        
+        });
+
+        // Tabel tb_feedback
+        Schema::create('tb_feedback_treatment', function (Blueprint $table) {
+            $table->increments('id_feedback_treatment'); // Primary key
+            $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_konsultasi
+            $table->tinyInteger('rating')->unsigned(); // Rating dengan nilai maksimal 5
+            $table->text('teks_feedback');
+            $table->text('balasan_feedback')->nullable();
+            $table->timestamps();
+
+            // Foreign key constraints
+            $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
         });
     }
-        
-       
+
+
     /**
      * Reverse the migrations.
      */

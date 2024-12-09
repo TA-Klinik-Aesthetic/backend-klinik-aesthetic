@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             TreatmentSeeder::class,
             BookingTreatmentSeeder::class,
             DetailBookingTreatmentSeeder::class,
+            FeedbackTreatmentSeeder::class,
 
             KategoriSeeder::class,
             ProdukSeeder::class
