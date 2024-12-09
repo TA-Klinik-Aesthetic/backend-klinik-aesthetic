@@ -42,9 +42,9 @@ class KonsultasiController extends Controller
     {
         // Validasi data request
         $validator = Validator::make($request->all(), [
-            'id_user' => 'nullable|exists:tb_user,id',
+            'id_user' => 'nullable|exists:tb_user,id_user',
             'waktu_konsultasi' => 'required|date|after:now',
-            'id_dokter' => 'nullable|exists:tb_dokter,id',
+            'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
         ]);
     
         // Jika validasi gagal, kembalikan respon error
@@ -65,7 +65,7 @@ class KonsultasiController extends Controller
     
         // Buat entri baru di tabel detail_konsultasi dengan id_konsultasi yang sama
         $detailKonsultasi = DetailKonsultasi::create([
-            'id_konsultasi' => $konsultasi->id,
+            'id_konsultasi' => $konsultasi->id_konsultasi,
             'keluhan_pelanggan' => '',
             'saran_tindakan' => '',
         ]);
@@ -90,7 +90,7 @@ class KonsultasiController extends Controller
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'id_dokter' => 'required|exists:tb_dokter,id',
+            'id_dokter' => 'required|exists:tb_dokter,id_dokter',
         ]);
 
         // Jika validasi gagal
