@@ -65,6 +65,10 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateB
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
 Route::put('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
+// Route untuk delete konsultasi
+Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
+//}
+
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
