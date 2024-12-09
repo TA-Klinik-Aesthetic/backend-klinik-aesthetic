@@ -11,6 +11,11 @@ class PembelianProduk extends Model
 
     protected $table = 'tb_pembelian_produk';
 
+    protected $primaryKey = 'id_pembelian_produk'; // Primary key tabel
+
+    public $incrementing = true; // Pastikan primary key auto-increment
+    protected $keyType = 'int'; // Tipe data primary key
+
     protected $fillable = [
         'id_user',
         'tanggal_pembelian',
@@ -18,4 +23,10 @@ class PembelianProduk extends Model
         'potongan_harga',
         'harga_akhir',
     ];
+
+    // Relasi ke Detail Pembelian
+    public function detailPembelian()
+    {
+        return $this->hasMany(DetailPembelianProduk::class, 'id_pembelian_produk');
+    }
 }

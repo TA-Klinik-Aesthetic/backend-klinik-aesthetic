@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PembelianProduk;
 use App\Models\DetailPembelianProduk;
-use App\Models\User;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 
@@ -12,57 +11,57 @@ class PembelianProdukController extends Controller
 {
     public function store(Request $request)
     {
-        // Validasi input
-        $validated = $request->validate([
-            'id_user' => 'required|string|exists:tb_user,id_user',
-            'items' => 'required|array|min:1', // Array of products
-            'items.*.id_produk' => 'required|exists:tb_produk,id_produk',
-            'items.*.jumlah_produk' => 'required|integer|min:1',
-            'potongan_harga' => 'required|numeric|min:0',
+        $request->validate([
+            'id_user' => 'required',
+            'produk' => 'required|array',
+            'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
+            'produk.*.jumlah_produk' => 'required|integer|min:1',
+            'potongan_harga' => 'nullable|numeric|min:0',
         ]);
 
-        // Cari user berdasarkan nama
-        $user = User::where('id_user', $request->id_user)->first();
-
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-
-        // Perhitungan harga_total
         $harga_total = 0;
+        $detail_produk = [];
 
-        foreach ($validated['items'] as $item) {
+        foreach ($request->produk as $item) {
             $produk = Produk::find($item['id_produk']);
-            if ($produk) {
-                $harga_total += $produk->harga_produk * $item['jumlah_produk'];
+
+            if ($produk->stok_produk < $item['jumlah_produk']) {
+                return response()->json(['error' => 'Stok produk tidak mencukupi'], 400);
             }
-        }
 
-        // Perhitungan harga_akhir
-        $harga_akhir = $harga_total - $validated['potongan_harga'];
+            $subtotal = $item['jumlah_produk'] * $produk->harga_produk;
+            $harga_total += $subtotal;
 
-        // Simpan pembelian produk
-        $pembelian = PembelianProduk::create([
-            'id_user' => $user->id_user,
-            'tanggal_pembelian' => now(),
-            'harga_total' => $harga_total,
-            'potongan_harga' => $validated['potongan_harga'],
-            'harga_akhir' => $harga_akhir,
-        ]);
-
-        // Simpan detail pembelian
-        foreach ($validated['items'] as $item) {
-            DetailPembelianProduk::create([
-                'id_pembelian_produk' => $pembelian->id_pembelian_produk,
+            $detail_produk[] = [
                 'id_produk' => $item['id_produk'],
                 'jumlah_produk' => $item['jumlah_produk'],
-                'harga_pembelian_produk' => Produk::find($item['id_produk'])->harga_produk * $item['jumlah_produk'],
+                'harga_pembelian_produk' => $produk->harga_produk,
+            ];
+
+            $produk->decrement('stok_produk', $item['jumlah_produk']);
+        }
+
+        $pembelian = PembelianProduk::create([
+            'id_user' => $request->id_user,
+            'tgl_pembelian' => now(),
+            'harga_total' => $harga_total,
+            'potongan_harga' => $request->potongan_harga ?? 0,
+            'harga_akhir' => $harga_total - ($request->potongan_harga ?? 0),
+        ]);
+
+        foreach ($detail_produk as $detail) {
+            DetailPembelianProduk::create([
+                'id_pembelian_produk' => $pembelian->id_pembelian_produk,
+                'id_produk' => $detail['id_produk'],
+                'jumlah_produk' => $detail['jumlah_produk'],
+                'harga_pembelian_produk' => $detail['harga_pembelian_produk'],
             ]);
         }
 
         return response()->json([
+            'success' => true,
             'message' => 'Pembelian berhasil disimpan',
-            'pembelian' => $pembelian,
-        ], 201);
+            'data' => $pembelian,
+        ]);
     }
 }

@@ -21,6 +21,8 @@ use App\Http\Controllers\KonsultasiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
+use App\Http\Controllers\PembelianProdukController;
+use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
@@ -136,3 +138,5 @@ Route::prefix('buyProducts')->group(function () {
     Route::get('detail-pembelian-produk/{1}', [DetailPembelianProdukController::class, 'show']); // Show a specific detail purchase
     Route::delete('detail-pembelian-produk/{id}', [DetailPembelianProdukController::class, 'destroy']); // Delete a specific detail
 });
+
+Route::post('/pembelian', [PembelianProdukController::class, 'store']);

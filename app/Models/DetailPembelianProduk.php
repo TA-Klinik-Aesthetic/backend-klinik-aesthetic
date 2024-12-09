@@ -11,6 +11,11 @@ class DetailPembelianProduk extends Model
 
     protected $table = 'tb_detail_pembelian_produk';
 
+    protected $primaryKey = 'id_detail_pembelian_produk'; // Primary key tabel
+
+    public $incrementing = true; // Pastikan primary key auto-increment
+    protected $keyType = 'int'; // Tipe data primary key
+
     protected $fillable = [
         'id_pembelian_produk',
         'id_produk',
