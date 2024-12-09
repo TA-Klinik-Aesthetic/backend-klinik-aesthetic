@@ -65,16 +65,6 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateB
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
 Route::put('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
-// Endpoint untuk menghubungkan konsultasi dengan feedback
-Route::post('/feedback/connect', [FeedbackController::class, 'connect']);
-
-// Endpoint untuk menyimpan atau memperbarui teks feedback
-Route::post('/feedback/{id_konsultasi}/teks', [FeedbackController::class, 'storeTeksFeedback']);
-
-// Endpoint untuk Menyimpan atau memperbarui balasan feedback
-Route::post('/feedback/{id_konsultasi}/balasan', [FeedbackController::class, 'storeBalasanFeedback']);
-//}
-
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
