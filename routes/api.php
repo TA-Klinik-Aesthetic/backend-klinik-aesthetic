@@ -27,8 +27,7 @@ use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
 use App\Http\Controllers\Api\DetailBookingTreatmentController;
 use App\Http\Controllers\Api\FeedbackControllerKonsultasi;
-
-
+use App\Http\Controllers\Api\FeedbackTreatmentApiController;
 
 
 //authentikasi {
@@ -124,4 +123,9 @@ Route::prefix('detailBookingTreatments')->group(function () {
 Route::prefix('feedbacks')->group(function () {
     Route::apiResource('/', FeedbackControllerKonsultasi::class)
         ->parameters(['' => 'feedback']);
+});
+
+Route::prefix('feedbackTreatments')->group(function () {
+    Route::apiResource('/', FeedbackTreatmentApiController::class)
+        ->parameters(['' => 'feedbackTreatment']);
 });
