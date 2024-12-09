@@ -95,7 +95,6 @@ Route::prefix('produk')->group(function () {
 });
 
 
-
 //ALL about TREATMENTSSSSSSS
 Route::prefix('treatments')->group(function () {
     Route::apiResource('/', TreatmentController::class)
@@ -105,7 +104,7 @@ Route::prefix('treatments')->group(function () {
 Route::prefix('jenisTreatments')->group(function () {
     Route::apiResource('/', JenisTreatmentController::class)
         ->parameters(['' => 'jenisTreatment']);
-        
+
 });
 
 Route::prefix('bookingTreatments')->group(function () {

@@ -20,6 +20,6 @@ class PembelianProduk extends Model
 
     public function details()
     {
-        return $this->hasMany(DetailPembelianProduk::class, 'pembelian_produk_id');
+        return $this->hasMany(DetailPembelianProduk::class, 'id_pembelian_produk');
     }
 }
