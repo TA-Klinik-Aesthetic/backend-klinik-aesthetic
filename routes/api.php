@@ -22,6 +22,8 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\Api\TreatmentController;
+use App\Http\Controllers\Api\JenisTreatmentController;
 
 
 
@@ -92,3 +94,20 @@ Route::prefix('produk')->group(function () {
     Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
+
+
+
+//adawdawdawdwa
+// Route::apiResource('treatments', TreatmentController::class);
+// Route::apiResource('jenis-treatments', JenisTreatmentController::class);
+
+
+Route::prefix('treatments')->group(function () {
+    Route::apiResource('/', TreatmentController::class)
+        ->parameters(['' => 'treatment']);
+});
+
+Route::prefix('jenisTreatments')->group(function () {
+    Route::apiResource('/', JenisTreatmentController::class)
+        ->parameters(['' => 'jenisTreatment']);
+});
