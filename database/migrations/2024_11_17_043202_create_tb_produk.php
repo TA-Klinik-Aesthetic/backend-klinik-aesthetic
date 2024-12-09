@@ -13,14 +13,14 @@ return new class extends Migration
     {
         // Create tb_kategori table
         Schema::create('tb_kategori', function (Blueprint $table) {
-            $table->id('id_kategori'); // Primary Key
+            $table->increments('id_kategori'); // Primary Key
             $table->string('nama_kategori', 255);
         });
 
         // Create tb_produk table
         Schema::create('tb_produk', function (Blueprint $table) {
-            $table->id('id_produk'); // Primary Key
-            $table->unsignedBigInteger('id_kategori'); // Foreign Key
+            $table->increments('id_produk'); // Primary Key
+            $table->unsignedInteger('id_kategori'); // Foreign Key
             $table->string('nama_produk', 255);
             $table->text('deskripsi_produk')->nullable();
             $table->decimal('harga_produk', 10, 2);
