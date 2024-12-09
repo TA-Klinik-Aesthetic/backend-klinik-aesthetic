@@ -16,7 +16,7 @@ class BookingTreatmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_user' => 'required|exists:users,id_user',
+            'id_user' => 'required|exists:tb_user,id_user',
             'waktu_treatment' => 'required|date',
             'status_booking_treatment' => 'required|string|max:255',
         ]);
