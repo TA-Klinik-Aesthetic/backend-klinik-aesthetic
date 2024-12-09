@@ -28,8 +28,8 @@ return new class extends Migration
         Schema::create('tb_detail_konsultasi', function (Blueprint $table) {
             $table->increments('id_detail_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
-            $table->string('keluhan_pelanggan');
-            $table->string('saran_tindakan');
+            $table->string('keluhan_pelanggan')->nullable();
+            $table->string('saran_tindakan')->nullable();
             $table->timestamps();
 
             // Foreign key constraints

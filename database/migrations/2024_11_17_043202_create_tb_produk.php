@@ -30,10 +30,7 @@ return new class extends Migration
             $table->timestamps(); // Created at & Updated at
 
             // Set Foreign Key Constraint
-            $table->foreign('id_kategori')
-                ->references('id_kategori')
-                ->on('tb_kategori')
-                ->onDelete('cascade');
+            $table->foreign('id_kategori')->references('id_kategori')->on('tb_kategori')->onDelete('cascade');
         });
     }
 
