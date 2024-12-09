@@ -21,6 +21,7 @@ class ProdukController extends Controller
             'deskripsi_produk' => 'nullable|string',
             'harga_produk' => 'required|numeric',
             'stok_produk' => 'required|integer',
+            'status_produk' => '',
         ]);
 
         $produk = Produk::create($validated);
@@ -57,5 +58,25 @@ class ProdukController extends Controller
         $produk->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function getProdukByKategori($id_kategori)
+    {
+        // Ambil data produk berdasarkan id_kategori
+        $produk = Produk::where('id_kategori', $id_kategori)->get();
+
+        // Periksa apakah data produk ditemukan
+        if ($produk->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada produk untuk kategori ini.',
+                'data' => [],
+            ], 404);
+        }
+
+        // Kembalikan data produk dalam format JSON
+        return response()->json([
+            'message' => 'Produk ditemukan.',
+            'data' => $produk,
+        ], 200);
     }
 }

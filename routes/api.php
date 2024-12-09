@@ -91,6 +91,7 @@ Route::prefix('produk')->group(function () {
     Route::get('/{id}', [ProdukController::class, 'show']); // Get a single product
     Route::put('/{id}', [ProdukController::class, 'update']); // Update a product
     Route::delete('/{id}', [ProdukController::class, 'destroy']); // Delete a product
+    Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
 

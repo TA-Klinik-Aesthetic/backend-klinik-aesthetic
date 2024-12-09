@@ -26,7 +26,10 @@ class DatabaseSeeder extends Seeder
             JenisTreatmentSeeder::class,
             TreatmentSeeder::class,
             BookingTreatmentSeeder::class,
-            DetailBookingTreatmentSeeder::class
+            DetailBookingTreatmentSeeder::class,
+
+            KategoriSeeder::class,
+            ProdukSeeder::class
         ]);
     }
 }
