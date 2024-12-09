@@ -10,6 +10,7 @@ class DetailKonsultasi extends Model
     use HasFactory;
 
     protected $table = 'tb_detail_konsultasi'; // Nama tabel yang sesuai
+    protected $primaryKey = 'id_detail_konsultasi'; // Nama tabel di database
 
     // Tentukan kolom yang bisa diisi secara massal
     protected $fillable = [
@@ -20,6 +21,6 @@ class DetailKonsultasi extends Model
 
     public function konsultasi()
     {
-        return $this->belongsTo(Konsultasi::class, 'id_konsultasi', 'id');
+        return $this->belongsTo(Konsultasi::class, 'id_konsultasi', 'id_konsultasi');
     }
 }

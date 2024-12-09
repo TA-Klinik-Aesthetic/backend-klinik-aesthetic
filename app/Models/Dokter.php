@@ -12,6 +12,8 @@ class Dokter extends Model
     use HasFactory;
 
     protected $table = 'tb_dokter'; // Nama tabel di database
+    protected $primaryKey = 'id_dokter'; // Nama tabel di database
+    
     protected $fillable = [
         'nama_dokter',
         'no_telp',

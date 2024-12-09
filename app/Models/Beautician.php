@@ -10,6 +10,8 @@ class Beautician extends Model
     use HasFactory;
 
     protected $table = 'tb_beautician'; // Nama tabel di database
+    protected $primaryKey = 'id_beautician'; // Nama tabel di database
+
     protected $fillable = [
         'nama_beautician',
         'no_telp',
@@ -20,7 +22,7 @@ class Beautician extends Model
     // Relasi ke model detail booking treatment
     public function detail_booking_treatment()
     {
-        return $this->hasMany(DetailBookingTreatment::class, 'id_beautician');
+        return $this->hasMany(DetailBookingTreatment::class, 'id_beautician', 'id_beautician');
     }
 
     // Relasi ke model jadwal praktik dokter

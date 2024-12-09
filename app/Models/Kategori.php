@@ -10,6 +10,7 @@ class Kategori extends Model
     use HasFactory;
 
     protected $table = 'tb_kategori'; // Table name
+    protected $primaryKey = 'id_kategori'; // Nama kolom primary key
 
     protected $fillable = [
         'nama_kategori',
@@ -18,6 +19,6 @@ class Kategori extends Model
     // Relationship: A category has many products
     public function produk()
     {
-        return $this->hasMany(Produk::class, 'id_kategori');
+        return $this->hasMany(Produk::class, 'id_kategori', 'id_kategori');
     }
 }

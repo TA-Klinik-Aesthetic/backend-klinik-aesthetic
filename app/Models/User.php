@@ -11,6 +11,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory; // Pastikan HasApiTokens ada di sini
 
     protected $table = 'tb_user'; // Nama tabel di database
+    protected $primaryKey = 'id_user'; // Nama kolom primary key
     
     protected $fillable = [
         'nama_user',
