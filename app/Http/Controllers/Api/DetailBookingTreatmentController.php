@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DetailBookingTreatment;
+use App\Models\BookingTreatment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class DetailBookingTreatmentController extends Controller
 {
@@ -13,20 +16,60 @@ class DetailBookingTreatmentController extends Controller
         return DetailBookingTreatment::with(['treatment', 'dokter', 'beautician', 'booking'])->get();
     }
 
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'id_booking_treatment' => 'required|exists:tb_booking_treatment,id_booking_treatment',
+    //         'id_treatment' => 'required|exists:tb_treatment,id_treatment',
+    //         'harga_akhir_treatment' => 'required|numeric',
+    //         'potongan_harga' => 'numeric|nullable',
+    //         'id_dokter' => 'exists:tb_dokter,id_dokter|nullable',
+    //         'id_beautician' => 'exists:tb_beautician,id_beautician|nullable',
+    //     ]);
+
+    //     $detailBooking = DetailBookingTreatment::create($validated);
+
+    //     return response()->json($detailBooking, 201);
+    // }
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'id_booking_treatment' => 'required|exists:tb_booking_treatment,id_booking_treatment',
-            'id_treatment' => 'required|exists:tb_treatment,id_treatment',
-            'harga_akhir_treatment' => 'required|numeric',
-            'potongan_harga' => 'numeric|nullable',
-            'id_dokter' => 'exists:tb_dokter,id_dokter|nullable',
-            'id_beautician' => 'exists:tb_beautician,id_beautician|nullable',
-        ]);
+        DB::beginTransaction(); // Mulai transaksi database
 
-        $detailBooking = DetailBookingTreatment::create($validated);
+        try {
+            $validatedBooking = $request->validate([
+                'id_user' => 'required|exists:tb_user,id_user',
+                'waktu_treatment' => 'required|date',
+                'status_booking_treatment' => 'required|string',
+            ]);
 
-        return response()->json($detailBooking, 201);
+            $booking = BookingTreatment::create($validatedBooking);
+
+            $validatedDetail = $request->validate([
+                'id_treatment' => 'required|exists:tb_treatment,id_treatment',
+                'harga_akhir_treatment' => 'required|numeric',
+                'potongan_harga' => 'numeric|nullable',
+                'id_dokter' => 'exists:tb_dokter,id_dokter|nullable',
+                'id_beautician' => 'exists:tb_beautician,id_beautician|nullable',
+            ]);
+
+            $validatedDetail['id_booking_treatment'] = $booking->id_booking_treatment;
+
+            $detailBooking = DetailBookingTreatment::create($validatedDetail);
+
+            DB::commit();
+
+            return response()->json([
+                'booking_treatment' => $booking,
+                'detail_booking_treatment' => $detailBooking,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error while creating data',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function show($id)
