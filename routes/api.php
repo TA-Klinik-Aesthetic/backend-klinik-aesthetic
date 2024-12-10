@@ -125,18 +125,13 @@ Route::prefix('feedbackTreatments')->group(function () {
         ->parameters(['' => 'feedbackTreatment']);
 });
 
-// Pembelian
-Route::prefix('buyProducts')->group(function () {
-
-    // Routes for tb_pembelian_produk
-    Route::get('pembelian-produk', [PembelianProdukController::class, 'index']); // List all purchases
-    Route::post('pembelian-produk', [PembelianProdukController::class, 'store']); // Create new purchase
-    Route::get('pembelian-produk/{id}', [PembelianProdukController::class, 'show']); // Show a specific purchase
-    Route::delete('pembelian-produk/{id}', [PembelianProdukController::class, 'destroy']); // Delete a specific purchase
-
-    // Routes for tb_detail_pembelian_produk
-    Route::get('detail-pembelian-produk/{1}', [DetailPembelianProdukController::class, 'show']); // Show a specific detail purchase
-    Route::delete('detail-pembelian-produk/{id}', [DetailPembelianProdukController::class, 'destroy']); // Delete a specific detail
-});
-
 Route::post('/pembelian', [PembelianProdukController::class, 'store']);
+
+// Products Purchase Management
+Route::prefix('products-purchase')->group(function () {
+    Route::post('/pembelian', [PembelianProdukController::class, 'store']); // Create new purchase
+    Route::get('/pembelian', [PembelianProdukController::class, 'index']); // Get all purchases
+    Route::get('/pembelian/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
+    Route::put('/pembelian/{id}', [PembelianProdukController::class, 'update']); // Create new purchase
+    Route::delete('/pembelian/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
+});

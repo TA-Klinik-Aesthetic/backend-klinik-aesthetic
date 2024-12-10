@@ -64,4 +64,24 @@ class PembelianProdukController extends Controller
             'data' => $pembelian,
         ]);
     }
+
+    public function destroy($id_pembelian_produk)
+    {
+        $pembelian = PembelianProduk::find($id_pembelian_produk);
+
+        if (!$pembelian) {
+            return response()->json(['error' => 'Data pembelian tidak ditemukan'], 404);
+        }
+
+        // Hapus semua detail pembelian terkait
+        $pembelian->details()->delete();
+
+        // Hapus data pembelian
+        $pembelian->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data pembelian berhasil dihapus',
+        ]);
+    }
 }
