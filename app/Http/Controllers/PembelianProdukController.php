@@ -65,6 +65,50 @@ class PembelianProdukController extends Controller
         ]);
     }
 
+    public function index()
+    {
+        $pembelian = PembelianProduk::with('detailPembelian')->get();
+        return response()->json($pembelian);
+    }
+
+    public function show($id)
+    {
+        $pembelian = PembelianProduk::with('detailPembelian')->find($id);
+
+        if (!$pembelian) {
+            return response()->json(['error' => 'Data pembelian tidak ditemukan'], 404);
+        }
+
+        return response()->json($pembelian);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $pembelian = PembelianProduk::find($id);
+
+        if (!$pembelian) {
+            return response()->json(['error' => 'Data pembelian tidak ditemukan'], 404);
+        }
+
+        $request->validate([
+            'id_user' => 'required',
+            'potongan_harga' => 'nullable|numeric|min:0',
+        ]);
+
+        $pembelian->update([
+            'id_user' => $request->id_user,
+            'potongan_harga' => $request->potongan_harga ?? $pembelian->potongan_harga,
+            'harga_akhir' => $pembelian->harga_total - ($request->potongan_harga ?? $pembelian->potongan_harga),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data pembelian berhasil diperbarui',
+            'data' => $pembelian,
+        ]);
+    }
+
+
     public function destroy($id_pembelian_produk)
     {
         $pembelian = PembelianProduk::find($id_pembelian_produk);
@@ -74,7 +118,7 @@ class PembelianProdukController extends Controller
         }
 
         // Hapus semua detail pembelian terkait
-        $pembelian->details()->delete();
+        $pembelian->detailPembelian()->delete();
 
         // Hapus data pembelian
         $pembelian->delete();
