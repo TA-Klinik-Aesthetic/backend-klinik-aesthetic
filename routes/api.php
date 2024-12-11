@@ -22,14 +22,14 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\PembelianProdukController;
-use App\Http\Controllers\DetailPembelianProdukController;
-use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
 use App\Http\Controllers\Api\DetailBookingTreatmentController;
 use App\Http\Controllers\Api\FeedbackControllerKonsultasi;
 use App\Http\Controllers\Api\FeedbackTreatmentApiController;
+use App\Http\Controllers\JadwalPraktikBeauticianController;
+use App\Http\Controllers\JadwalPraktikDokterController;
 
 
 //authentikasi {
@@ -134,4 +134,18 @@ Route::prefix('products-purchase')->group(function () {
     Route::get('/pembelian/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
     Route::put('/pembelian/{id}', [PembelianProdukController::class, 'update']); // Edit the tb_pembelian purchase
     Route::delete('/pembelian/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
+});
+
+Route::prefix('jadwal-dokter')->group(function () {
+    Route::get('/', [JadwalPraktikDokterController::class, 'index']); // Get all categories
+    Route::post('/', [JadwalPraktikDokterController::class, 'store']); // Create a new category
+    Route::put('/{id}', [JadwalPraktikDokterController::class, 'update']); // Update a category
+    Route::delete('/{id}', [JadwalPraktikDokterController::class, 'destroy']); // Delete a category
+});
+
+Route::prefix('jadwal-beautician')->group(function () {
+    Route::get('/', [JadwalPraktikBeauticianController::class, 'index']); // Get all categories
+    Route::post('/', [JadwalPraktikBeauticianController::class, 'store']); // Create a new category
+    Route::put('/{id}', [JadwalPraktikBeauticianController::class, 'update']); // Update a category
+    Route::delete('/{id}', [JadwalPraktikBeauticianController::class, 'destroy']); // Delete a category
 });

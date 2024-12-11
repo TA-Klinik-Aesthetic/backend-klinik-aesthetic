@@ -21,6 +21,9 @@ class BookingTreatment extends Model
         'id_user',
         'waktu_treatment',
         'status_booking_treatment',
+        'harga_total',
+        'potongan_harga',
+        'harga_akhir_treatment',
     ];
 
     // Relasi ke model User
