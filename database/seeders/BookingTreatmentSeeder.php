@@ -16,16 +16,11 @@ class BookingTreatmentSeeder extends Seeder
     {
         DB::table('tb_booking_treatment')->insert([
             [
-                'id_user' => 1,
+                'id_user' => 1, 
                 'waktu_treatment' => now(),
-                'status_booking_treatment' => 'Berhasil dibooking',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'id_user' => 2,
-                'waktu_treatment' => now()->addDay(),
-                'status_booking_treatment' => 'Verifikasi',
+                'status_booking_treatment' => 
+                'Verifikasi', 'harga_total' => 550000, 'potongan_harga' => 50000, 
+                'harga_akhir_treatment' => 500000, 
                 'created_at' => now(),
                 'updated_at' => now()
             ],

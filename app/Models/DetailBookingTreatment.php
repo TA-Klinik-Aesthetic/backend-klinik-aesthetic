@@ -20,8 +20,7 @@ class DetailBookingTreatment extends Model
     protected $fillable = [
         'id_booking_treatment',
         'id_treatment',
-        'harga_akhir_treatment',
-        'potongan_harga',
+        'biaya_treatment',
         'id_dokter',
         'id_beautician',
     ];

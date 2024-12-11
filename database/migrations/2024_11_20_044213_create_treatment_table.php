@@ -38,19 +38,21 @@ return new class extends Migration
             $table->unsignedInteger('id_user'); // Foreign key ke tabel tb_user
             $table->dateTime('waktu_treatment');
             $table->enum('status_booking_treatment', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
+            $table->double('harga_total', 15, 2)->nullable(); // Ubah menjadi tipe double
+            $table->string('potongan_harga')->nullable(); // Ubah menjadi tipe double
+            $table->double('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
             $table->timestamps();
 
             // Foreign key constraints
             $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');
         });
 
-        // Tabel tb_booking_treatment
+        // Tabel tb_detail_booking_treatment
         Schema::create('tb_detail_booking_treatment', function (Blueprint $table) {
             $table->increments('id_detail_booking_treatment'); // Primary key
             $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_treatment
             $table->unsignedInteger('id_treatment'); // Foreign key ke tabel tb_treatment
-            $table->double('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
-            $table->string('potongan_harga')->nullable(); // Ubah menjadi tipe double
+            $table->double('biaya_treatment', 15, 2); // Ubah menjadi tipe double
             $table->unsignedInteger('id_dokter')->nullable(); // Relasi ke tabel tb_dokter
             $table->unsignedInteger('id_beautician')->nullable(); // Foreign key ke tabel tb_beautician
             $table->timestamps();
