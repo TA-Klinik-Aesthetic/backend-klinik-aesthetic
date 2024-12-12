@@ -68,8 +68,8 @@ return new class extends Migration
         Schema::create('tb_feedback_treatment', function (Blueprint $table) {
             $table->increments('id_feedback_treatment'); // Primary key
             $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_konsultasi
-            $table->tinyInteger('rating')->unsigned(); // Rating dengan nilai maksimal 5
-            $table->text('teks_feedback');
+            $table->tinyInteger('rating')->unsigned()->nullable(); // Rating dengan nilai maksimal 5
+            $table->text('teks_feedback')->nullable();
             $table->text('balasan_feedback')->nullable();
             $table->timestamps();
 

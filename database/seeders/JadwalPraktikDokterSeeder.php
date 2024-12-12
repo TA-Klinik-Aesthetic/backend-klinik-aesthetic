@@ -23,6 +23,78 @@ class JadwalPraktikDokterSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'id_dokter' => 1, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'selasa',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 1, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'rabu',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 2, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'senin',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 2, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'selasa',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 2, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'rabu',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 3, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'senin',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 3, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'selasa',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_dokter' => 3, // ID dokter sesuai dengan data di tabel tb_dokter
+                'hari' => 'rabu',
+                'tgl_kerja' => '2024-11-25',
+                'jam_mulai' => '08:00:00',
+                'jam_selesai' => '12:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }
