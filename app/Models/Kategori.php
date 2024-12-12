@@ -11,6 +11,7 @@ class Kategori extends Model
 
     protected $table = 'tb_kategori'; // Table name
     protected $primaryKey = 'id_kategori'; // Nama kolom primary key
+    public $timestamps = false; // Menonaktifkan timestamps
 
     protected $fillable = [
         'nama_kategori',
