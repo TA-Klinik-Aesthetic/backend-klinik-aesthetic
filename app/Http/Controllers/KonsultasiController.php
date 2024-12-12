@@ -136,7 +136,7 @@ class KonsultasiController extends Controller
     {
 
         // Cari data konsultasi dengan relasi user dan dokter
-        $konsultasi = Konsultasi::with(['user', 'dokter'])->find($id);
+        $konsultasi = Konsultasi::with(['user', 'dokter', 'detail_konsultasi'])->find($id);
 
         if (!$konsultasi) {
             return response()->json([
@@ -149,6 +149,24 @@ class KonsultasiController extends Controller
             'success' => true,
             'data' => $konsultasi,
         ]);
+    }
+
+    public function showDetail($id)
+    {
+        // Cari detail konsultasi berdasarkan ID
+        $detailKonsultasi = DetailKonsultasi::where('id_konsultasi', $id)->first();
+
+        if ($detailKonsultasi) {
+            return response()->json([
+                'success' => true,
+                'data' => $detailKonsultasi
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Detail konsultasi tidak ditemukan'
+            ], 404);
+        }
     }
 
     /**
