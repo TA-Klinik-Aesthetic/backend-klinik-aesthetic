@@ -64,6 +64,9 @@ Route::post('/konsultasi', [KonsultasiController::class, 'store']);
 // Endpoint untuk mengupdate informasi konsultasi (seperti memasukkan nama dokter)
 Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateByKonsultasi']);
 
+//Endpoint untuk hanya melihat detail dari konsultasi berdasarkan id
+Route::get('/detail-konsultasi/{id}', [KonsultasiController::class, 'showDetail']);
+
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
 Route::put('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
