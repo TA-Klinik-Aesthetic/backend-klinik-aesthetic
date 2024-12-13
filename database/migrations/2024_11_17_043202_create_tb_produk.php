@@ -26,6 +26,7 @@ return new class extends Migration
             $table->decimal('harga_produk', 10, 2);
             $table->integer('stok_produk');
             $table->enum('status_produk', ['Tersedia', 'Habis']);
+            $table->string('gambar_produk', 255);
 
             $table->timestamps(); // Created at & Updated at
 

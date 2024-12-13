@@ -19,6 +19,7 @@ class Produk extends Model
         'harga_produk',
         'stok_produk',
         'status_produk',
+        'gambar_produk',
     ];
 
     // Relationship: A product belongs to a category

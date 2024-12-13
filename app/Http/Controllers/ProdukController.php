@@ -22,6 +22,7 @@ class ProdukController extends Controller
             'harga_produk' => 'required|numeric',
             'stok_produk' => 'required|integer',
             'status_produk' => '',
+            'gambar_produk' => 'required|string|max:255',
         ]);
 
         $produk = Produk::create($validated);
@@ -45,6 +46,7 @@ class ProdukController extends Controller
             'deskripsi_produk' => 'nullable|string',
             'harga_produk' => 'required|numeric',
             'stok_produk' => 'required|integer',
+            'gambar_produk' => 'required|string|max:255',
         ]);
 
         $produk->update($validated);
