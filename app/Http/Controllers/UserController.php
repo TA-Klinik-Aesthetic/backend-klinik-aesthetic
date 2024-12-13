@@ -16,4 +16,13 @@ class UserController extends Controller
             'data' => $users
         ]);
     }
+
+    public function me(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Pengguna yang Sedang Login',
+            'data' => $request->user(), // Data pengguna yang sedang login
+        ]);
+    }
 }
