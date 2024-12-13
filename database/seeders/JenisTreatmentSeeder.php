@@ -15,9 +15,11 @@ class JenisTreatmentSeeder extends Seeder
     {
         // Seed untuk tabel tb_jenis_treatment
         DB::table('tb_jenis_treatment')->insert([
-            ['nama_jenis_treatment' => 'Facial', 'created_at' => now(), 'updated_at' => now()],
-            ['nama_jenis_treatment' => 'Hair Treatment', 'created_at' => now(), 'updated_at' => now()],
+            ['nama_jenis_treatment' => 'Face Treatment', 'created_at' => now(), 'updated_at' => now()],
             ['nama_jenis_treatment' => 'Body Treatment', 'created_at' => now(), 'updated_at' => now()],
+            ['nama_jenis_treatment' => 'Eye Treatment', 'created_at' => now(), 'updated_at' => now()],
+            ['nama_jenis_treatment' => 'Lip Treatment', 'created_at' => now(), 'updated_at' => now()],
+            ['nama_jenis_treatment' => 'Injection', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }
