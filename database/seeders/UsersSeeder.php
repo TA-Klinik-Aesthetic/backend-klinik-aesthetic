@@ -26,7 +26,7 @@ class UsersSeeder extends Seeder
             ],
             [
                 'nama_user' => 'Ezra',
-                'no_telp' => '081234567890',
+                'no_telp' => '089765452765',
                 'email' => 'ezra@gmail.com',
                 'password' => Hash::make('password123'),
                 'role' => 'pelanggan',
