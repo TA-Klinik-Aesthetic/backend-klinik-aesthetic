@@ -12,12 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_promo', function (Blueprint $table) {
-            $table->id('id_promo'); // ID promo dengan auto increment
-            $table->string('judul_promo');
-            $table->text('deskripsi_promo');
-            $table->text('keterangan_promo');
-            $table->dateTime('tenggat_waktu_promosi');
-            $table->timestamps(); // Untuk created_at dan updated_at
+            $table->id('id_promo');
+            $table->string('nama_promo');
+            $table->text('deskripsi_promo')->nullable();
+            $table->decimal('diskon_promo', 5, 2); // Contoh: 50.00
+            $table->date('tanggal_mulai');
+            $table->date('tanggal_berakhir');
+            $table->timestamps();
         });
     }
 
