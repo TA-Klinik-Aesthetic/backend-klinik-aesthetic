@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DokterController;
+use App\Http\Controllers\BeauticianController;
 use App\Http\Controllers\KonsultasiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
@@ -54,6 +55,11 @@ Route::post('/login', [AuthController::class, 'login']);
     // Route untuk mendapatkan semua dokter
     Route::get('/dokters', [DokterController::class, 'index']);
     //}
+
+    // Route untuk mendapatkan semua dokter
+    Route::get('/beauticians', [BeauticianController::class, 'index']);
+    //}
+    
 
     //konsultasi{
     // Endpoint untuk menampilkan seluruh data konsultasi
