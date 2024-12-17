@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('diskon_promo', 5, 2); // Contoh: 50.00
             $table->date('tanggal_mulai');
             $table->date('tanggal_berakhir');
+            $table->string('gambar_promo', 255);
             $table->timestamps();
         });
     }

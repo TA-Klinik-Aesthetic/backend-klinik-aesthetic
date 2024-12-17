@@ -21,6 +21,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 50.00,
                 'tanggal_mulai' => '2024-12-01',
                 'tanggal_berakhir' => '2024-12-31',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/season-sale-special-offer-background_79603-1414.jpg?t=st=1734360871~exp=1734364471~hmac=f995b81c9a40c345fa5c947fdfac0dae4efdc2058b937df1657fa43644485b00&w=900',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -30,6 +31,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 30.00,
                 'tanggal_mulai' => '2025-01-01',
                 'tanggal_berakhir' => '2025-01-10',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/promotion-fashion-tropical-banner_1188-157.jpg?t=st=1734360944~exp=1734364544~hmac=132f6bf86662fcbecb181503780bd734f5181eb8f766cddaff365b01ec19550c&w=996',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -39,6 +41,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 20.00,
                 'tanggal_mulai' => '2025-04-21',
                 'tanggal_berakhir' => '2025-04-30',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/promotion-fashion-tropical-banner_1188-157.jpg?t=st=1734360944~exp=1734364544~hmac=132f6bf86662fcbecb181503780bd734f5181eb8f766cddaff365b01ec19550c&w=996',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -48,6 +51,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 25.00,
                 'tanggal_mulai' => '2025-03-10',
                 'tanggal_berakhir' => '2025-04-10',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/season-sale-special-offer-background_79603-1414.jpg?t=st=1734360871~exp=1734364471~hmac=f995b81c9a40c345fa5c947fdfac0dae4efdc2058b937df1657fa43644485b00&w=900',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -57,6 +61,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 17.00,
                 'tanggal_mulai' => '2025-08-17',
                 'tanggal_berakhir' => '2025-08-31',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/promotion-fashion-tropical-banner_1188-157.jpg?t=st=1734360944~exp=1734364544~hmac=132f6bf86662fcbecb181503780bd734f5181eb8f766cddaff365b01ec19550c&w=996',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -66,6 +71,7 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 70.00,
                 'tanggal_mulai' => '2025-05-01',
                 'tanggal_berakhir' => '2025-05-01',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/season-sale-special-offer-background_79603-1414.jpg?t=st=1734360871~exp=1734364471~hmac=f995b81c9a40c345fa5c947fdfac0dae4efdc2058b937df1657fa43644485b00&w=900',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -75,13 +81,10 @@ class PromoSeeder extends Seeder
                 'diskon_promo' => 40.00,
                 'tanggal_mulai' => '2025-04-10',
                 'tanggal_berakhir' => '2025-04-25',
+                'gambar_promo' => 'https://img.freepik.com/free-vector/season-sale-special-offer-background_79603-1414.jpg?t=st=1734360871~exp=1734364471~hmac=f995b81c9a40c345fa5c947fdfac0dae4efdc2058b937df1657fa43644485b00&w=900',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ];
-
-        foreach ($promos as $promo) {
-            Promo::create($promo);
-        }
     }
 }
