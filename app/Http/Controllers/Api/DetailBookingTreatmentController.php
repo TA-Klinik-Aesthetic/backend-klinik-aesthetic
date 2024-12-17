@@ -103,24 +103,39 @@ class DetailBookingTreatmentController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Cari detail booking treatment berdasarkan ID
         $detailBooking = DetailBookingTreatment::find($id);
-
+    
         if (!$detailBooking) {
             return response()->json(['message' => 'Detail Booking Treatment not found'], 404);
         }
-
+    
+        // Validasi input
         $validated = $request->validate([
-            'id_booking_treatment' => 'exists:tb_booking_treatment,id_booking_treatment',
-            'id_treatment' => 'exists:tb_treatment,id_treatment',
-            'harga_akhir_treatment' => 'numeric',
-            'potongan_harga' => 'numeric|nullable',
             'id_dokter' => 'exists:tb_dokter,id_dokter|nullable',
             'id_beautician' => 'exists:tb_beautician,id_beautician|nullable',
+            'status_booking_treatment' => 'string|nullable', // Tambahkan validasi untuk status booking
         ]);
-
+    
+        // Update data detail booking treatment
         $detailBooking->update($validated);
-
-        return response()->json($detailBooking);
+    
+        // Jika ada 'status_booking_treatment' dalam request, update di tabel booking_treatment
+        if ($request->has('status_booking_treatment')) {
+            $bookingTreatment = BookingTreatment::find($detailBooking->id_booking_treatment);
+    
+            if ($bookingTreatment) {
+                $bookingTreatment->status_booking_treatment = $request->input('status_booking_treatment');
+                $bookingTreatment->save();
+            } else {
+                return response()->json(['message' => 'Booking Treatment not found'], 404);
+            }
+        }
+    
+        return response()->json([
+            'detail_booking' => $detailBooking,
+            'message' => 'Detail Booking Treatment and Status Booking updated successfully'
+        ]);
     }
 
     public function destroy($id)

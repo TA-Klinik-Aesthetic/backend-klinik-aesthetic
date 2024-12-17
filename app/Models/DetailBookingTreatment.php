@@ -45,6 +45,6 @@ class DetailBookingTreatment extends Model
 
     public function booking()
     {
-        return $this->belongsTo(BookingTreatment::class, 'id_booking');
+        return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
 }
