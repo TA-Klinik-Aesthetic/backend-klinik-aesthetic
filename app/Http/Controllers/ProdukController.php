@@ -21,7 +21,7 @@ class ProdukController extends Controller
             'deskripsi_produk' => 'nullable|string',
             'harga_produk' => 'required|numeric',
             'stok_produk' => 'required|integer',
-            'status_produk' => '',
+            'status_produk' => 'required|string|max:255',
             'gambar_produk' => 'required|string|max:255',
         ]);
 
@@ -46,6 +46,7 @@ class ProdukController extends Controller
             'deskripsi_produk' => 'nullable|string',
             'harga_produk' => 'required|numeric',
             'stok_produk' => 'required|integer',
+            'status_produk' => 'required|string|max:255',
             'gambar_produk' => 'required|string|max:255',
         ]);
 
