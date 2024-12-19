@@ -59,8 +59,11 @@ class ProdukController extends Controller
     {
         $produk = Produk::findOrFail($id);
         $produk->delete();
-
-        return response()->json(null, 204);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus'
+        ], 200);
     }
 
     public function getProdukByKategori($id_kategori)

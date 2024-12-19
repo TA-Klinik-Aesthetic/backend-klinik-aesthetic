@@ -48,7 +48,10 @@ class KategoriController extends Controller
     {
         $kategori = Kategori::findOrFail($id);
         $kategori->delete();
-
-        return response()->json(null, 204);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus'
+        ], 200);
     }
 }
