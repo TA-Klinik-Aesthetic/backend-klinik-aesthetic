@@ -19,9 +19,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DokterController;
 use App\Http\Controllers\BeauticianController;
 use App\Http\Controllers\KonsultasiController;
+use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
-use App\Http\Controllers\DetailKonsultasiController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\PembelianProdukController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
@@ -59,7 +60,7 @@ Route::post('/login', [AuthController::class, 'login']);
     // Route untuk mendapatkan semua dokter
     Route::get('/beauticians', [BeauticianController::class, 'index']);
     //}
-    
+
 
     //konsultasi{
     // Endpoint untuk menampilkan seluruh data konsultasi
@@ -103,6 +104,13 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
     });
 
+    Route::prefix('promos')->group(function () {
+        Route::get('/', [PromoController::class, 'index']); // Menampilkan semua promo
+        Route::post('/', [PromoController::class, 'store']); // Menambahkan promo baru
+        Route::get('/{id}', [PromoController::class, 'show']); // Menampilkan detail promo berdasarkan ID
+        Route::put('/{id}', [PromoController::class, 'update']); // Memperbarui promo berdasarkan ID
+        Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
+    });
 
     //ALL about TREATMENTSSSSSSS
     Route::prefix('treatments')->group(function () {
