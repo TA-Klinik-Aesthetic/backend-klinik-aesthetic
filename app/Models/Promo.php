@@ -17,9 +17,6 @@ class Promo extends Model
         'judul_promo',
         'deskripsi_promo',
         'keterangan_promo',
-        'tanggal_mulai',
-        'tanggal_berakhir',
-        'gambar_promo',
-        'status_promo',
+        'tenggat_waktu_promosi',
     ];
 }

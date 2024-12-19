@@ -12,21 +12,9 @@ class DetailPembelianProdukController extends Controller
      */
     public function index()
     {
-        try {
-            $details = DetailPembelianProduk::with(['pembelian', 'produk'])->get();
+        $details = DetailPembelianProduk::with(['pembelian', 'produk'])->get();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data detail pembelian berhasil diambil',
-                'data' => $details,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat mengambil data',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json($details, 200);
     }
 
     /**
@@ -34,28 +22,13 @@ class DetailPembelianProdukController extends Controller
      */
     public function show($id)
     {
-        try {
-            $detail = DetailPembelianProduk::with(['pembelian', 'produk'])->find($id);
+        $detail = DetailPembelianProduk::with(['pembelian', 'produk'])->find($id);
 
-            if (!$detail) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Detail pembelian tidak ditemukan',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Detail pembelian berhasil ditemukan',
-                'data' => $detail,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat mengambil data',
-                'error' => $e->getMessage(),
-            ], 500);
+        if (!$detail) {
+            return response()->json(['message' => 'Detail pembelian tidak ditemukan'], 404);
         }
+
+        return response()->json($detail, 200);
     }
 
     /**
@@ -63,28 +36,14 @@ class DetailPembelianProdukController extends Controller
      */
     public function destroy($id)
     {
-        try {
-            $detail = DetailPembelianProduk::find($id);
+        $detail = DetailPembelianProduk::find($id);
 
-            if (!$detail) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Detail pembelian tidak ditemukan',
-                ], 404);
-            }
-
-            $detail->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Detail pembelian berhasil dihapus',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat menghapus data',
-                'error' => $e->getMessage(),
-            ], 500);
+        if (!$detail) {
+            return response()->json(['message' => 'Detail pembelian tidak ditemukan'], 404);
         }
+
+        $detail->delete();
+
+        return response()->json(['message' => 'Detail pembelian berhasil dihapus'], 200);
     }
 }
