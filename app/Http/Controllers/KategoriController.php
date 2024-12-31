@@ -15,14 +15,35 @@ class KategoriController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_kategori' => 'required|string|max:255',
-        ]);
+        try {
+            // Validasi input
+            $validated = $request->validate([
+                'nama_kategori' => 'required|string|max:255',
+            ]);
 
-        $kategori = Kategori::create($validated);
+            // Buat kategori baru
+            $kategori = Kategori::create($validated);
 
-        return response()->json($kategori, 201);
+            // Berikan respons sukses
+            return response()->json([
+                'message' => 'Kategori berhasil dibuat.',
+                'data' => $kategori,
+            ], 200);
+        } catch (\PDOException $e) {
+            // Penanganan error koneksi database
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada koneksi database.',
+                'error' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            // Penanganan error umum
+            return response()->json([
+                'message' => 'Gagal menyimpan kategori.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     public function show($id)
     {
@@ -40,26 +61,76 @@ class KategoriController extends Controller
 
     public function update(Request $request, $id)
     {
-        $kategori = Kategori::findOrFail($id);
+        try {
+            // Cari kategori berdasarkan ID
+            $kategori = Kategori::findOrFail($id);
 
-        $validated = $request->validate([
-            'nama_kategori' => 'required|string|max:255',
-            'deskripsi_kategori' => 'nullable|string|max:255',
-        ]);
+            // Validasi input
+            $validated = $request->validate([
+                'nama_kategori' => 'required|string|max:255',
+                'deskripsi_kategori' => 'nullable|string|max:255',
+            ]);
 
-        $kategori->update($validated);
+            // Perbarui data kategori
+            $kategori->update($validated);
 
-        return response()->json($kategori);
+            // Berikan respons sukses
+            return response()->json([
+                'message' => 'Kategori berhasil diperbarui.',
+                'data' => $kategori,
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            // Penanganan error jika data tidak ditemukan
+            return response()->json([
+                'message' => 'Kategori tidak ditemukan.',
+            ], 404);
+        } catch (\PDOException $e) {
+            // Penanganan error koneksi database
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada koneksi database.',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            // Penanganan error umum
+            return response()->json([
+                'message' => 'Gagal memperbarui kategori.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     public function destroy($id)
     {
-        $kategori = Kategori::findOrFail($id);
-        $kategori->delete();
+        try {
+            // Cari kategori berdasarkan ID
+            $kategori = Kategori::findOrFail($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data berhasil dihapus'
-        ], 200);
+            // Hapus kategori
+            $kategori->delete();
+
+            // Berikan respons sukses
+            return response()->json([
+                'message' => 'Data berhasil dihapus.',
+            ], 200);
+
+        } catch (ModelNotFoundException $e) {
+            // Penanganan error jika data tidak ditemukan
+            return response()->json([
+                'message' => 'Kategori tidak ditemukan.',
+            ], 404);
+        } catch (\PDOException $e) {
+            // Penanganan error koneksi database
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada koneksi database.',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            // Penanganan error umum
+            return response()->json([
+                'message' => 'Gagal menghapus kategori.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
