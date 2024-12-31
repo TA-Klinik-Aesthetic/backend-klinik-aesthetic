@@ -103,6 +103,26 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
     });
 
+<<<<<<< Updated upstream
+=======
+
+    // Products Purchase Management
+    Route::prefix('products-purchase')->group(function () {
+        Route::post('/pembelian', [PembelianProdukController::class, 'store']); // Create new purchase
+        Route::get('/pembelian', [PembelianProdukController::class, 'index']); // Get all purchases
+        Route::get('/pembelian/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
+        Route::put('/pembelian/{id}', [PembelianProdukController::class, 'update']); // Edit the tb_pembelian purchase
+        Route::delete('/pembelian/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
+    });
+
+    Route::prefix('promos')->group(function () {
+        Route::get('/', [PromoController::class, 'index']); // Menampilkan semua promo
+        Route::post('/', [PromoController::class, 'store']); // Menambahkan promo baru
+        Route::get('/{id}', [PromoController::class, 'show']); // Menampilkan detail promo berdasarkan ID
+        Route::put('/{id}', [PromoController::class, 'update']); // Memperbarui promo berdasarkan ID
+        Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
+    });
+>>>>>>> Stashed changes
 
     //ALL about TREATMENTSSSSSSS
     Route::prefix('treatments')->group(function () {
@@ -135,17 +155,6 @@ Route::post('/login', [AuthController::class, 'login']);
     Route::prefix('feedbackTreatments')->group(function () {
         Route::apiResource('/', FeedbackTreatmentApiController::class)
             ->parameters(['' => 'feedbackTreatment']);
-    });
-
-    Route::post('/pembelian', [PembelianProdukController::class, 'store']);
-
-    // Products Purchase Management
-    Route::prefix('products-purchase')->group(function () {
-        Route::post('/pembelian', [PembelianProdukController::class, 'store']); // Create new purchase
-        Route::get('/pembelian', [PembelianProdukController::class, 'index']); // Get all purchases
-        Route::get('/pembelian/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
-        Route::put('/pembelian/{id}', [PembelianProdukController::class, 'update']); // Edit the tb_pembelian purchase
-        Route::delete('/pembelian/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
     });
 
     Route::prefix('jadwal-dokter')->group(function () {
