@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\FeedbackControllerKonsultasi;
 use App\Http\Controllers\Api\FeedbackTreatmentApiController;
 use App\Http\Controllers\JadwalPraktikBeauticianController;
 use App\Http\Controllers\JadwalPraktikDokterController;
+use App\Http\Controllers\PromoController;
 
 
 //authentikasi {

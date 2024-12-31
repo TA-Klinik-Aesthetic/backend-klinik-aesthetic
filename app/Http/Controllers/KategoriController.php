@@ -50,8 +50,8 @@ class KategoriController extends Controller
         try {
             $kategori = Kategori::findOrFail($id);
             return response()->json($kategori, 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Kategori tidak ditemukan.'], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     return response()->json(['message' => 'Kategori tidak ditemukan.'], 404);
         } catch (\PDOException $e) {
             return response()->json(['message' => 'Kesalahan pada koneksi database.', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
@@ -79,11 +79,11 @@ class KategoriController extends Controller
                 'message' => 'Kategori berhasil diperbarui.',
                 'data' => $kategori,
             ], 200);
-        } catch (ModelNotFoundException $e) {
-            // Penanganan error jika data tidak ditemukan
-            return response()->json([
-                'message' => 'Kategori tidak ditemukan.',
-            ], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     // Penanganan error jika data tidak ditemukan
+        //     return response()->json([
+        //         'message' => 'Kategori tidak ditemukan.',
+        //     ], 404);
         } catch (\PDOException $e) {
             // Penanganan error koneksi database
             return response()->json([
@@ -114,11 +114,11 @@ class KategoriController extends Controller
                 'message' => 'Data berhasil dihapus.',
             ], 200);
 
-        } catch (ModelNotFoundException $e) {
-            // Penanganan error jika data tidak ditemukan
-            return response()->json([
-                'message' => 'Kategori tidak ditemukan.',
-            ], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     // Penanganan error jika data tidak ditemukan
+        //     return response()->json([
+        //         'message' => 'Kategori tidak ditemukan.',
+        //     ], 404);
         } catch (\PDOException $e) {
             // Penanganan error koneksi database
             return response()->json([
