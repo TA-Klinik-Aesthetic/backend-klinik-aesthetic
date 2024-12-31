@@ -76,7 +76,7 @@ class PembelianProdukController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], 400);
+            ], 403);
         }
     }
 
@@ -155,7 +155,7 @@ class PembelianProdukController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], 400);
+            ], 403);
         }
     }
 
