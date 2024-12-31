@@ -80,6 +80,24 @@ class PembelianProdukController extends Controller
         }
     }
 
+    public function index()
+    {
+        $pembelian = PembelianProduk::with('detailPembelian')->get();
+        return response()->json($pembelian);
+    }
+
+    public function show($id)
+    {
+        $pembelian = PembelianProduk::with('detailPembelian')->find($id);
+
+        if (!$pembelian) {
+            return response()->json(['error' => 'Data pembelian tidak ditemukan'], 404);
+        }
+
+        return response()->json($pembelian);
+    }
+
+
     public function update(Request $request, $id)
     {
         $pembelian = PembelianProduk::find($id);

@@ -23,7 +23,6 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\PembelianProdukController;
-use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
@@ -108,8 +107,8 @@ Route::post('/login', [AuthController::class, 'login']);
     // Products Purchase Management
     Route::prefix('products-purchase')->group(function () {
         Route::post('/pembelian', [PembelianProdukController::class, 'store']); // Create new purchase
-        Route::get('/pembelian', [DetailPembelianProdukController::class, 'index']); // Get all purchases
-        Route::get('/pembelian/{id}', [DetailPembelianProdukController::class, 'show']); // Get purchase details by ID
+        Route::get('/pembelian', [PembelianProdukController::class, 'index']); // Get all purchases
+        Route::get('/pembelian/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
         Route::put('/pembelian/{id}', [PembelianProdukController::class, 'update']); // Edit the tb_pembelian purchase
         Route::delete('/pembelian/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
     });

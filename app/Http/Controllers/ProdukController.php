@@ -65,10 +65,10 @@ class ProdukController extends Controller
                 'message' => 'Data produk berhasil diambil.',
                 'data' => $produk,
             ], 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Produk tidak ditemukan.',
-            ], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     return response()->json([
+        //         'message' => 'Produk tidak ditemukan.',
+        //     ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Gagal mengambil data produk.',
@@ -98,10 +98,10 @@ class ProdukController extends Controller
                 'message' => 'Produk berhasil diperbarui.',
                 'data' => $produk,
             ], 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Produk tidak ditemukan.',
-            ], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     return response()->json([
+        //         'message' => 'Produk tidak ditemukan.',
+        //     ], 404);
         } catch (\PDOException $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan pada koneksi database.',
@@ -125,10 +125,10 @@ class ProdukController extends Controller
             return response()->json([
                 'message' => 'Produk berhasil dihapus.',
             ], 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Produk tidak ditemukan.',
-            ], 404);
+        // } catch (ModelNotFoundException $e) {
+        //     return response()->json([
+        //         'message' => 'Produk tidak ditemukan.',
+        //     ], 404);
         } catch (\PDOException $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan pada koneksi database.',
