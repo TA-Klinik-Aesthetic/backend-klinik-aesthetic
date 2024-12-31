@@ -59,7 +59,7 @@ Route::post('/login', [AuthController::class, 'login']);
     // Route untuk mendapatkan semua dokter
     Route::get('/beauticians', [BeauticianController::class, 'index']);
     //}
-    
+
 
     //konsultasi{
     // Endpoint untuk menampilkan seluruh data konsultasi
@@ -103,9 +103,6 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
     });
 
-<<<<<<< Updated upstream
-=======
-
     // Products Purchase Management
     Route::prefix('products-purchase')->group(function () {
         Route::post('/pembelian', [PembelianProdukController::class, 'store']); // Create new purchase
@@ -122,7 +119,6 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::put('/{id}', [PromoController::class, 'update']); // Memperbarui promo berdasarkan ID
         Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
     });
->>>>>>> Stashed changes
 
     //ALL about TREATMENTSSSSSSS
     Route::prefix('treatments')->group(function () {

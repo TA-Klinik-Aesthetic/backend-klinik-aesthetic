@@ -26,8 +26,16 @@ class KategoriController extends Controller
 
     public function show($id)
     {
-        $kategori = Kategori::findOrFail($id);
-        return response()->json($kategori);
+        try {
+            $kategori = Kategori::findOrFail($id);
+            return response()->json($kategori, 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Kategori tidak ditemukan.'], 404);
+        } catch (\PDOException $e) {
+            return response()->json(['message' => 'Kesalahan pada koneksi database.', 'error' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mengambil data kategori.', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function update(Request $request, $id)
@@ -48,7 +56,7 @@ class KategoriController extends Controller
     {
         $kategori = Kategori::findOrFail($id);
         $kategori->delete();
-    
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data berhasil dihapus'
