@@ -21,13 +21,26 @@ class UsersSeeder extends Seeder
                 'email' => 'johndoe@example.com',
                 'password' => Hash::make('password123'),
                 'role' => 'pelanggan',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
-                'nama_user' => 'Jane Smith',
+                'nama_user' => 'Ezra',
+                'no_telp' => '089765452765',
+                'email' => 'ezra@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'pelanggan',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nama_user' => 'Nata Nara',
                 'no_telp' => '082345678901',
-                'email' => 'janesmith@example.com',
+                'email' => 'natanara@gmail.com',
                 'password' => Hash::make('password456'),
                 'role' => 'pelanggan',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'nama_user' => 'Alice Johnson',
@@ -35,6 +48,8 @@ class UsersSeeder extends Seeder
                 'email' => 'alicejohnson@example.com',
                 'password' => Hash::make('password789'),
                 'role' => 'front office',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
     }

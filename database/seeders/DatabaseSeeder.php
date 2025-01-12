@@ -30,7 +30,8 @@ class DatabaseSeeder extends Seeder
             FeedbackTreatmentSeeder::class,
 
             KategoriSeeder::class,
-            ProdukSeeder::class
+            ProdukSeeder::class,
+            PromoSeeder::class
         ]);
     }
 }

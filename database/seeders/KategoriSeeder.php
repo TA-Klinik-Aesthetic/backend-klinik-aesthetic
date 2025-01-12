@@ -15,10 +15,10 @@ class KategoriSeeder extends Seeder
     {
         DB::table('tb_kategori')->insert([
             ['nama_kategori' => 'Skincare'],
-            ['nama_kategori' => 'Makeup'],
+            ['nama_kategori' => 'Facewash'],
             ['nama_kategori' => 'Haircare'],
             ['nama_kategori' => 'Bodycare'],
-            ['nama_kategori' => 'Fragrance'],
+            ['nama_kategori' => 'Acnecare'],
         ]);
     }
 }
