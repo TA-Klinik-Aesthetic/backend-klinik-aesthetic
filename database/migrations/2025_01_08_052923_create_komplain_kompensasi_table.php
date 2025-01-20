@@ -15,18 +15,19 @@ return new class extends Migration
             $table->increments('id_kompensasi');
             $table->string('nama_kompensasi');
             $table->text('deskripsi_kompensasi')->nullable();
-            $table->date('tanggal_mulai');
-            $table->date('tanggal_berakhir');
             $table->timestamps();
         });
 
         Schema::create('tb_komplain', function (Blueprint $table) {
             $table->integer('id_komplain');
-            $table->unsignedInteger('id_user'); // Relasi ke tabel tb_dokter
+            $table->unsignedInteger('id_user'); 
             $table->text('teks_komplain')->nullable();
-            $table->string('gambar_treatment');
+            $table->string('gambar_komplain')->nullable();
+            $table->string('gambar_bukti_transaksi')->nullable();
             $table->text('balasan_komplain')->nullable();
-            $table->unsignedInteger('id_kompensasi'); // Relasi ke tabel tb_dokter
+            $table->unsignedInteger('id_kompensasi')->nullable();
+            $table->date('tanggal_berakhir_kompensasi')->nullable();
+            $table->enum('status_kompensasi', ['Belum Digunakan', 'Sudah Digunakan', 'Tidak Bisa Digunakan'])->default('Belum Digunakan')->nullable();
             $table->timestamps();
 
             $table->foreign('id_kompensasi')->references('id_kompensasi')->on('tb_kompensasi')->onDelete('cascade');

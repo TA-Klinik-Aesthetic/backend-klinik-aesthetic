@@ -8,17 +8,17 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('tb_detail_pembelian_produk', function (Blueprint $table) {
-            $table->increments('id_detail_pembelian_produk');
-            $table->unsignedInteger('id_pembelian_produk');
+        Schema::create('tb_detail_penjualan_produk', function (Blueprint $table) {
+            $table->increments('id_detail_penjualan_produk');
+            $table->unsignedInteger('id_penjualan_produk');
             $table->unsignedInteger('id_produk');
             $table->integer('jumlah_produk');
-            $table->decimal('harga_pembelian_produk', 15, 2);
+            $table->decimal('harga_penjualan_produk', 15, 2);
             $table->timestamps();
 
-            $table->foreign('id_pembelian_produk')
-                ->references('id_pembelian_produk')
-                ->on('tb_pembelian_produk')
+            $table->foreign('id_penjualan_produk')
+                ->references('id_penjualan_produk')
+                ->on('tb_penjualan_produk')
                 ->onDelete('cascade');
             $table->foreign('id_produk')
                 ->references('id_produk')
@@ -29,7 +29,7 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('tb_detail_pembelian_produk');
+        Schema::dropIfExists('tb_detail_penjualan_produk');
     }
 
 };

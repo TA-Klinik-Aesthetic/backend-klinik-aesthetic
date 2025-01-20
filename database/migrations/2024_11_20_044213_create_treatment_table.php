@@ -22,8 +22,8 @@ return new class extends Migration
             $table->increments('id_treatment'); // Primary key
             $table->unsignedInteger('id_jenis_treatment'); // Foreign key ke tabel tb_jenis_treatment
             $table->string('nama_treatment');
-            $table->string('deskripsi_treatment');
-            $table->double('biaya_treatment', 15, 2); // Ubah menjadi tipe double
+            $table->text('deskripsi_treatment');
+            $table->decimal('biaya_treatment', 15, 2); // Ubah menjadi tipe double
             $table->time('estimasi_treatment');
             $table->string('gambar_treatment');
             $table->timestamps();
@@ -38,21 +38,23 @@ return new class extends Migration
             $table->unsignedInteger('id_user'); // Foreign key ke tabel tb_user
             $table->dateTime('waktu_treatment');
             $table->enum('status_booking_treatment', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
-            $table->double('harga_total', 15, 2)->nullable(); // Ubah menjadi tipe double
-            $table->string('potongan_harga')->nullable(); // Ubah menjadi tipe double
-            $table->double('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
+            $table->decimal('harga_total', 15, 2)->nullable(); // Ubah menjadi tipe double
+            $table->unsignedInteger('id_promo')->nullable(); // Foreign key ke tabel tb_user
+            $table->decimal('potongan_harga', 15, 2)->nullable(); // Ubah menjadi tipe double
+            $table->decimal('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
             $table->timestamps();
 
             // Foreign key constraints
             $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');
+            $table->foreign('id_promo')->references('id_promo')->on('tb_promo')->onDelete('cascade');
         });
 
         // Tabel tb_detail_booking_treatment
         Schema::create('tb_detail_booking_treatment', function (Blueprint $table) {
             $table->increments('id_detail_booking_treatment'); // Primary key
-            $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_treatment
+            $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_booking_treatment
             $table->unsignedInteger('id_treatment'); // Foreign key ke tabel tb_treatment
-            $table->double('biaya_treatment', 15, 2); // Ubah menjadi tipe double
+            $table->decimal('biaya_treatment', 15, 2); // Ubah menjadi tipe double
             $table->unsignedInteger('id_dokter')->nullable(); // Relasi ke tabel tb_dokter
             $table->unsignedInteger('id_beautician')->nullable(); // Foreign key ke tabel tb_beautician
             $table->timestamps();
@@ -67,14 +69,14 @@ return new class extends Migration
         // Tabel tb_feedback
         Schema::create('tb_feedback_treatment', function (Blueprint $table) {
             $table->increments('id_feedback_treatment'); // Primary key
-            $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_konsultasi
+            $table->unsignedInteger('id_detail_booking_treatment'); // Foreign key ke tabel tb_konsultasi
             $table->tinyInteger('rating')->unsigned()->nullable(); // Rating dengan nilai maksimal 5
             $table->text('teks_feedback')->nullable();
             $table->text('balasan_feedback')->nullable();
             $table->timestamps();
 
             // Foreign key constraints
-            $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
+            $table->foreign('id_detail_booking_treatment')->references('id_detail_booking_treatment')->on('tb_detail_booking_treatment')->onDelete('cascade');
         });
     }
 

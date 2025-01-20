@@ -40,7 +40,7 @@ return new class extends Migration
         Schema::create('tb_feedback_konsultasi', function (Blueprint $table) {
             $table->increments('id_feedback_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
-            $table->tinyInteger('rating')->unsigned()->nullable(); // Rating dengan nilai maksimal 5
+            $table->tinyInteger('rating')->unsigned()->nullable();
             $table->text('teks_feedback')->nullable();
             $table->text('balasan_feedback')->nullable();
             $table->timestamps();

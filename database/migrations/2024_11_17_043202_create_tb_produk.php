@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('tb_kategori', function (Blueprint $table) {
             $table->increments('id_kategori'); // Primary Key
             $table->string('nama_kategori', 255);
+            $table->timestamps();
         });
 
         // Create tb_produk table
@@ -23,7 +24,7 @@ return new class extends Migration
             $table->unsignedInteger('id_kategori'); // Foreign Key
             $table->string('nama_produk', 255);
             $table->text('deskripsi_produk')->nullable();
-            $table->decimal('harga_produk', 10, 2);
+            $table->decimal('harga_produk', 15, 2);
             $table->integer('stok_produk');
             $table->enum('status_produk', ['Tersedia', 'Habis']);
             $table->string('gambar_produk', 255);
