@@ -10,7 +10,7 @@ class BookingTreatment extends Model
     use HasFactory;
 
     protected $table = 'tb_booking_treatment';
-    
+
     protected $primaryKey = 'id_booking_treatment';
 
     public $incrementing = true;
@@ -22,6 +22,7 @@ class BookingTreatment extends Model
         'waktu_treatment',
         'status_booking_treatment',
         'harga_total',
+        'id_promo',
         'potongan_harga',
         'harga_akhir_treatment',
     ];
@@ -31,5 +32,15 @@ class BookingTreatment extends Model
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
-    
+
+    // Relasi ke model Promo
+    public function promo()
+    {
+        return $this->belongsTo(Promo::class, 'id_promo', 'id_promo');
+    }
+
+    public function detailBooking()
+    {
+        return $this->hasMany(DetailBookingTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
+    }
 }

@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             DetailKonsultasiSeeder::class,
             FeedbackKonsultasiSeeder::class,
 
+            PromoSeeder::class,
+
             BeauticianSeeder::class,
             JadwalPraktikBeauticianSeeder::class,
             JenisTreatmentSeeder::class,
@@ -31,7 +33,8 @@ class DatabaseSeeder extends Seeder
 
             KategoriSeeder::class,
             ProdukSeeder::class,
-            PromoSeeder::class
+            PenjualanProdukSeeder::class,
+            DetailPenjualanProdukSeeder::class
         ]);
     }
 }

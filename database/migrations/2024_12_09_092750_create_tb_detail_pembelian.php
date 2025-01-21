@@ -16,14 +16,8 @@ return new class extends Migration
             $table->decimal('harga_penjualan_produk', 15, 2);
             $table->timestamps();
 
-            $table->foreign('id_penjualan_produk')
-                ->references('id_penjualan_produk')
-                ->on('tb_penjualan_produk')
-                ->onDelete('cascade');
-            $table->foreign('id_produk')
-                ->references('id_produk')
-                ->on('tb_produk')
-                ->onDelete('cascade');
+            $table->foreign('id_penjualan_produk')->references('id_penjualan_produk')->on('tb_penjualan_produk')->onDelete('cascade');
+            $table->foreign('id_produk')->references('id_produk')->on('tb_produk')->onDelete('cascade');
         });
     }
 
