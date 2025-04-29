@@ -17,10 +17,16 @@ class DetailKonsultasi extends Model
         'id_konsultasi',
         'keluhan_pelanggan',
         'saran_tindakan',
+        'id_treatment'
     ];
 
     public function konsultasi()
     {
         return $this->belongsTo(Konsultasi::class, 'id_konsultasi', 'id_konsultasi');
+    }
+
+    public function treatment()
+    {
+        return $this->belongsTo(Treatment::class, 'id_treatment');
     }
 }

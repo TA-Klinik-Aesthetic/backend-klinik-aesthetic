@@ -18,7 +18,7 @@ class FeedbackTreatment extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'id_booking_treatment',
+        'id_detail_booking_treatment',
         'rating',
         'teks_feedback',
         'balasan_feedback'

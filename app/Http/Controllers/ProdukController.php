@@ -34,8 +34,21 @@ class ProdukController extends Controller
                 'harga_produk' => 'required|numeric',
                 'stok_produk' => 'required|integer',
                 'status_produk' => 'required|string|max:255',
-                'gambar_produk' => 'required|string|max:255',
+                'gambar_produk' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
             ]);
+
+            // Jika ada file gambar, simpan ke storage
+            if ($request->hasFile('gambar_produk')) {
+                $file = $request->file('gambar_produk');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('produk_images', $fileName, 'public');
+
+                if (!$path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
+                }
+
+                $validated['gambar_produk'] = $path; // Simpan path ke database
+            }
 
             $produk = Produk::create($validated);
 
@@ -52,7 +65,7 @@ class ProdukController extends Controller
             return response()->json([
                 'message' => 'Gagal menambahkan produk.',
                 'error' => $e->getMessage(),
-            ], 404);
+            ], 400);
         }
     }
 
@@ -65,10 +78,10 @@ class ProdukController extends Controller
                 'message' => 'Data produk berhasil diambil.',
                 'data' => $produk,
             ], 200);
-        // } catch (ModelNotFoundException $e) {
-        //     return response()->json([
-        //         'message' => 'Produk tidak ditemukan.',
-        //     ], 404);
+            // } catch (ModelNotFoundException $e) {
+            //     return response()->json([
+            //         'message' => 'Produk tidak ditemukan.',
+            //     ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Gagal mengambil data produk.',
@@ -98,10 +111,10 @@ class ProdukController extends Controller
                 'message' => 'Produk berhasil diperbarui.',
                 'data' => $produk,
             ], 200);
-        // } catch (ModelNotFoundException $e) {
-        //     return response()->json([
-        //         'message' => 'Produk tidak ditemukan.',
-        //     ], 404);
+            // } catch (ModelNotFoundException $e) {
+            //     return response()->json([
+            //         'message' => 'Produk tidak ditemukan.',
+            //     ], 404);
         } catch (\PDOException $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan pada koneksi database.',
@@ -120,15 +133,20 @@ class ProdukController extends Controller
         try {
             $produk = Produk::findOrFail($id);
 
+            // Hapus gambar dari storage jika ada
+            if (!empty($produk->gambar_produk)) {
+                $gambarPath = public_path('storage/' . $produk->gambar_produk);
+                if (file_exists($gambarPath)) {
+                    unlink($gambarPath);
+                }
+            }
+
+            // Hapus produk dari database
             $produk->delete();
 
             return response()->json([
-                'message' => 'Produk berhasil dihapus.',
+                'message' => 'Produk dan gambarnya berhasil dihapus.',
             ], 200);
-        // } catch (ModelNotFoundException $e) {
-        //     return response()->json([
-        //         'message' => 'Produk tidak ditemukan.',
-        //     ], 404);
         } catch (\PDOException $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan pada koneksi database.',

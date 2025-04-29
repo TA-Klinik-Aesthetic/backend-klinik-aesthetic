@@ -30,10 +30,12 @@ return new class extends Migration
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             $table->string('keluhan_pelanggan')->nullable();
             $table->string('saran_tindakan')->nullable();
+            $table->unsignedInteger('id_treatment')->nullable();
             $table->timestamps();
 
             // Foreign key constraints
             $table->foreign('id_konsultasi')->references('id_konsultasi')->on('tb_konsultasi')->onDelete('cascade');
+            $table->foreign('id_treatment')->references('id_treatment')->on('tb_treatment')->onDelete('set null');
         });
 
         // Tabel tb_feedback

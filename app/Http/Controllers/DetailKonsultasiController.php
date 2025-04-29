@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DetailKonsultasi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\Konsultasi;
 use Illuminate\Database\QueryException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -17,49 +18,37 @@ class DetailKonsultasiController extends Controller
     public function store(Request $request, $id): JsonResponse
     {
         try {
-            // Validasi input
+            // Validasi input sebagai array dari data detail konsultasi
             $validatedData = $request->validate([
-                'keluhan_pelanggan' => 'required|string|max:255',
-                'saran_tindakan' => 'required|string|max:255',
+                'details' => 'required|array',
+                'details.*.keluhan_pelanggan' => 'required|string|max:255',
+                'details.*.saran_tindakan' => 'required|string|max:255',
+                'details.*.id_treatment' => 'nullable|exists:tb_treatment,id_treatment',
             ]);
-
-            // Cari data detail konsultasi berdasarkan ID
-            $detailKonsultasi = DetailKonsultasi::find($id);
-
-            if (!$detailKonsultasi) {
-                // Jika detail konsultasi tidak ditemukan, kembalikan pesan error
-                return response()->json(['message' => 'Detail konsultasi tidak ditemukan.'], 404);
+    
+            // Cari data konsultasi berdasarkan ID
+            $konsultasi = Konsultasi::find($id);
+            if (!$konsultasi) {
+                return response()->json(['message' => 'Konsultasi tidak ditemukan.'], 404);
             }
-
-            // Perbarui data dengan input yang divalidasi
-            $detailKonsultasi->update($validatedData);
-
-            // Kembalikan respons sukses
+    
+            $detailKonsultasiList = [];
+    
+            // Simpan setiap detail konsultasi ke dalam database
+            foreach ($validatedData['details'] as $detail) {
+                $detailKonsultasiList[] = DetailKonsultasi::create([
+                    'id_konsultasi' => $id,
+                    'keluhan_pelanggan' => $detail['keluhan_pelanggan'],
+                    'saran_tindakan' => $detail['saran_tindakan'],
+                    'id_treatment' => $detail['id_treatment'] ?? null,
+                ]);
+            }
+    
             return response()->json([
-                'message' => 'Detail konsultasi berhasil diperbarui.',
-                'data' => $detailKonsultasi
-            ], 200);
-
-        } catch (UnauthorizedHttpException $e) {
-            // Handle error autentikasi
-            return response()->json([
-                'message' => 'Akses tidak diizinkan.',
-                'error' => $e->getMessage()
-            ], 401);
-        } catch (AccessDeniedHttpException $e) {
-            // Handle error otorisasi
-            return response()->json([
-                'message' => 'Akses ditolak.',
-                'error' => $e->getMessage()
-            ], 403);
-        } catch (QueryException $e) {
-            // Handle kesalahan query database
-            return response()->json([
-                'message' => 'Terjadi kesalahan pada basis data.',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Detail konsultasi berhasil ditambahkan.',
+                'data' => $detailKonsultasiList
+            ], 201);
         } catch (\Exception $e) {
-            // Handle kesalahan umum lainnya
             return response()->json([
                 'message' => 'Terjadi kesalahan yang tidak terduga.',
                 'error' => $e->getMessage()

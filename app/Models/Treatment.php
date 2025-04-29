@@ -32,9 +32,14 @@ class Treatment extends Model
         return $this->belongsTo(JenisTreatment::class, 'id_jenis_treatment', 'id_jenis_treatment');
     }
 
-         // Relasi ke model Treatment
+    // Relasi ke model detail booking Treatment
     public function detail_booking_treatment()
     {
         return $this->hasMany(DetailBookingTreatment::class, 'id_treatment');
+    }
+
+    public function detailKonsultasi()
+    {
+        return $this->hasMany(DetailKonsultasi::class, 'id_treatment');
     }
 }

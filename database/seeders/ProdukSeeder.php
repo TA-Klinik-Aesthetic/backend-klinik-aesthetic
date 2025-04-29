@@ -82,6 +82,7 @@ class ProdukSeeder extends Seeder
             ],
             [
                 'id_kategori' => 1,
+                // 'id_jenis_treatment' => 1,
                 'nama_produk' => 'ERHA21 Acne Spot Treatment Calamine & Sulfur 5%',
                 'deskripsi_produk' => 'Krim perawatan untuk mengatasi masalah jerawat ringan hingga sedang, ampuh melawan bakteri penyebab jerawat serta membantu menenangkan iritasi ringan dan kemerahan akibat jerawat.',
                 'harga_produk' => 150000.00,

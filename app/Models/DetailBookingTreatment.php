@@ -47,4 +47,9 @@ class DetailBookingTreatment extends Model
     {
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
+
+    // public function detailProduk()
+    // {
+    //     return $this->hasMany(DetailBookingProduk::class, 'id_detail_booking_treatment', 'id_detail_booking_treatment');
+    // }
 }

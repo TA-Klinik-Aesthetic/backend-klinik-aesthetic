@@ -19,6 +19,7 @@ class DetailKonsultasiSeeder extends Seeder
                 'id_konsultasi' => 1,
                 'keluhan_pelanggan' => 'Sakit kepala dan demam',
                 'saran_tindakan' => 'Istirahat cukup dan minum obat pereda nyeri',
+                'id_treatment' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],

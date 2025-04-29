@@ -33,6 +33,6 @@ class Konsultasi extends Model
     // Relasi dengan model DetailKonsultasi
     public function detail_konsultasi()
     {
-        return $this->hasOne(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
+        return $this->hasMany(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
     }
 }

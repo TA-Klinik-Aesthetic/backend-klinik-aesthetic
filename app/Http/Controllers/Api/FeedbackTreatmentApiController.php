@@ -30,7 +30,7 @@ class FeedbackTreatmentApiController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'id_booking_treatment' => 'required|exists:tb_booking_treatment,id_booking_treatment',
+                'id_detail_booking_treatment' => 'required|exists:tb_detail_booking_treatment,id_detail_booking_treatment',
                 'rating' => 'nullable|integer|min:1|max:5',
                 'teks_feedback' => 'nullable|string',
                 'balasan_feedback' => 'nullable|string',
@@ -84,7 +84,7 @@ class FeedbackTreatmentApiController extends Controller
             }
 
             $validatedData = $request->validate([
-                'id_booking_treatment' => 'sometimes|exists:tb_booking_treatment,id_booking_treatment',
+                'id_detail_booking_treatment' => 'sometimes|exists:tb_detail_booking_treatment,id_detail_booking_treatment',
                 'rating' => 'sometimes|integer|min:1|max:5',
                 'teks_feedback' => 'sometimes|string',
                 'balasan_feedback' => 'nullable|string',

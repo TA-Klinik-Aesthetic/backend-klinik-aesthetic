@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\DetailBookingProduk;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -17,6 +19,13 @@ class DatabaseSeeder extends Seeder
 
             DokterSeeder::class,
             JadwalPraktikDokterSeeder::class,
+
+            JenisTreatmentSeeder::class,
+            KategoriSeeder::class,
+            ProdukSeeder::class,
+
+            TreatmentSeeder::class,
+
             KonsultasiSeeder::class,
             DetailKonsultasiSeeder::class,
             FeedbackKonsultasiSeeder::class,
@@ -25,14 +34,11 @@ class DatabaseSeeder extends Seeder
 
             BeauticianSeeder::class,
             JadwalPraktikBeauticianSeeder::class,
-            JenisTreatmentSeeder::class,
-            TreatmentSeeder::class,
             BookingTreatmentSeeder::class,
             DetailBookingTreatmentSeeder::class,
+            // DetailBookingProdukSeeder::class,
             FeedbackTreatmentSeeder::class,
 
-            KategoriSeeder::class,
-            ProdukSeeder::class,
             PenjualanProdukSeeder::class,
             DetailPenjualanProdukSeeder::class
         ]);

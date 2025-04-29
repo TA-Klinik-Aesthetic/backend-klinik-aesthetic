@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\FeedbackTreatmentApiController;
 use App\Http\Controllers\JadwalPraktikBeauticianController;
 use App\Http\Controllers\JadwalPraktikDokterController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\KompensasiController;
+use App\Http\Controllers\KomplainController;
 
 
 //authentikasi {
@@ -79,7 +81,7 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateB
 Route::get('/detail-konsultasi/{id}', [KonsultasiController::class, 'showDetail']);
 
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
-Route::put('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
+Route::post('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
 // Route untuk delete konsultasi
 Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
@@ -143,7 +145,7 @@ Route::prefix('detailBookingTreatments')->group(function () {
 });
 
 Route::put('statusBookingTreatments/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']);
-
+Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);
 
 
 //ALL ABOUTTT FEEDBACKK
@@ -171,8 +173,19 @@ Route::prefix('jadwal-beautician')->group(function () {
     Route::delete('/{id}', [JadwalPraktikBeauticianController::class, 'destroy']); // Delete a category
 });
 
-Route::get('promos', [PromoController::class, 'index']);
-Route::post('promos', [PromoController::class, 'store']);
-Route::put('promos/{id}', [PromoController::class, 'update']);
-Route::delete('promos/{id}', [PromoController::class, 'destroy']);
+Route::get('promo', [PromoController::class, 'index']);
+Route::get('/promo/{id}', [PromoController::class, 'show']);
+Route::post('promo', [PromoController::class, 'store']);
+Route::put('promo/{id}', [PromoController::class, 'update']);
+Route::delete('promo/{id}', [PromoController::class, 'destroy']);
+
+
+Route::get('/kompensasi', [KompensasiController::class, 'index']);
+Route::post('/kompensasi', [KompensasiController::class, 'store']);
+Route::put('/kompensasi/{id}', [KompensasiController::class, 'update']);
+
+Route::get('/komplain', [KomplainController::class, 'index']);
+Route::post('/komplain', [KomplainController::class, 'store']);
+Route::put('/komplain/{id}', [KomplainController::class, 'update']);
+Route::get('/komplain/{id}', [KomplainController::class, 'show']);
 // });

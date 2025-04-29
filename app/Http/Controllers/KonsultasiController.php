@@ -46,7 +46,7 @@ class KonsultasiController extends Controller
             'waktu_konsultasi' => 'required|date|after:now',
             'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
         ]);
-    
+
         // Jika validasi gagal, kembalikan respon error
         if ($validator->fails()) {
             return response()->json([
@@ -55,35 +55,23 @@ class KonsultasiController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-    
+
         // Buat data konsultasi
         $konsultasi = Konsultasi::create([
             'id_user' => $request->id_user,
             'waktu_konsultasi' => $request->waktu_konsultasi,
             'id_dokter' => $request->id_dokter,
         ]);
-    
-        // Buat entri baru di tabel detail_konsultasi dengan id_konsultasi yang sama
-        $detailKonsultasi = DetailKonsultasi::create([
-            'id_konsultasi' => $konsultasi->id_konsultasi,
-            'keluhan_pelanggan' => '',
-            'saran_tindakan' => '',
-        ]);
-    
-        // Include data konsultasi di dalam detail konsultasi
-        $detailKonsultasi->load('konsultasi');
-    
-        // Kembalikan respon sukses dengan data konsultasi dan detail konsultasi
+
+        // Kembalikan respon sukses dengan data konsultasi yang baru dibuat
         return response()->json([
             'success' => true,
-            'message' => 'Data konsultasi dan detail konsultasi berhasil ditambahkan',
-            'data' => [
-                'konsultasi' => $konsultasi,
-                'detail_konsultasi' => $detailKonsultasi,
-            ]
+            'message' => 'Data konsultasi berhasil ditambahkan',
+            'data' => $konsultasi
         ], 201);
     }
-    
+
+
 
     // Menambahkan atau memperbarui konsultasi berdasarkan id_konsultasi
     public function updateByKonsultasi(Request $request, $id_konsultasi)
@@ -134,9 +122,8 @@ class KonsultasiController extends Controller
      */
     public function show(string $id)
     {
-
-        // Cari data konsultasi dengan relasi user dan dokter
-        $konsultasi = Konsultasi::with(['user', 'dokter', 'detail_konsultasi'])->find($id);
+        // Ambil konsultasi beserta semua detail konsultasinya
+        $konsultasi = Konsultasi::with(['user', 'dokter', 'detail_konsultasi.treatment'])->find($id);
 
         if (!$konsultasi) {
             return response()->json([
@@ -153,10 +140,10 @@ class KonsultasiController extends Controller
 
     public function showDetail($id)
     {
-        // Cari detail konsultasi berdasarkan ID
-        $detailKonsultasi = DetailKonsultasi::where('id_konsultasi', $id)->first();
+        // Cari semua detail konsultasi berdasarkan ID konsultasi
+        $detailKonsultasi = DetailKonsultasi::where('id_konsultasi', $id)->get();
 
-        if ($detailKonsultasi) {
+        if ($detailKonsultasi->isNotEmpty()) {
             return response()->json([
                 'success' => true,
                 'data' => $detailKonsultasi
@@ -191,22 +178,22 @@ class KonsultasiController extends Controller
     public function destroy($id_konsultasi)
     {
         // Cari data konsultasi berdasarkan ID
-    $konsultasi = Konsultasi::find($id_konsultasi);
+        $konsultasi = Konsultasi::find($id_konsultasi);
 
-    // Jika konsultasi tidak ditemukan
-    if (!$konsultasi) {
+        // Jika konsultasi tidak ditemukan
+        if (!$konsultasi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data konsultasi tidak ditemukan',
+            ], 404);
+        }
+
+        // Hapus data konsultasi beserta detailnya
+        $konsultasi->delete();
+
         return response()->json([
-            'success' => false,
-            'message' => 'Data konsultasi tidak ditemukan',
-        ], 404);
-    }
-
-    // Hapus data konsultasi beserta detailnya
-    $konsultasi->delete();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Data konsultasi dan detail konsultasi berhasil dihapus',
-    ], 200);
+            'success' => true,
+            'message' => 'Data konsultasi dan detail konsultasi berhasil dihapus',
+        ], 200);
     }
 }

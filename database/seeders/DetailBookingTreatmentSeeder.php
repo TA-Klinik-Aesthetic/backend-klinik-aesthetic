@@ -20,7 +20,7 @@ class DetailBookingTreatmentSeeder extends Seeder
                 'id_treatment' => 1, 
                 'biaya_treatment' => 250000, 
                 'id_dokter' => 1, 
-                'id_beautician' => null, 
+                'id_beautician' => 1, 
                 'created_at' => now(),
                 'updated_at' => now()
             ],
