@@ -16,19 +16,29 @@ class Komplain extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'id_user', 
-        'teks_komplain', 
-        'gambar_komplain', 
-        'gambar_bukti_transaksi', 
-        'balasan_komplain', 
-        'id_kompensasi', 
-        'tanggal_berakhir_kompensasi', 
-        'status_kompensasi'
+        'id_user',
+        'teks_komplain',
+        'id_booking_treatment',
+        'gambar_komplain',
+        'balasan_komplain',
+        'pemberian_kompensasi',
     ];
 
-    public function kompensasi()
+    public function kompensasiDiberikan()
     {
-        return $this->belongsTo(Kompensasi::class, 'id_kompensasi');
+        return $this->hasMany(KompensasiDiberikan::class, 'id_komplain');
+    }
+
+    // Relasi satu ke banyak dengan KomplainTreatment
+    public function komplainTreatments()
+    {
+        return $this->hasMany(KomplainTreatment::class, 'id_komplain');
+    }
+
+    // Relasi ke model BookingTreatment (many-to-one)
+    public function bookingTreatment()
+    {
+        return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
 
     public function user()

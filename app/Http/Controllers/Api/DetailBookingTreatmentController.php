@@ -9,6 +9,8 @@ use App\Models\BookingTreatment;
 use App\Models\Promo;
 use App\Models\Treatment;
 use App\Models\Produk;
+use App\Models\KompensasiDiberikan;
+use App\Models\Komplain;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -175,7 +177,7 @@ class DetailBookingTreatmentController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
-
+    
         try {
             // Validasi input booking
             $validatedBooking = $request->validate([
@@ -187,8 +189,19 @@ class DetailBookingTreatmentController extends Controller
                 'details.*.id_treatment' => 'required|exists:tb_treatment,id_treatment',
                 'details.*.id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
                 'details.*.id_beautician' => 'nullable|exists:tb_beautician,id_beautician',
+                'details.*.id_kompensasi_diberikan' => 'nullable|exists:tb_kompensasi_diberikan,id_kompensasi_diberikan',
             ]);
-
+    
+            // Memastikan promo tidak bisa diisi jika semua treatment menggunakan kompensasi
+            $allTreatmentsHaveCompensation = collect($validatedBooking['details'])->every(function($detail) {
+                return !empty($detail['id_kompensasi_diberikan']);
+            });
+    
+            // Jika semua treatment memiliki kompensasi, pastikan promo adalah null
+            if ($allTreatmentsHaveCompensation && !is_null($validatedBooking['id_promo'])) {
+                throw new \Exception('Promo tidak dapat digunakan jika seluruh treatment menggunakan kompensasi.');
+            }
+    
             // Membuat Booking Treatment
             $booking = BookingTreatment::create([
                 'id_user' => $validatedBooking['id_user'],
@@ -199,48 +212,75 @@ class DetailBookingTreatmentController extends Controller
                 'harga_akhir_treatment' => 0,
                 'potongan_harga' => 0,  // Awalnya potongan_harga di-set 0
             ]);
-
+    
             $hargaTotal = 0;
-
+    
             // Memasukkan detail booking treatment (lebih dari satu treatment)
             foreach ($validatedBooking['details'] as $detail) {
                 $treatment = Treatment::find($detail['id_treatment']);
-
                 if (!$treatment) {
                     throw new \Exception("Treatment ID {$detail['id_treatment']} not found");
                 }
-
+    
                 $biayaTreatment = $treatment->biaya_treatment;
-
+    
+                // Jika menggunakan kompensasi
+                if (!empty($detail['id_kompensasi_diberikan'])) {
+                    // Ambil kompensasi diberikan + relasi kompensasi ➝ komplain & treatment
+                    $kompensasiDiberikan = KompensasiDiberikan::with(['komplain', 'kompensasi.treatment'])
+                        ->where('id_kompensasi_diberikan', $detail['id_kompensasi_diberikan'])
+                        ->where('status_kompensasi', 'Belum digunakan')
+                        ->first();
+    
+                    if (!$kompensasiDiberikan) {
+                        throw new \Exception("Kompensasi tidak tersedia atau sudah digunakan.");
+                    }
+    
+                    // Validasi user dan treatment dari relasi
+                    if (
+                        $kompensasiDiberikan->komplain->id_user != $validatedBooking['id_user'] ||
+                        $kompensasiDiberikan->kompensasi->treatment->id_treatment != $detail['id_treatment']
+                    ) {
+                        throw new \Exception("Kompensasi tidak valid untuk user atau treatment ini.");
+                    }
+    
+                    // Set biaya menjadi 0 dan tandai sebagai digunakan
+                    $biayaTreatment = 0;
+                    $kompensasiDiberikan->update([
+                        'status_kompensasi' => 'Sudah digunakan',
+                        'tanggal_pemakaian_kompensasi' => now(),
+                    ]);
+                }
+    
+                // Simpan detail
                 $detail['id_booking_treatment'] = $booking->id_booking_treatment;
                 $detail['biaya_treatment'] = $biayaTreatment;
-
+    
                 DetailBookingTreatment::create($detail);
-
                 $hargaTotal += $biayaTreatment;
             }
-
+    
             // Mengambil promo berdasarkan id_promo
             $promo = Promo::find($validatedBooking['id_promo']);
             $potonganHarga = 0;
-
+    
             if ($promo) {
                 // Jika promo ditemukan, ambil potongan harga dari promo
                 $potonganHarga = $promo->potongan_harga;
             }
-
+    
             // Hitung harga akhir treatment dengan potongan harga dari promo
             $hargaAkhir = $hargaTotal - $potonganHarga;
-
+    
             // Update harga total, potongan harga, dan harga akhir treatment pada BookingTreatment
             $booking->update([
                 'harga_total' => $hargaTotal,
                 'potongan_harga' => $potonganHarga,  // Menyimpan potongan harga
                 'harga_akhir_treatment' => $hargaAkhir > 0 ? $hargaAkhir : 0,
             ]);
-
+    
             DB::commit();
-
+    
             return response()->json([
                 'booking_treatment' => $booking,
                 'message' => 'Booking and details saved successfully',
@@ -253,6 +293,7 @@ class DetailBookingTreatmentController extends Controller
             ], 500);
         }
     }
+    
 
 
     public function update(Request $request, $id)

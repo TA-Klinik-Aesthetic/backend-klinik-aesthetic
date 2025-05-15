@@ -17,6 +17,7 @@ class KompensasiController extends Controller
         $data = $request->validate([
             'nama_kompensasi' => 'required|string',
             'deskripsi_kompensasi' => 'nullable|string',
+            'id_treatment' => 'required|exists:tb_treatment,id_treatment',
         ]);
 
         $kompensasi = Kompensasi::create($data);
@@ -29,6 +30,7 @@ class KompensasiController extends Controller
         $data = $request->validate([
             'nama_kompensasi' => 'required|string',
             'deskripsi_kompensasi' => 'nullable|string',
+            'id_treatment' => 'required|exists:tb_treatment,id_treatment',
         ]);
 
         $kompensasi->update($data);

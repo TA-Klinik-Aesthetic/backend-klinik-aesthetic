@@ -30,4 +30,10 @@ class PembelianProduk extends Model
     {
         return $this->hasMany(DetailPembelianProduk::class, 'id_penjualan_produk');
     }
+
+    // Relasi ke model User
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
 }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('id_promo')->nullable(); // Foreign key ke tabel tb_user
             $table->decimal('potongan_harga', 15, 2)->nullable()->default(0);
             $table->decimal('harga_akhir', 15, 2);
+            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
             $table->timestamps();
 
             $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');

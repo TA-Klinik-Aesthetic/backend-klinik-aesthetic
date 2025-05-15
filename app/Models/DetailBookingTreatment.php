@@ -23,6 +23,7 @@ class DetailBookingTreatment extends Model
         'biaya_treatment',
         'id_dokter',
         'id_beautician',
+        'id_kompensasi_diberikan'
     ];
 
     // Relasi ke model treatment
@@ -48,6 +49,11 @@ class DetailBookingTreatment extends Model
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
 
+    public function kompensasiDiberikan()
+    {
+        return $this->belongsTo(KompensasiDiberikan::class, 'id_kompensasi_diberikan');
+    }
+    
     // public function detailProduk()
     // {
     //     return $this->hasMany(DetailBookingProduk::class, 'id_detail_booking_treatment', 'id_detail_booking_treatment');

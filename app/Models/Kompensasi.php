@@ -17,12 +17,18 @@ class Kompensasi extends Model
 
     protected $fillable = [
         'nama_kompensasi',
-        'deskripsi_kompensasi'
+        'deskripsi_kompensasi',
+        'id_treatment'
     ];
 
     // Relasi dengan model Komplain
-    public function komplain()
+    public function treatment()
     {
-        return $this->hasMany(Komplain::class, 'id_kompensasi', 'id_kompensasi');
+        return $this->belongsTo(Treatment::class, 'id_treatment');
+    }
+
+    public function kompensasiDiberikan()
+    {
+        return $this->hasMany(KompensasiDiberikan::class, 'id_kompensasi');
     }
 }

@@ -27,13 +27,14 @@ return new class extends Migration
             $table->foreign('id_jenis_treatment')->references('id_jenis_treatment')->on('tb_jenis_treatment')->onDelete('cascade');
         });
 
+        // Tabel kompensasi
         Schema::create('tb_kompensasi', function (Blueprint $table) {
             $table->increments('id_kompensasi');
             $table->unsignedInteger('id_treatment'); // Kompensasi hanya untuk treatment tertentu
             $table->string('nama_kompensasi');
             $table->text('deskripsi_kompensasi')->nullable();
             $table->timestamps();
-        
+
             $table->foreign('id_treatment')->references('id_treatment')->on('tb_treatment')->onDelete('cascade');
         });
 
@@ -47,6 +48,7 @@ return new class extends Migration
             $table->unsignedInteger('id_promo')->nullable(); // Foreign key ke tabel tb_user
             $table->decimal('potongan_harga', 15, 2)->nullable(); // Ubah menjadi tipe double
             $table->decimal('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
+            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
             $table->timestamps();
 
             // Foreign key constraints
@@ -54,24 +56,27 @@ return new class extends Migration
             $table->foreign('id_promo')->references('id_promo')->on('tb_promo')->onDelete('cascade');
         });
 
+        // Tabel tb_komplain (tetap seperti sebelumnya)
         Schema::create('tb_komplain', function (Blueprint $table) {
             $table->increments('id_komplain');
             $table->unsignedInteger('id_user');
+            $table->unsignedInteger('id_booking_treatment'); // Menambahkan id_booking_treatment untuk mengacu pada booking yang dikomplain
             $table->text('teks_komplain')->nullable();
             $table->text('gambar_komplain')->nullable();
-            $table->string('gambar_bukti_transaksi')->nullable();
             $table->text('balasan_komplain')->nullable();
+            $table->enum('pemberian_kompensasi', ['Menunggu pengiriman', 'Sudah dikirim'])->default('Menunggu pengiriman');
             $table->timestamps();
 
             $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');
+            $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
         });
 
-        // Tabel kompensasi
+        // Tabel kompensasi diberikan
         Schema::create('tb_kompensasi_diberikan', function (Blueprint $table) {
             $table->increments('id_kompensasi_diberikan');
-            $table->unsignedInteger('id_komplain');
-            $table->unsignedInteger('id_kompensasi');
-            $table->string('kode_kompensasi')->unique(); // Kode unik per pemberian
+            $table->unsignedInteger('id_komplain')->nullable();
+            $table->unsignedInteger('id_kompensasi')->nullable();
+            $table->string('kode_kompensasi')->unique()->nullable(); // Kode unik per pemberian
             $table->date('tanggal_berakhir_kompensasi')->nullable();
             $table->enum('status_kompensasi', ['Belum Digunakan', 'Sudah Digunakan', 'Sudah Kadaluwarsa'])->default('Belum Digunakan');
             $table->dateTime('tanggal_pemakaian_kompensasi')->nullable();
@@ -81,7 +86,8 @@ return new class extends Migration
             $table->foreign('id_kompensasi')->references('id_kompensasi')->on('tb_kompensasi')->onDelete('cascade');
         });
 
-        // Tabel tb_detail_booking_treatment
+
+        // Pastikan juga bahwa kolom id_detail_booking_treatment di tabel tb_detail_booking_treatment adalah unsignedInteger:
         Schema::create('tb_detail_booking_treatment', function (Blueprint $table) {
             $table->increments('id_detail_booking_treatment'); // Primary key
             $table->unsignedInteger('id_booking_treatment'); // FK ke tb_booking_treatment
@@ -97,6 +103,18 @@ return new class extends Migration
             $table->foreign('id_dokter')->references('id_dokter')->on('tb_dokter')->onDelete('set null');
             $table->foreign('id_beautician')->references('id_beautician')->on('tb_beautician')->onDelete('set null');
             $table->foreign('id_kompensasi_diberikan')->references('id_kompensasi_diberikan')->on('tb_kompensasi_diberikan')->onDelete('set null');
+        });
+
+        // Tabel tb_komplain_treatment (relasi antara komplain dan detail booking treatment)
+        Schema::create('tb_komplain_treatment', function (Blueprint $table) {
+            $table->increments('id_komplain_treatment');
+            $table->unsignedInteger('id_komplain'); // Relasi ke tb_komplain
+            $table->unsignedInteger('id_detail_booking_treatment'); // Relasi ke tb_detail_booking_treatment
+            $table->timestamps();
+
+            // Menambahkan indeks untuk memastikan foreign key bisa diterapkan dengan benar
+            $table->foreign('id_komplain')->references('id_komplain')->on('tb_komplain')->onDelete('cascade');
+            $table->foreign('id_detail_booking_treatment')->references('id_detail_booking_treatment')->on('tb_detail_booking_treatment')->onDelete('cascade');
         });
 
 
@@ -138,6 +156,7 @@ return new class extends Migration
         Schema::dropIfExists('tb_kompensasi');
         Schema::dropIfExists('tb_booking_treatment');
         Schema::dropIfExists('tb_komplain');
+        Schema::dropIfExists('tb_komplain_treatment');
         // Schema::dropIfExists('tb_detail_booking_produk');
         Schema::dropIfExists('tb_detail_booking_treatment');
         Schema::dropIfExists('tb_kompensasi_diberikan');

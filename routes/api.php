@@ -34,6 +34,10 @@ use App\Http\Controllers\JadwalPraktikDokterController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\KompensasiController;
 use App\Http\Controllers\KomplainController;
+use App\Http\Controllers\KomplainTreatmentController;
+use App\Http\Controllers\KompensasiDiberikanController;
+use App\Http\Controllers\PembayaranTreatmentController;
+use App\Http\Controllers\PembayaranProdukController;
 
 
 //authentikasi {
@@ -188,4 +192,19 @@ Route::get('/komplain', [KomplainController::class, 'index']);
 Route::post('/komplain', [KomplainController::class, 'store']);
 Route::put('/komplain/{id}', [KomplainController::class, 'update']);
 Route::get('/komplain/{id}', [KomplainController::class, 'show']);
+
+Route::get('/kompensasi-diberikan', [KompensasiDiberikanController::class, 'index']);
+Route::get('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 'show']);
+Route::post('/kompensasi-diberikan', [KompensasiDiberikanController::class, 'store']);
+Route::put('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 'update']);
+
+Route::get('/komplain-treatment', [KomplainTreatmentController::class, 'index']);
+
+
+Route::get('/pembayaran-treatment', [PembayaranTreatmentController::class, 'index']);
+Route::get('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'show']);
+Route::post('/pembayaran-treatment', [PembayaranTreatmentController::class, 'store']);
+Route::put('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'update']);
+
+Route::resource('pembayaran-produk', PembayaranProdukController::class);
 // });
