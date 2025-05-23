@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'tanggal_lahir',
         'password',
+        'foto_profil',
         'role'
     ];
 

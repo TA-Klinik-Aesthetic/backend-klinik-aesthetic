@@ -26,6 +26,31 @@ class UserController extends Controller
         ]);
     }
 
+    public function show($id)
+    {
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak ditemukan',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Detail Data Pengguna',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function update(Request $request, $id)
     {
         try {

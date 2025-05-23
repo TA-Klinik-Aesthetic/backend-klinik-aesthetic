@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->date('tanggal_lahir')->nullable();
             $table->string('password');
+            $table->string('foto_profil')->nullable();
             $table->enum('role', ['pelanggan', 'dokter', 'beautician', 'front office', 'kasir', 'admin'])->default('pelanggan');
             $table->rememberToken();
             $table->timestamps();
