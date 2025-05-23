@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama_user');
             $table->string('no_telp')->unique();
             $table->string('email')->unique();
+            $table->date('tanggal_lahir')->nullable();
             $table->string('password');
             $table->enum('role', ['pelanggan', 'dokter', 'beautician', 'front office', 'kasir', 'admin'])->default('pelanggan');
             $table->rememberToken();

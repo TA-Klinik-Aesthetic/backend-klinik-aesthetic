@@ -19,11 +19,12 @@ class User extends Authenticatable
     public $incrementing = true;
 
     protected $keyType = 'int';
-    
+
     protected $fillable = [
         'nama_user',
         'no_telp',
         'email',
+        'tanggal_lahir',
         'password',
         'role'
     ];

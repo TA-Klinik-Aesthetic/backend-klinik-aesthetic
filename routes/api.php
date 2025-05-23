@@ -56,6 +56,9 @@ Route::post('/logout', [AuthController::class, 'logout']);
 // Route untuk mendapatkan semua pengguna
 Route::get('/users', [UserController::class, 'index']);
 
+// Route untuk mengupdate/edit data pengguna
+Route::put('/users/{id}', [UserController::class, 'update']);
+
 // Route untuk mendapatkan informasi pengguna yang sedang login
 // Route::get('/user/me', [UserController::class, 'me']);
 

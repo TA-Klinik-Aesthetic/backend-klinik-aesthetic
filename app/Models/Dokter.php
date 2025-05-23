@@ -13,12 +13,13 @@ class Dokter extends Model
 
     protected $table = 'tb_dokter'; // Nama tabel di database
     protected $primaryKey = 'id_dokter'; // Nama tabel di database
-    
+
     protected $fillable = [
         'nama_dokter',
         'no_telp',
         'email_dokter',
-        'NIP'
+        'NIP',
+        'foto_dokter'
     ];
 
     // Relasi ke model Konsultasi
