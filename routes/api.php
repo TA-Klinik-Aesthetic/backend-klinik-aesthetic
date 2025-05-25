@@ -55,8 +55,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
 //informasi tiap entitas{
-// Route untuk mendapatkan semua pengguna
 Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::put('/users/{id}', [UserController::class, 'update']);
 
 // Route untuk mendapatkan informasi pengguna yang sedang login
 // Route::get('/user/me', [UserController::class, 'me']);
