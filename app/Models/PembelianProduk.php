@@ -36,4 +36,15 @@ class PembelianProduk extends Model
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
+
+    // Relasi ke model Promo
+    public function promo()
+    {
+        return $this->belongsTo(Promo::class, 'id_promo', 'id_promo');
+    }
+
+    public function pembayaranProduk()
+    {
+        return $this->hasMany(PembayaranProduk::class, 'id_penjualan_produk', 'id_penjualan_produk');
+    }
 }

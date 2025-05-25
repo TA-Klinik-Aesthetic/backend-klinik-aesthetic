@@ -34,4 +34,5 @@ class PembayaranTreatment extends Model
     {
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
+    
 }

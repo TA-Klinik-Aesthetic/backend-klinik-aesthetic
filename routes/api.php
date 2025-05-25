@@ -38,6 +38,8 @@ use App\Http\Controllers\KomplainTreatmentController;
 use App\Http\Controllers\KompensasiDiberikanController;
 use App\Http\Controllers\PembayaranTreatmentController;
 use App\Http\Controllers\PembayaranProdukController;
+use App\Http\Controllers\RekamMedisController;
+use App\Http\Controllers\LaporanController;
 
 
 //authentikasi {
@@ -207,4 +209,17 @@ Route::post('/pembayaran-treatment', [PembayaranTreatmentController::class, 'sto
 Route::put('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'update']);
 
 Route::resource('pembayaran-produk', PembayaranProdukController::class);
+
+Route::get('/rekam-medis', [RekamMedisController::class, 'index']);
+Route::get('/rekam-medis/{id_user}', [RekamMedisController::class, 'show']);
+
+Route::get('/laporan-penjualan-treatment', [LaporanController::class, 'indexTreatment']);
+Route::get('/laporan-treatment-hari', [LaporanController::class, 'laporanHarianTreatment']);
+Route::get('/laporan-treatment-bulan', [LaporanController::class, 'laporanBulananTreatment']);
+
+Route::get('/laporan-penjualan-produk', [LaporanController::class, 'indexProduk']);
+Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProduk']);
+Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
+
+
 // });

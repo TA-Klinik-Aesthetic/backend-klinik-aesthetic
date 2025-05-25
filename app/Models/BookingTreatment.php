@@ -43,4 +43,10 @@ class BookingTreatment extends Model
     {
         return $this->hasMany(DetailBookingTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
     }
+
+    // Relasi dengan pembayaran treatment
+    public function pembayaranTreatment()
+    {
+        return $this->hasMany(PembayaranTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
+    }
 }
