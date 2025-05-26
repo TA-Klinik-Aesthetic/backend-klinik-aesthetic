@@ -19,6 +19,7 @@ class KonsultasiSeeder extends Seeder
                 'id_user' => 1, // Pastikan id_user ini sudah ada di tabel tb_user
                 'id_dokter' => 1, // Pastikan id_dokter ini sudah ada di tabel tb_dokter
                 'waktu_konsultasi' => now(),
+                'keluhan_pelanggan' => 'Sakit kepala dan demam',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

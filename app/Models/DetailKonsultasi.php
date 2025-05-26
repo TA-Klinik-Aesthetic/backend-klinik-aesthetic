@@ -15,7 +15,6 @@ class DetailKonsultasi extends Model
     // Tentukan kolom yang bisa diisi secara massal
     protected $fillable = [
         'id_konsultasi',
-        'keluhan_pelanggan',
         'saran_tindakan',
         'id_treatment'
     ];

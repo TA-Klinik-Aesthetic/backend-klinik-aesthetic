@@ -15,7 +15,9 @@ class Konsultasi extends Model
     protected $fillable = [
         'id_user',
         'id_dokter',
-        'waktu_konsultasi'
+        'waktu_konsultasi',
+        'keluhan_pelanggan',
+        'status_booking_konsultasi'
     ];
 
     // Relasi ke model User

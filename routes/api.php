@@ -82,16 +82,20 @@ Route::get('/konsultasi/{id}', [KonsultasiController::class, 'show']);
 Route::post('/konsultasi', [KonsultasiController::class, 'store']);
 
 // Endpoint untuk mengupdate informasi konsultasi (seperti memasukkan nama dokter)
-Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateByKonsultasi']);
+Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateDokter']);
 
-//Endpoint untuk hanya melihat detail dari konsultasi berdasarkan id
-Route::get('/detail-konsultasi/{id}', [KonsultasiController::class, 'showDetail']);
+// //Endpoint untuk hanya melihat detail dari konsultasi berdasarkan id
+// Route::get('/detail-konsultasi/{id}', [KonsultasiController::class, 'showDetail']);
 
 // Endpoint untuk memperbarui atau mengisi detail konsultasi berdasarkan id_detail_konsultasi
 Route::post('/detail-konsultasi/{id}', [DetailKonsultasiController::class, 'store']);
 
 // Route untuk delete konsultasi
 Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
+
+// route untuk update status konsultasi
+Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateStatus']);
+
 //}
 
 // Kategori Routes

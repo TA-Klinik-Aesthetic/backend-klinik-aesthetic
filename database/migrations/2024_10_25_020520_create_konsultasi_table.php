@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedInteger('id_user')->nullable(); // Foreign key ke tabel tb_user
             $table->unsignedInteger('id_dokter')->nullable(); // Foreign key ke tabel tb_dokter
             $table->dateTime('waktu_konsultasi');
+            $table->text('keluhan_pelanggan')->nullable();
+            $table->enum('status_booking_konsultasi', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
             $table->timestamps();
 
             // Foreign key constraints
@@ -28,8 +30,8 @@ return new class extends Migration
         Schema::create('tb_detail_konsultasi', function (Blueprint $table) {
             $table->increments('id_detail_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
-            $table->string('keluhan_pelanggan')->nullable();
-            $table->string('saran_tindakan')->nullable();
+            // $table->string('keluhan_pelanggan')->nullable();
+            $table->text('saran_tindakan')->nullable();
             $table->unsignedInteger('id_treatment')->nullable();
             $table->timestamps();
 

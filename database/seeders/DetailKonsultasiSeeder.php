@@ -17,7 +17,7 @@ class DetailKonsultasiSeeder extends Seeder
         DB::table('tb_detail_konsultasi')->insert([
             [
                 'id_konsultasi' => 1,
-                'keluhan_pelanggan' => 'Sakit kepala dan demam',
+                // 'keluhan_pelanggan' => 'Sakit kepala dan demam',
                 'saran_tindakan' => 'Istirahat cukup dan minum obat pereda nyeri',
                 'id_treatment' => 1,
                 'created_at' => now(),

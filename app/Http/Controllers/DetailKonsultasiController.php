@@ -21,29 +21,31 @@ class DetailKonsultasiController extends Controller
             // Validasi input sebagai array dari data detail konsultasi
             $validatedData = $request->validate([
                 'details' => 'required|array',
-                'details.*.keluhan_pelanggan' => 'required|string|max:255',
                 'details.*.saran_tindakan' => 'required|string|max:255',
                 'details.*.id_treatment' => 'nullable|exists:tb_treatment,id_treatment',
             ]);
-    
+
             // Cari data konsultasi berdasarkan ID
             $konsultasi = Konsultasi::find($id);
             if (!$konsultasi) {
                 return response()->json(['message' => 'Konsultasi tidak ditemukan.'], 404);
             }
-    
+
             $detailKonsultasiList = [];
-    
+
             // Simpan setiap detail konsultasi ke dalam database
             foreach ($validatedData['details'] as $detail) {
                 $detailKonsultasiList[] = DetailKonsultasi::create([
                     'id_konsultasi' => $id,
-                    'keluhan_pelanggan' => $detail['keluhan_pelanggan'],
                     'saran_tindakan' => $detail['saran_tindakan'],
                     'id_treatment' => $detail['id_treatment'] ?? null,
                 ]);
             }
-    
+
+            // Ubah status konsultasi menjadi 'Selesai'
+            $konsultasi->status_booking_konsultasi = 'Selesai';
+            $konsultasi->save();
+
             return response()->json([
                 'message' => 'Detail konsultasi berhasil ditambahkan.',
                 'data' => $detailKonsultasiList

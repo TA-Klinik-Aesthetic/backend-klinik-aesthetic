@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Log; // <- Tambahkan ini
+use Illuminate\Support\Facades\Storage;
+
 
 class UserController extends Controller
 {
@@ -54,18 +57,17 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Validasi input
+
+            Log::info('request()->all():', $request->all());
+
             $validatedData = $request->validate([
-                'nama_user' => 'sometimes|string|max:255',
-                'email' => 'sometimes|string|email|max:255|unique:tb_user,email,'.$id.',id_user',
-                'password' => 'sometimes|string|min:8',
-                'no_telp' => 'sometimes|string|unique:tb_user,no_telp,'.$id.',id_user',
-                'tanggal_lahir' => 'sometimes|date',
-                'role' => 'sometimes|string|in:pelanggan,dokter,beautician,front office,kasir,admin',
-                // Tambahkan field lain sesuai kebutuhan
+                'nama_user' => 'nullable|string|max:255',
+                'no_telp' => 'nullable|string',
+                'email' => 'nullable|string|email',
+                'tanggal_lahir' => 'nullable|date',
+                'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             ]);
 
-            // Cari user berdasarkan ID
             $user = User::find($id);
 
             if (!$user) {
@@ -75,13 +77,29 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Update password jika ada di request
-            if (isset($validatedData['password'])) {
-                $validatedData['password'] = bcrypt($validatedData['password']);
+            if ($request->hasFile('foto_profil')) {
+                if ($request->hasFile('foto_profil')) {
+                    Log::info('File terdeteksi:', [$request->file('foto_profil')]);
+                }
+                $file = $request->file('foto_profil');
+            
+                // Buat nama unik
+                $fileName = time() . '_' . $file->getClientOriginalName();
+            
+                // Simpan ke folder storage/app/public/profil_user/
+                $path = $file->storeAs('profil_user', $fileName, 'public');
+            
+                if (!$path) {
+                    return response()->json(['success' => false, 'message' => 'Gagal menyimpan foto profil'], 500);
+                }
+            
+                $validatedData['foto_profil'] = $path;
             }
 
-            // Update user
             $user->update($validatedData);
+            $user = User::find($user->id_user); // paksa ambil ulang
+            
+            
 
             return response()->json([
                 'success' => true,
@@ -101,4 +119,35 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+
+    // public function update(Request $request, $id)
+    // {
+    //     try {
+    //         $user = User::find($id);
+
+    //         if (!$user) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'User tidak ditemukan',
+    //             ], 404);
+    //         }
+
+    //         // Langsung ambil input dari request
+    //         $data = $request->only(['nama_user', 'no_telp', 'email', 'tanggal_lahir']);
+
+    //         $user->update($data);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Data pengguna berhasil diperbarui',
+    //             'data' => $user
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }

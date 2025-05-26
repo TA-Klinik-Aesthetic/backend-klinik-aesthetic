@@ -45,6 +45,7 @@ class KonsultasiController extends Controller
             'id_user' => 'nullable|exists:tb_user,id_user',
             'waktu_konsultasi' => 'required|date|after:now',
             'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
+            'keluhan_pelanggan' => 'required|string',
         ]);
 
         // Jika validasi gagal, kembalikan respon error
@@ -61,6 +62,7 @@ class KonsultasiController extends Controller
             'id_user' => $request->id_user,
             'waktu_konsultasi' => $request->waktu_konsultasi,
             'id_dokter' => $request->id_dokter,
+            'keluhan_pelanggan' => $request->keluhan_pelanggan
         ]);
 
         // Kembalikan respon sukses dengan data konsultasi yang baru dibuat
@@ -73,8 +75,8 @@ class KonsultasiController extends Controller
 
 
 
-    // Menambahkan atau memperbarui konsultasi berdasarkan id_konsultasi
-    public function updateByKonsultasi(Request $request, $id_konsultasi)
+    // Menambahkan atau memperbarui nama dokter pada konsultasi berdasarkan id_konsultasi
+    public function updateDokter(Request $request, $id_konsultasi)
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
@@ -117,6 +119,46 @@ class KonsultasiController extends Controller
         ], 200);
     }
 
+    // Menambahkan atau memperbarui nama dokter pada konsultasi berdasarkan id_konsultasi
+    public function updateStatus(Request $request, $id_konsultasi)
+    {
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'status_booking_konsultasi' => 'string|nullable',
+        ]);
+
+        // Jika validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        // Ambil data konsultasi berdasarkan id_konsultasi
+        $konsultasi = Konsultasi::find($id_konsultasi);
+
+        // Jika konsultasi tidak ditemukan
+        if (!$konsultasi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Konsultasi tidak ditemukan'
+            ], 404);
+        }
+
+        // Simpan perubahan
+        $konsultasi->status_booking_konsultasi = $request->status_booking_konsultasi;
+        $konsultasi->save();
+
+        // Kembalikan response sukses
+        return response()->json([
+            'success' => true,
+            'message' => 'Data status booking konsultasi berhasil diperbarui',
+            'data' => $konsultasi
+        ], 200);
+    }
+
     /**
      * Display the specified resource.
      */
@@ -138,23 +180,23 @@ class KonsultasiController extends Controller
         ]);
     }
 
-    public function showDetail($id)
-    {
-        // Cari semua detail konsultasi berdasarkan ID konsultasi
-        $detailKonsultasi = DetailKonsultasi::where('id_konsultasi', $id)->get();
+    // public function showDetail($id)
+    // {
+    //     // Cari semua detail konsultasi berdasarkan ID konsultasi
+    //     $detailKonsultasi = DetailKonsultasi::where('id_konsultasi', $id)->get();
 
-        if ($detailKonsultasi->isNotEmpty()) {
-            return response()->json([
-                'success' => true,
-                'data' => $detailKonsultasi
-            ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Detail konsultasi tidak ditemukan'
-            ], 404);
-        }
-    }
+    //     if ($detailKonsultasi->isNotEmpty()) {
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $detailKonsultasi
+    //         ], 200);
+    //     } else {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Detail konsultasi tidak ditemukan'
+    //         ], 404);
+    //     }
+    // }
 
     /**
      * Show the form for editing the specified resource.
