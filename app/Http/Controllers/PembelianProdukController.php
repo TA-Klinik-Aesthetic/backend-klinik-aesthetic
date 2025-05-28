@@ -112,8 +112,6 @@ class PembelianProdukController extends Controller
                     'jumlah_produk' => $item['jumlah_produk'],
                     'harga_penjualan_produk' => $produk->harga_produk,
                 ];
-
-                $produk->decrement('stok_produk', $item['jumlah_produk']);
             }
 
             $potongan_harga = 0;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Produk;
 use Illuminate\Http\Request;
+use App\Models\InventarisStok;
 
 class ProdukController extends Controller
 {
@@ -52,6 +53,12 @@ class ProdukController extends Controller
 
             $produk = Produk::create($validated);
 
+            // InventarisStok::create([
+            //     'id_produk' => $produk->id_produk,
+            //     'status_perubahan' => 'masuk',
+            //     'jumlah_perubahan' => $validated['stok_produk'],
+            // ]);
+
             return response()->json([
                 'message' => 'Produk berhasil ditambahkan.',
                 'data' => $produk,
@@ -96,14 +103,30 @@ class ProdukController extends Controller
             $produk = Produk::findOrFail($id);
 
             $validated = $request->validate([
-                'id_kategori' => 'required|exists:tb_kategori,id_kategori',
-                'nama_produk' => 'required|string|max:255',
+                'id_kategori' => 'nullable|exists:tb_kategori,id_kategori',
+                'nama_produk' => 'nullable|string|max:255',
                 'deskripsi_produk' => 'nullable|string',
-                'harga_produk' => 'required|numeric',
-                'stok_produk' => 'required|integer',
-                'status_produk' => 'required|string|max:255',
-                'gambar_produk' => 'required|string|max:255',
+                'harga_produk' => 'nullable|numeric',
+                'stok_produk' => 'nullable|integer',
+                'status_produk' => 'nullable|string|max:255',
+                'gambar_produk' => 'nullable|string|max:255',
             ]);
+
+
+            // $stokLama = $produk->stok_produk;
+            // $stokBaru = $request->input('stok_produk');
+
+            // // Cek apakah stok berubah
+            // if ($stokLama != $stokBaru) {
+            //     $status = $stokBaru > $stokLama ? 'masuk' : 'keluar';
+            //     $jumlahPerubahan = abs($stokBaru - $stokLama);
+
+            //     InventarisStok::create([
+            //         'id_produk' => $produk->id_produk,
+            //         'status_perubahan' => $status,
+            //         'jumlah_perubahan' => $jumlahPerubahan,
+            //     ]);
+            // }
 
             $produk->update($validated);
 

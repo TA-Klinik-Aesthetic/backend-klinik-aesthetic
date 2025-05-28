@@ -42,6 +42,17 @@ return new class extends Migration
             $table->foreign('id_kategori')->references('id_kategori')->on('tb_kategori')->onDelete('cascade');
             // $table->foreign('id_jenis_treatment')->references('id_jenis_treatment')->on('tb_jenis_treatment')->onDelete('cascade');
         });
+
+        // Schema::create('tb_inventaris_stok', function (Blueprint $table) {
+        //     $table->increments('id_inventaris_stok');
+        //     $table->unsignedInteger('id_produk');
+        //     $table->enum('status_perubahan', ['masuk', 'keluar']);
+        //     $table->integer('jumlah_perubahan');
+        //     $table->timestamp('waktu_perubahan')->useCurrent();
+        //     $table->timestamps();
+
+        //     $table->foreign('id_produk')->references('id_produk')->on('tb_produk')->onDelete('cascade');
+        // });
     }
 
     /**

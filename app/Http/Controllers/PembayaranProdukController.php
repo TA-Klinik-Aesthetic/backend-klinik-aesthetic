@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PembayaranProduk;
 use App\Models\PembelianProduk;
+use App\Models\Produk;
+use App\Models\InventarisStok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -77,6 +79,19 @@ class PembayaranProdukController extends Controller
             $penjualanProduk = $pembayaranProduk->penjualanProduk;
             $penjualanProduk->status_pembayaran = 'Sudah Dibayar';
             $penjualanProduk->save();
+
+            // Kurangi stok produk setelah pembayaran berhasil
+            foreach ($penjualanProduk->detailPembelian as $detail) {
+                $produk = Produk::findOrFail($detail->id_produk);
+                $produk->decrement('stok_produk', $detail->jumlah_produk);
+
+                // Catat ke inventaris stok
+                // InventarisStok::create([
+                //     'id_produk' => $produk->id_produk,
+                //     'status_perubahan' => 'keluar',
+                //     'jumlah_perubahan' => $detail->jumlah_produk,
+                // ]);
+            }
 
             DB::commit();
 

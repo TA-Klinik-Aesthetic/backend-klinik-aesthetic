@@ -40,6 +40,7 @@ use App\Http\Controllers\PembayaranTreatmentController;
 use App\Http\Controllers\PembayaranProdukController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\InventarisStokController;
 
 
 //authentikasi {
@@ -226,5 +227,7 @@ Route::get('/laporan-penjualan-produk', [LaporanController::class, 'indexProduk'
 Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProduk']);
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
 
+
+Route::get('/inventaris-stok', [InventarisStokController::class, 'index']);
 
 // });
