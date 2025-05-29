@@ -118,6 +118,13 @@ Route::prefix('produk')->group(function () {
     Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
+Route::prefix('keranjang')->group(function () {
+    Route::get('/', [KeranjangPembelianController::class, 'index']);
+    Route::post('/', [KeranjangPembelianController::class, 'store']);
+    Route::put('/{id}', [KeranjangPembelianController::class, 'update']);
+    Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']);
+});
+
 // Products Purchase Management
 Route::prefix('penjualan-produk')->group(function () {
     Route::post('/', [PembelianProdukController::class, 'store']); // Create new purchase

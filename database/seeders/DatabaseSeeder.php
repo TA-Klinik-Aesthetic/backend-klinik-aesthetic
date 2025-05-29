@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             FeedbackKonsultasiSeeder::class,
 
             PromoSeeder::class,
-
+            KeranjangPembelianSeeder::class,
             BeauticianSeeder::class,
             JadwalPraktikBeauticianSeeder::class,
             BookingTreatmentSeeder::class,
