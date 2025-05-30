@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use App\Models\DetailBookingTreatment;
-use App\Models\KomplainTreatment;
+// use App\Models\KomplainTreatment;
 use App\Models\KompensasiDiberikan;
 
 
@@ -126,12 +126,6 @@ class KomplainController extends Controller
 
             // Simpan komplain
             $komplain = Komplain::create($validated);
-
-            // Menyimpan data detail_booking_treatment yang dikomplain
-            KomplainTreatment::create([
-                'id_komplain' => $komplain->id_komplain,
-                'id_detail_booking_treatment' => $validated['id_detail_booking_treatment'],
-            ]);
 
             return response()->json([
                 'message' => 'Komplain berhasil ditambahkan',

@@ -23,49 +23,51 @@ class PromoController extends Controller
 
     // Menambahkan promo baru
     public function store(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'nama_promo' => 'required|string|max:255',
-            'deskripsi_promo' => 'required|string',
-            'potongan_harga' => 'required|numeric|min:0',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_berakhir' => 'required|date|after_or_equal:tanggal_mulai',
-            'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
-            'status_promo' => 'required|string',
-        ]);
+    {
+        try {
+            $validated = $request->validate([
+                'nama_promo' => 'required|string|max:255',
+                'jenis_promo' => 'required|string',
+                'deskripsi_promo' => 'required|string',
+                'potongan_harga' => 'required|numeric|min:0',
+                'minimal_belanja' => 'nullable|numeric|min:0',
+                'tanggal_mulai' => 'required|date',
+                'tanggal_berakhir' => 'required|date|after_or_equal:tanggal_mulai',
+                'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
+                'status_promo' => 'required|string',
+            ]);
 
-        // Jika ada file gambar, simpan ke storage
-        if ($request->hasFile('gambar_promo')) {
-            $file = $request->file('gambar_promo');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('promo_images', $fileName, 'public');
+            // Jika ada file gambar, simpan ke storage
+            if ($request->hasFile('gambar_promo')) {
+                $file = $request->file('gambar_promo');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('promo_images', $fileName, 'public');
 
-            if (!$path) {
-                return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
+                if (!$path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
+                }
+
+                $validated['gambar_promo'] = $path; // Simpan path ke database
             }
 
-            $validated['gambar_promo'] = $path; // Simpan path ke database
+            $promo = Promo::create($validated);
+
+            return response()->json([
+                'message' => 'Promo berhasil ditambahkan.',
+                'data' => $promo,
+            ], 201);
+        } catch (\PDOException $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada koneksi database.',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal menambahkan promo.',
+                'error' => $e->getMessage(),
+            ], 400);
         }
-
-        $promo = Promo::create($validated);
-
-        return response()->json([
-            'message' => 'Promo berhasil ditambahkan.',
-            'data' => $promo,
-        ], 201);
-    } catch (\PDOException $e) {
-        return response()->json([
-            'message' => 'Terjadi kesalahan pada koneksi database.',
-            'error' => $e->getMessage(),
-        ], 500);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Gagal menambahkan promo.',
-            'error' => $e->getMessage(),
-        ], 400);
     }
-}
 
 
     // Menampilkan detail promo berdasarkan ID
@@ -87,7 +89,7 @@ class PromoController extends Controller
             ], 404);
         }
     }
-    
+
     // Mengupdate promo
     public function update(Request $request, $id)
     {
@@ -95,6 +97,7 @@ class PromoController extends Controller
             'nama_promo' => 'sometimes|required|string|max:255',
             'deskripsi_promo' => 'sometimes|required|string',
             'potongan_harga' => 'sometimes|required|numeric|min:0',
+            'minimal_belanja' => 'nullable|numeric|min:0',
             'tanggal_mulai' => 'sometimes|required|date',
             'tanggal_berakhir' => 'sometimes|required|date|after_or_equal:tanggal_mulai',
             'gambar_promo' => 'nullable|string',

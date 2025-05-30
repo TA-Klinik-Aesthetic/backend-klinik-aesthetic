@@ -21,8 +21,6 @@ class DetailBookingTreatment extends Model
         'id_booking_treatment',
         'id_treatment',
         'biaya_treatment',
-        'id_dokter',
-        'id_beautician',
         'id_kompensasi_diberikan'
     ];
 
@@ -30,18 +28,6 @@ class DetailBookingTreatment extends Model
     public function treatment()
     {
         return $this->belongsTo(Treatment::class, 'id_treatment');
-    }
-
-    // Relasi ke model Dokter
-    public function dokter()
-    {
-        return $this->belongsTo(Dokter::class, 'id_dokter');
-    }
-
-    // Relasi ke model Beautician
-    public function beautician()
-    {
-        return $this->belongsTo(Beautician::class, 'id_beautician');
     }
 
     public function booking()

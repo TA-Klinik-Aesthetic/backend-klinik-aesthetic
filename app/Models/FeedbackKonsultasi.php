@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Feedback extends Model
+class FeedbackKonsultasi extends Model
 {
     use HasFactory;
 
@@ -20,7 +20,6 @@ class Feedback extends Model
         'id_konsultasi',
         'rating',
         'teks_feedback',
-        'balasan_feedback'
     ];
 
     // Relasi ke model User

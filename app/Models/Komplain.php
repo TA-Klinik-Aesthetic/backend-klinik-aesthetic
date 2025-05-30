@@ -19,6 +19,7 @@ class Komplain extends Model
         'id_user',
         'teks_komplain',
         'id_booking_treatment',
+        'id_detail_booking_treatment',
         'gambar_komplain',
         'balasan_komplain',
         'pemberian_kompensasi',
@@ -30,15 +31,21 @@ class Komplain extends Model
     }
 
     // Relasi satu ke banyak dengan KomplainTreatment
-    public function komplainTreatments()
-    {
-        return $this->hasMany(KomplainTreatment::class, 'id_komplain');
-    }
+    // public function komplainTreatments()
+    // {
+    //     return $this->hasMany(KomplainTreatment::class, 'id_komplain');
+    // }
 
     // Relasi ke model BookingTreatment (many-to-one)
     public function bookingTreatment()
     {
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
+    }
+
+    // Relasi ke DetailBookingTreatment
+    public function detailBookingTreatment()
+    {
+        return $this->belongsTo(DetailBookingTreatment::class, 'id_detail_booking_treatment');
     }
 
     public function user()

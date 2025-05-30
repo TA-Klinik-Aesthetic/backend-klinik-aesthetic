@@ -20,6 +20,8 @@ class BookingTreatment extends Model
     protected $fillable = [
         'id_user',
         'waktu_treatment',
+        'id_dokter',
+        'id_beautician',
         'status_booking_treatment',
         'harga_total',
         'id_promo',
@@ -31,6 +33,18 @@ class BookingTreatment extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    // Relasi ke model Dokter
+    public function dokter()
+    {
+        return $this->belongsTo(Dokter::class, 'id_dokter');
+    }
+
+    // Relasi ke model Beautician
+    public function beautician()
+    {
+        return $this->belongsTo(Beautician::class, 'id_beautician');
     }
 
     // Relasi ke model Promo

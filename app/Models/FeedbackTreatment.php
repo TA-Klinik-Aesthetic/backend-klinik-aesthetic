@@ -21,7 +21,6 @@ class FeedbackTreatment extends Model
         'id_detail_booking_treatment',
         'rating',
         'teks_feedback',
-        'balasan_feedback'
     ];
 
     public function bookingTreatment()

@@ -18,8 +18,10 @@ class Promo extends Model
 
     protected $fillable = [
         'nama_promo',
+        'jenis_promo',
         'deskripsi_promo',
         'potongan_harga',
+        'minimal_belanja',
         'tanggal_mulai',
         'tanggal_berakhir',
         'gambar_promo',

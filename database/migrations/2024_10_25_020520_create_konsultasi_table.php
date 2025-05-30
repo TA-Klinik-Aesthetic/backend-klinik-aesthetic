@@ -31,6 +31,7 @@ return new class extends Migration
             $table->increments('id_detail_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             // $table->string('keluhan_pelanggan')->nullable();
+            $table->text('diagnosis')->nullable();
             $table->text('saran_tindakan')->nullable();
             $table->unsignedInteger('id_treatment')->nullable();
             $table->timestamps();
@@ -46,7 +47,7 @@ return new class extends Migration
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             $table->tinyInteger('rating')->unsigned()->nullable();
             $table->text('teks_feedback')->nullable();
-            $table->text('balasan_feedback')->nullable();
+            // $table->text('balasan_feedback')->nullable();
             $table->timestamps();
         
             // Foreign key constraints

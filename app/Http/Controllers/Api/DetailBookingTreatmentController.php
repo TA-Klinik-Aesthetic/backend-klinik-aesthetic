@@ -22,10 +22,10 @@ class DetailBookingTreatmentController extends Controller
         // Mengambil seluruh data booking treatment dengan relasi ke user, promo, detail booking, dokter, beautician, dan treatment
         $bookingTreatments = BookingTreatment::with([
             'user',
+            'dokter',
+            'beautician',
             'promo',
             'detailBooking.treatment',
-            'detailBooking.dokter',
-            'detailBooking.beautician'
         ])->get();
 
         // Cek jika data ditemukan
@@ -154,10 +154,10 @@ class DetailBookingTreatmentController extends Controller
         // Mencari data booking treatment berdasarkan ID dengan relasi lengkap
         $bookingTreatment = BookingTreatment::with([
             'user',
+            'dokter',
+            'beautician',
             'promo',
             'detailBooking.treatment',
-            'detailBooking.dokter',
-            'detailBooking.beautician'
         ])->find($id);
 
         // Cek jika data booking treatment tidak ditemukan
@@ -183,12 +183,12 @@ class DetailBookingTreatmentController extends Controller
             $validatedBooking = $request->validate([
                 'id_user' => 'required|exists:tb_user,id_user',
                 'waktu_treatment' => 'required|date',
+                'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
+                'id_beautician' => 'nullable|exists:tb_beautician,id_beautician',
                 'status_booking_treatment' => 'required|string',
                 'id_promo' => 'nullable|exists:tb_promo,id_promo',  // Validasi id_promo
                 'details' => 'required|array',
                 'details.*.id_treatment' => 'required|exists:tb_treatment,id_treatment',
-                'details.*.id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
-                'details.*.id_beautician' => 'nullable|exists:tb_beautician,id_beautician',
                 'details.*.id_kompensasi_diberikan' => 'nullable|exists:tb_kompensasi_diberikan,id_kompensasi_diberikan',
             ]);
     
@@ -206,6 +206,8 @@ class DetailBookingTreatmentController extends Controller
             $booking = BookingTreatment::create([
                 'id_user' => $validatedBooking['id_user'],
                 'waktu_treatment' => $validatedBooking['waktu_treatment'],
+                'id_dokter' => $validatedBooking['id_dokter'],
+                'id_beautician' => $validatedBooking['id_beautician'],
                 'status_booking_treatment' => $validatedBooking['status_booking_treatment'],
                 'id_promo' => $validatedBooking['id_promo'],  // Menyimpan id_promo
                 'harga_total' => 0,
@@ -299,10 +301,10 @@ class DetailBookingTreatmentController extends Controller
     public function update(Request $request, $id)
     {
         // Cari detail booking treatment berdasarkan ID
-        $detailBooking = DetailBookingTreatment::find($id);
+        $bookingTreatment = BookingTreatment::find($id);
 
-        if (!$detailBooking) {
-            return response()->json(['message' => 'Detail Booking Treatment not found'], 404);
+        if (!$bookingTreatment) {
+            return response()->json(['message' => 'Booking Treatment not found'], 404);
         }
 
         // Validasi input untuk data dokter dan beautician
@@ -312,11 +314,11 @@ class DetailBookingTreatmentController extends Controller
         ]);
 
         // Update data detail booking treatment
-        $detailBooking->update($validated);
+        $bookingTreatment->update($validated);
 
         return response()->json([
-            'detail_booking' => $detailBooking,
-            'message' => 'Detail Booking Treatment updated successfully',
+            'booking_treatment' => $bookingTreatment,
+            'message' => 'Booking Treatment updated successfully',
         ]);
     }
 
