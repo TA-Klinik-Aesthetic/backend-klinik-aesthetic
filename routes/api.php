@@ -122,12 +122,12 @@ Route::prefix('produk')->group(function () {
 
 // Product Cart Management
 Route::prefix('keranjang')->group(function () {
-    Route::get('/', [KeranjangPembelianController::class, 'index']); // GET semua keranjang
-    Route::get('/user/{id_user}', [KeranjangPembelianController::class, 'getByUser']); // GET berdasarkan user
-    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']); // Total jumlah produk
-    Route::post('/', [KeranjangPembelianController::class, 'store']); // Tambah keranjang
-    Route::put('/{id}', [KeranjangPembelianController::class, 'update']); // Update keranjang
-    Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']); // Hapus keranjang
+    Route::get('/', [KeranjangPembelianController::class, 'index']);
+    Route::get('/user/{id_user}', [KeranjangPembelianController::class, 'getByUser']);
+    Route::post('/', [KeranjangPembelianController::class, 'store']);
+    Route::put('/{id}', [KeranjangPembelianController::class, 'update']);
+    Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']);
+    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']);
 });
 
 // Products Purchase Management

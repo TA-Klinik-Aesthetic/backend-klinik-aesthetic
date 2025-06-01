@@ -49,17 +49,35 @@ class KeranjangPembelianController extends Controller
     {
         try {
             $validated = $request->validate([
-                'id_user' => 'required|integer',
-                'id_produk' => 'required|integer',
-                'jumlah' => 'required|integer',
+                'id_user' => 'required|exists:tb_user,id_user',
+                'id_produk' => 'required|exists:tb_produk,id_produk',
+                'jumlah' => 'required|integer|min:1',
             ]);
 
-            $keranjang = KeranjangPembelian::create($validated);
+            // Cek apakah produk ini sudah ada di keranjang user
+            $existing = KeranjangPembelian::where('id_user', $validated['id_user'])
+                ->where('id_produk', $validated['id_produk'])
+                ->first();
 
-            return response()->json([
-                'message' => 'Data berhasil ditambahkan',
-                'data' => $keranjang
-            ], 201);
+            if ($existing) {
+                // Jika sudah ada, tambahkan jumlah
+                $existing->jumlah += $validated['jumlah'];
+                $existing->save();
+
+                return response()->json([
+                    'message' => 'Jumlah produk berhasil ditambahkan ke keranjang',
+                    'data' => $existing
+                ], 200);
+            } else {
+                // Jika belum ada, buat baru
+                $keranjang = KeranjangPembelian::create($validated);
+
+                return response()->json([
+                    'message' => 'Produk berhasil ditambahkan ke keranjang',
+                    'data' => $keranjang
+                ], 201);
+            }
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validasi gagal',
@@ -73,6 +91,7 @@ class KeranjangPembelianController extends Controller
         }
     }
 
+
     // PUT: update data
     public function update(Request $request, $id)
     {
@@ -84,9 +103,9 @@ class KeranjangPembelianController extends Controller
             }
 
             $validated = $request->validate([
-                'id_user' => 'sometimes|required|integer',
-                'id_produk' => 'sometimes|required|integer',
-                'jumlah' => 'sometimes|required|integer',
+                'id_user' => 'sometimes|required|exists:tb_user,id_user',
+                'id_produk' => 'sometimes|required|exists:tb_produk,id_produk',
+                'jumlah' => 'sometimes|required|integer|min:1',
             ]);
 
             $keranjang->update($validated);
