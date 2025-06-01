@@ -23,6 +23,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\PembelianProdukController;
+use App\Http\Controllers\KeranjangPembelianController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
@@ -102,6 +103,7 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateS
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
+    Route::get('/all', [KeranjangPembelianController::class, 'getAll']); //To get all cart items
     Route::post('/', [KategoriController::class, 'store']); // Create a new category
     Route::get('/{id}', [KategoriController::class, 'show']); // Get a single category
     Route::put('/{id}', [KategoriController::class, 'update']); // Update a category
@@ -118,11 +120,14 @@ Route::prefix('produk')->group(function () {
     Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
+// Product Cart Management
 Route::prefix('keranjang')->group(function () {
-    Route::get('/', [KeranjangPembelianController::class, 'index']);
-    Route::post('/', [KeranjangPembelianController::class, 'store']);
-    Route::put('/{id}', [KeranjangPembelianController::class, 'update']);
-    Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']);
+    Route::get('/', [KeranjangPembelianController::class, 'index']); // GET semua keranjang
+    Route::get('/user/{id_user}', [KeranjangPembelianController::class, 'getByUser']); // GET berdasarkan user
+    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']); // Total jumlah produk
+    Route::post('/', [KeranjangPembelianController::class, 'store']); // Tambah keranjang
+    Route::put('/{id}', [KeranjangPembelianController::class, 'update']); // Update keranjang
+    Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']); // Hapus keranjang
 });
 
 // Products Purchase Management
