@@ -124,10 +124,11 @@ Route::prefix('produk')->group(function () {
 Route::prefix('keranjang')->group(function () {
     Route::get('/', [KeranjangPembelianController::class, 'index']);
     Route::get('/user/{id_user}', [KeranjangPembelianController::class, 'getByUser']);
+    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']);
     Route::post('/', [KeranjangPembelianController::class, 'store']);
     Route::put('/{id}', [KeranjangPembelianController::class, 'update']);
     Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']);
-    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']);
+    Route::delete('/user/{id_user}', [KeranjangPembelianController::class, 'destroyByUser']);
 });
 
 // Products Purchase Management

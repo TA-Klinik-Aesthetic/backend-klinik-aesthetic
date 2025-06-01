@@ -44,6 +44,24 @@ class KeranjangPembelianController extends Controller
         }
     }
 
+    // GET: Total jumlah produk dalam keranjang berdasarkan id_user
+    public function getTotalProdukByUser($id_user)
+    {
+        try {
+            $total = KeranjangPembelian::where('id_user', $id_user)->sum('jumlah');
+
+            return response()->json([
+                'id_user' => $id_user,
+                'total_produk' => $total
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menghitung total produk',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     // POST: tambah data baru
     public function store(Request $request)
     {
@@ -148,19 +166,24 @@ class KeranjangPembelianController extends Controller
         }
     }
 
-    // GET: Total jumlah produk dalam keranjang berdasarkan id_user
-    public function getTotalProdukByUser($id_user)
+    // DELETE: hapus semua data keranjang berdasarkan id_user
+    public function destroyByUser($id_user)
     {
         try {
-            $total = KeranjangPembelian::where('id_user', $id_user)->sum('jumlah');
+            $keranjang = KeranjangPembelian::where('id_user', $id_user)->get();
+
+            if ($keranjang->isEmpty()) {
+                return response()->json(['message' => 'Data keranjang tidak ditemukan untuk user ini'], 404);
+            }
+
+            KeranjangPembelian::where('id_user', $id_user)->delete();
 
             return response()->json([
-                'id_user' => $id_user,
-                'total_produk' => $total
+                'message' => 'Semua data keranjang untuk user berhasil dihapus'
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Terjadi kesalahan saat menghitung total produk',
+                'message' => 'Gagal menghapus data keranjang berdasarkan user',
                 'error' => $e->getMessage()
             ], 500);
         }
