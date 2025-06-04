@@ -9,112 +9,183 @@ use Illuminate\Support\Facades\DB;
 
 class KeranjangPembelianController extends Controller
 {
-    // Tampilkan semua keranjang user berdasarkan id_user dari request
-    public function index(Request $request)
+    // GET semua data
+    public function index()
     {
-        $request->validate([
-            'id_user' => 'required|exists:tb_user,id_user',
-        ]);
-
-        $keranjang = KeranjangPembelian::with('produk')
-            ->where('id_user', $request->id_user)
-            ->get();
-
-        return response()->json($keranjang);
+        try {
+            $keranjang = KeranjangPembelian::with(['user', 'produk'])->get();
+            return response()->json($keranjang);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengambil data keranjang',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    // Simpan produk ke keranjang berdasarkan id_user dari request
-    public function store(Request $request)
+    // GET berdasarkan id_user
+    public function getByUser($id_user)
     {
-        $request->validate([
-            'id_user' => 'required|exists:tb_user,id_user',
-            'produk' => 'required|array',
-            'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
-            'produk.*.jumlah' => 'required|integer|min:1',
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            foreach ($request->produk as $item) {
-                $produk = Produk::findOrFail($item['id_produk']);
+            $keranjang = KeranjangPembelian::with(['produk'])
+                ->where('id_user', $id_user)
+                ->get();
 
-                if ($produk->stok_produk < $item['jumlah']) {
-                    throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi");
-                }
-
-                KeranjangPembelian::updateOrCreate(
-                    ['id_user' => $request->id_user, 'id_produk' => $item['id_produk']],
-                    ['jumlah' => DB::raw("jumlah + {$item['jumlah']}")]
-                );
+            if ($keranjang->isEmpty()) {
+                return response()->json(['message' => 'Data tidak ditemukan untuk user ini'], 404);
             }
 
-            DB::commit();
+            return response()->json($keranjang);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengambil data keranjang berdasarkan user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // GET: Total jumlah produk dalam keranjang berdasarkan id_user
+    public function getTotalProdukByUser($id_user)
+    {
+        try {
+            $total = KeranjangPembelian::where('id_user', $id_user)->sum('jumlah');
 
             return response()->json([
-                'success' => true,
-                'message' => 'Produk berhasil ditambahkan ke keranjang',
+                'id_user' => $id_user,
+                'total_produk' => $total
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+                'message' => 'Terjadi kesalahan saat menghitung total produk',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    // Update jumlah produk di keranjang berdasarkan id_keranjang_pembelian dan id_user dari request
+    // POST: tambah data baru
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'id_user' => 'required|exists:tb_user,id_user',
+                'id_produk' => 'required|exists:tb_produk,id_produk',
+                'jumlah' => 'required|integer|min:1',
+            ]);
+
+            // Cek apakah produk ini sudah ada di keranjang user
+            $existing = KeranjangPembelian::where('id_user', $validated['id_user'])
+                ->where('id_produk', $validated['id_produk'])
+                ->first();
+
+            if ($existing) {
+                // Jika sudah ada, tambahkan jumlah
+                $existing->jumlah += $validated['jumlah'];
+                $existing->save();
+
+                return response()->json([
+                    'message' => 'Jumlah produk berhasil ditambahkan ke keranjang',
+                    'data' => $existing
+                ], 200);
+            } else {
+                // Jika belum ada, buat baru
+                $keranjang = KeranjangPembelian::create($validated);
+
+                return response()->json([
+                    'message' => 'Produk berhasil ditambahkan ke keranjang',
+                    'data' => $keranjang
+                ], 201);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal menambahkan data keranjang',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    // PUT: update data
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'id_user' => 'required|exists:tb_user,id_user',
-            'jumlah' => 'required|integer|min:1',
-        ]);
+        try {
+            $keranjang = KeranjangPembelian::find($id);
 
-        $keranjang = KeranjangPembelian::where('id_keranjang_pembelian', $id)
-            ->where('id_user', $request->id_user)
-            ->firstOrFail();
+            if (!$keranjang) {
+                return response()->json(['message' => 'Data tidak ditemukan'], 404);
+            }
 
-        $produk = Produk::findOrFail($keranjang->id_produk);
+            $validated = $request->validate([
+                'id_user' => 'sometimes|required|exists:tb_user,id_user',
+                'id_produk' => 'sometimes|required|exists:tb_produk,id_produk',
+                'jumlah' => 'sometimes|required|integer|min:1',
+            ]);
 
-        if ($produk->stok_produk < $request->jumlah) {
+            $keranjang->update($validated);
+
             return response()->json([
-                'success' => false,
-                'message' => "Stok produk {$produk->nama_produk} tidak mencukupi",
-            ], 400);
+                'message' => 'Data berhasil diupdate',
+                'data' => $keranjang
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengupdate data keranjang',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $keranjang->update(['jumlah' => $request->jumlah]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Jumlah produk di keranjang diperbarui',
-        ]);
     }
 
-    // Hapus produk di keranjang berdasarkan id_keranjang_pembelian dan id_user dari request
-    public function destroy(Request $request, $id)
+    // DELETE: hapus data
+    public function destroy($id)
     {
-        $request->validate([
-            'id_user' => 'required|exists:tb_user,id_user',
-        ]);
+        try {
+            $keranjang = KeranjangPembelian::find($id);
 
-        $deleted = KeranjangPembelian::where('id_keranjang_pembelian', $id)
-            ->where('id_user', $request->id_user)
-            ->delete();
+            if (!$keranjang) {
+                return response()->json(['message' => 'Data tidak ditemukan'], 404);
+            }
 
-        if ($deleted) {
+            $keranjang->delete();
+
+            return response()->json(['message' => 'Data berhasil dihapus']);
+        } catch (\Exception $e) {
             return response()->json([
-                'success' => true,
-                'message' => 'Produk dihapus dari keranjang',
-            ]);
+                'message' => 'Gagal menghapus data keranjang',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Data tidak ditemukan',
-        ], 404);
+    // DELETE: hapus semua data keranjang berdasarkan id_user
+    public function destroyByUser($id_user)
+    {
+        try {
+            $keranjang = KeranjangPembelian::where('id_user', $id_user)->get();
+
+            if ($keranjang->isEmpty()) {
+                return response()->json(['message' => 'Data keranjang tidak ditemukan untuk user ini'], 404);
+            }
+
+            KeranjangPembelian::where('id_user', $id_user)->delete();
+
+            return response()->json([
+                'message' => 'Semua data keranjang untuk user berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal menghapus data keranjang berdasarkan user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

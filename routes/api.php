@@ -23,6 +23,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\DetailKonsultasiController;
 use App\Http\Controllers\PembelianProdukController;
+use App\Http\Controllers\KeranjangPembelianController;
 use App\Http\Controllers\Api\TreatmentController;
 use App\Http\Controllers\Api\JenisTreatmentController;
 use App\Http\Controllers\Api\BookingTreatmentController;
@@ -103,6 +104,7 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateS
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
+    Route::get('/all', [KeranjangPembelianController::class, 'getAll']); //To get all cart items
     Route::post('/', [KategoriController::class, 'store']); // Create a new category
     Route::get('/{id}', [KategoriController::class, 'show']); // Get a single category
     Route::put('/{id}', [KategoriController::class, 'update']); // Update a category
@@ -119,11 +121,15 @@ Route::prefix('produk')->group(function () {
     Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
+// Product Cart Management
 Route::prefix('keranjang')->group(function () {
     Route::get('/', [KeranjangPembelianController::class, 'index']);
+    Route::get('/user/{id_user}', [KeranjangPembelianController::class, 'getByUser']);
+    Route::get('/user/{id_user}/total', [KeranjangPembelianController::class, 'getTotalProdukByUser']);
     Route::post('/', [KeranjangPembelianController::class, 'store']);
     Route::put('/{id}', [KeranjangPembelianController::class, 'update']);
     Route::delete('/{id}', [KeranjangPembelianController::class, 'destroy']);
+    Route::delete('/user/{id_user}', [KeranjangPembelianController::class, 'destroyByUser']);
 });
 
 // Products Purchase Management
