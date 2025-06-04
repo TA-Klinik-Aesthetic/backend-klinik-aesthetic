@@ -18,8 +18,18 @@ class DetailKonsultasiSeeder extends Seeder
             [
                 'id_konsultasi' => 1,
                 // 'keluhan_pelanggan' => 'Sakit kepala dan demam',
-                'saran_tindakan' => 'Istirahat cukup dan minum obat pereda nyeri',
+                'diagnosis' => 'Tekstur kulit kasar',
+                'saran_tindakan' => 'Lakukan treatment eksfoliasi kimia ringan (AHA 10%) sekali dan gunakan pelembap berbahan hyaluronic acid dua kali sehari',
                 'id_treatment' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_konsultasi' => 1,
+                // 'keluhan_pelanggan' => 'Sakit kepala dan demam',
+                'diagnosis' => 'Komedo tertutup di hidung',
+                'saran_tindakan' => 'Lakukan treatment ekstraksi komedo profesional sekali seminggu; gunakan serum niacinamide 5% setiap malam',
+                'id_treatment' => 2,
                 'created_at' => now(),
                 'updated_at' => now()
             ],

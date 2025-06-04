@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedInteger('id_dokter')->nullable(); // Foreign key ke tabel tb_dokter
             $table->dateTime('waktu_konsultasi');
             $table->text('keluhan_pelanggan')->nullable();
+            // $table->text('pemeriksaan_fisik')->nullable();
             $table->enum('status_booking_konsultasi', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
             $table->timestamps();
 

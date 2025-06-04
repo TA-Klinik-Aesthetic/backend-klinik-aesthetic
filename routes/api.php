@@ -41,7 +41,8 @@ use App\Http\Controllers\PembayaranProdukController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
-
+use App\Http\Controllers\KeranjangPembelianController;
+use App\Http\Controllers\DetailPembelianProdukController;
 
 //authentikasi {
 //endpoint untuk register
@@ -134,6 +135,8 @@ Route::prefix('penjualan-produk')->group(function () {
     Route::delete('/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
 });
 
+Route::delete('/detail-penjualan-produk/{id}', [DetailPembelianProdukController::class, 'destroy']);
+
 Route::prefix('promos')->group(function () {
     Route::get('/', [PromoController::class, 'index']); // Menampilkan semua promo
     Route::post('/', [PromoController::class, 'store']); // Menambahkan promo baru
@@ -164,7 +167,10 @@ Route::prefix('detailBookingTreatments')->group(function () {
 });
 
 Route::put('statusBookingTreatments/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']);
-Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);
+
+Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
+
+// Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);
 
 
 //ALL ABOUTTT FEEDBACKK
@@ -235,6 +241,6 @@ Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProd
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
 
 
-Route::get('/inventaris-stok', [InventarisStokController::class, 'index']);
+// Route::get('/inventaris-stok', [InventarisStokController::class, 'index']);
 
 // });

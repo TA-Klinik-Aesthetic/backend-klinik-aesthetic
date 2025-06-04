@@ -17,6 +17,7 @@ class Konsultasi extends Model
         'id_dokter',
         'waktu_konsultasi',
         'keluhan_pelanggan',
+        'pemeriksaan_fisik',
         'status_booking_konsultasi'
     ];
 

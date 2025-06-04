@@ -117,6 +117,16 @@ class PembelianProdukController extends Controller
             $potongan_harga = 0;
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
+                // Validasi jenis promo
+                if ($promo->jenis_promo !== 'Produk') {
+                    throw new Exception("Promo yang digunakan bukan untuk penjualan produk.");
+                }
+
+                // Validasi minimal belanja
+                if (!is_null($promo->minimal_belanja) && $harga_total < $promo->minimal_belanja) {
+                    throw new Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
+                }
+
                 $potongan_harga = $promo->potongan_harga;
             }
 
@@ -302,6 +312,17 @@ class PembelianProdukController extends Controller
             $potongan_harga = $pembelian->potongan_harga;
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
+    
+                // Promo harus jenis Produk
+                if ($promo->jenis_promo !== 'Produk') {
+                    throw new Exception("Promo yang digunakan bukan untuk penjualan produk.");
+                }
+    
+                // Promo tidak berlaku jika total belanja kurang dari minimum
+                if (!is_null($promo->minimal_belanja) && $harga_total < $promo->minimal_belanja) {
+                    throw new Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
+                }
+    
                 $potongan_harga = $promo->potongan_harga;
             }
 
@@ -320,6 +341,9 @@ class PembelianProdukController extends Controller
                     'harga_penjualan_produk' => $detail['harga_penjualan_produk'],
                 ]);
             }
+
+            // Muat ulang relasi detail agar response akurat
+            $pembelian->load('detailPembelian');
 
             DB::commit();
 

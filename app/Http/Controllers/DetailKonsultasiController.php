@@ -21,6 +21,7 @@ class DetailKonsultasiController extends Controller
             // Validasi input sebagai array dari data detail konsultasi
             $validatedData = $request->validate([
                 'details' => 'required|array',
+                'details.*.diagnosis' => 'required|string|max:255',
                 'details.*.saran_tindakan' => 'required|string|max:255',
                 'details.*.id_treatment' => 'nullable|exists:tb_treatment,id_treatment',
             ]);
@@ -37,6 +38,7 @@ class DetailKonsultasiController extends Controller
             foreach ($validatedData['details'] as $detail) {
                 $detailKonsultasiList[] = DetailKonsultasi::create([
                     'id_konsultasi' => $id,
+                    'diagnosis'      => $detail['diagnosis'],
                     'saran_tindakan' => $detail['saran_tindakan'],
                     'id_treatment' => $detail['id_treatment'] ?? null,
                 ]);
@@ -57,4 +59,61 @@ class DetailKonsultasiController extends Controller
             ], 500);
         }
     }
+
+    // public function update(Request $request, $id): JsonResponse
+    // {
+    //     try {
+    //         // 1. Validasi input
+    //         $validatedData = $request->validate([
+    //             // Pastikan pemeriksaan_fisik ada dan berupa string
+    //             'pemeriksaan_fisik'             => 'required|string',
+    //             // details adalah array, tiap elemen wajib memiliki diagnosis dan saran_tindakan
+    //             'details'                       => 'required|array|min:1',
+    //             'details.*.diagnosis'           => 'required|string',
+    //             'details.*.saran_tindakan'      => 'required|string|max:255',
+    //             'details.*.id_treatment'        => 'nullable|exists:tb_treatment,id_treatment',
+    //         ]);
+
+    //         // 2. Cari header konsultasi
+    //         $konsultasi = Konsultasi::find($id);
+    //         if (!$konsultasi) {
+    //             return response()->json(['message' => 'Konsultasi tidak ditemukan.'], 404);
+    //         }
+
+    //         // 3. Update kolom pemeriksaan_fisik
+    //         $konsultasi->pemeriksaan_fisik = $validatedData['pemeriksaan_fisik'];
+    //         $konsultasi->status_booking_konsultasi = 'Selesai';
+    //         $konsultasi->save();
+
+    //         $detailKonsultasiList = [];
+
+    //         // 4. Simpan setiap detail (diagnosis + saran_tindakan + id_treatment)
+    //         foreach ($validatedData['details'] as $detail) {
+    //             $detailKonsultasiList[] = DetailKonsultasi::create([
+    //                 'id_konsultasi'  => $id,
+    //                 'diagnosis'      => $detail['diagnosis'],
+    //                 'saran_tindakan' => $detail['saran_tindakan'],
+    //                 'id_treatment'   => $detail['id_treatment'] ?? null,
+    //             ]);
+    //         }
+
+    //         // 5. Kembalikan respons sukses
+    //         return response()->json([
+    //             'message' => 'Pemeriksaan fisik dan detail konsultasi berhasil ditambahkan.',
+    //             'konsultasi' => [
+    //                 'id_konsultasi'          => $konsultasi->id_konsultasi,
+    //                 'status_booking_konsultasi' => $konsultasi->status_booking_konsultasi,
+    //                 'waktu_konsultasi'       => $konsultasi->waktu_konsultasi,
+    //                 'keluhan_pelanggan'      => $konsultasi->keluhan_pelanggan,
+    //                 'pemeriksaan_fisik'      => $konsultasi->pemeriksaan_fisik,
+    //             ],
+    //             'details'    => $detailKonsultasiList
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Terjadi kesalahan yang tidak terduga.',
+    //             'error'   => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }
