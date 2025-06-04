@@ -42,7 +42,6 @@ use App\Http\Controllers\PembayaranProdukController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
-use App\Http\Controllers\KeranjangPembelianController;
 use App\Http\Controllers\DetailPembelianProdukController;
 
 //authentikasi {
