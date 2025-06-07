@@ -136,6 +136,7 @@ Route::prefix('penjualan-produk')->group(function () {
     Route::post('/', [PembelianProdukController::class, 'store']); // Create new purchase
     Route::get('/', [PembelianProdukController::class, 'index']); // Get all purchases
     Route::get('/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
+    Route::get('/user/{id_user}', [PembelianProdukController::class, 'getByUser']); // Get purchases by user ID
     Route::put('/{id}', [PembelianProdukController::class, 'update']); // Edit the tb_pembelian purchase
     Route::delete('/{id}', [PembelianProdukController::class, 'destroy']); // Delete purchase
 });
