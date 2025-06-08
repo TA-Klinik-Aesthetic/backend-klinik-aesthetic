@@ -9,16 +9,15 @@ class Dokter extends Model
 {
     use HasFactory;
 
-    use HasFactory;
-
     protected $table = 'tb_dokter'; // Nama tabel di database
     protected $primaryKey = 'id_dokter'; // Nama tabel di database
-    
+
     protected $fillable = [
         'nama_dokter',
         'no_telp',
         'email_dokter',
-        'NIP'
+        'NIP',
+        'foto_dokter'
     ];
 
     // Relasi ke model Konsultasi
@@ -28,9 +27,9 @@ class Dokter extends Model
     }
 
     // Relasi ke model detail booking treatment
-    public function detail_booking_treatment()
+    public function booking_treatment()
     {
-        return $this->hasMany(DetailBookingTreatment::class, 'id_dokter');
+        return $this->hasMany(BookingTreatment::class, 'id_dokter');
     }
 
     // Relasi ke model jadwal praktik dokter

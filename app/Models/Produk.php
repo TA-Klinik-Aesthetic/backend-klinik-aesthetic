@@ -27,4 +27,16 @@ class Produk extends Model
     {
         return $this->belongsTo(Kategori::class, 'id_kategori', 'id_kategori');
     }
+
+    // Relasi ke tabel inventaris stok
+    // public function inventarisStok()
+    // {
+    //     return $this->hasMany(InventarisStok::class, 'id_produk', 'id_produk');
+    // }
+
+    // // Relasi: Produk milik JenisTreatment
+    // public function jenisTreatment()
+    // {
+    //     return $this->belongsTo(JenisTreatment::class, 'id_jenis_treatment', 'id_jenis_treatment');
+    // }
 }

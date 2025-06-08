@@ -17,6 +17,9 @@ return new class extends Migration
             $table->unsignedInteger('id_user')->nullable(); // Foreign key ke tabel tb_user
             $table->unsignedInteger('id_dokter')->nullable(); // Foreign key ke tabel tb_dokter
             $table->dateTime('waktu_konsultasi');
+            $table->text('keluhan_pelanggan')->nullable();
+            // $table->text('pemeriksaan_fisik')->nullable();
+            $table->enum('status_booking_konsultasi', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
             $table->timestamps();
 
             // Foreign key constraints
@@ -28,21 +31,24 @@ return new class extends Migration
         Schema::create('tb_detail_konsultasi', function (Blueprint $table) {
             $table->increments('id_detail_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
-            $table->string('keluhan_pelanggan')->nullable();
-            $table->string('saran_tindakan')->nullable();
+            // $table->string('keluhan_pelanggan')->nullable();
+            $table->text('diagnosis')->nullable();
+            $table->text('saran_tindakan')->nullable();
+            $table->unsignedInteger('id_treatment')->nullable();
             $table->timestamps();
 
             // Foreign key constraints
             $table->foreign('id_konsultasi')->references('id_konsultasi')->on('tb_konsultasi')->onDelete('cascade');
+            $table->foreign('id_treatment')->references('id_treatment')->on('tb_treatment')->onDelete('set null');
         });
 
         // Tabel tb_feedback
         Schema::create('tb_feedback_konsultasi', function (Blueprint $table) {
             $table->increments('id_feedback_konsultasi'); // Primary key
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
-            $table->tinyInteger('rating')->unsigned()->nullable(); // Rating dengan nilai maksimal 5
+            $table->tinyInteger('rating')->unsigned()->nullable();
             $table->text('teks_feedback')->nullable();
-            $table->text('balasan_feedback')->nullable();
+            // $table->text('balasan_feedback')->nullable();
             $table->timestamps();
         
             // Foreign key constraints

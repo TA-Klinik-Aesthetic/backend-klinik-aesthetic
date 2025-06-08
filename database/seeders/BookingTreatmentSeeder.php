@@ -18,8 +18,12 @@ class BookingTreatmentSeeder extends Seeder
             [
                 'id_user' => 1, 
                 'waktu_treatment' => now(),
-                'status_booking_treatment' => 
-                'Verifikasi', 'harga_total' => 550000, 'potongan_harga' => 50000, 
+                'id_dokter' => 1, 
+                'id_beautician' => 1, 
+                'status_booking_treatment' => 'Verifikasi', 
+                'harga_total' => 550000,
+                'id_promo' => 2,
+                'potongan_harga' => 50000, 
                 'harga_akhir_treatment' => 500000, 
                 'created_at' => now(),
                 'updated_at' => now()

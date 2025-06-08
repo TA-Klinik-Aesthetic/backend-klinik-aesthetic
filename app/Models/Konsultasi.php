@@ -15,7 +15,10 @@ class Konsultasi extends Model
     protected $fillable = [
         'id_user',
         'id_dokter',
-        'waktu_konsultasi'
+        'waktu_konsultasi',
+        'keluhan_pelanggan',
+        'pemeriksaan_fisik',
+        'status_booking_konsultasi'
     ];
 
     // Relasi ke model User
@@ -33,6 +36,6 @@ class Konsultasi extends Model
     // Relasi dengan model DetailKonsultasi
     public function detail_konsultasi()
     {
-        return $this->hasOne(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
+        return $this->hasMany(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
     }
 }

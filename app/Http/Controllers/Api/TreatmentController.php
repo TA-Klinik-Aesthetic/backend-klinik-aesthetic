@@ -9,6 +9,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class TreatmentController extends Controller
 {
@@ -25,9 +27,9 @@ class TreatmentController extends Controller
         }
     }
 
-    // POST: Tambah treatment baru
     public function store(Request $request)
     {
+
         try {
             $validated = $request->validate([
                 'id_jenis_treatment' => 'required|exists:tb_jenis_treatment,id_jenis_treatment',
@@ -35,21 +37,35 @@ class TreatmentController extends Controller
                 'deskripsi_treatment' => 'nullable|string',
                 'biaya_treatment' => 'required|numeric',
                 'estimasi_treatment' => 'nullable|string',
-                'gambar_treatment' => 'nullable|string|url',
+                'gambar_treatment' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Maksimal 2MB
             ]);
-
+    
+            // Jika ada file gambar, simpan ke storage
+            if ($request->hasFile('gambar_treatment')) {
+                $file = $request->file('gambar_treatment');
+                
+                // Buat nama unik agar tidak tertimpa
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                
+                // Simpan ke storage di folder 'public/treatment_images'
+                $path = $file->storeAs('treatment_images', $fileName, 'public');
+    
+                if (!$path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
+                }
+                
+                $validated['gambar_treatment'] = $path; // Simpan path ke database
+            }
+    
+            // Simpan data treatment ke database
             $treatment = Treatment::create($validated);
-
+    
             return response()->json([
                 'message' => 'Treatment berhasil ditambahkan',
                 'data' => $treatment,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Validasi data gagal', 'errors' => $e->errors()], 422);
-        } catch (UnauthorizedHttpException $e) {
-            return response()->json(['message' => 'Akses tidak diizinkan', 'error' => $e->getMessage()], 401);
-        } catch (AccessDeniedHttpException $e) {
-            return response()->json(['message' => 'Akses ditolak', 'error' => $e->getMessage()], 403);
         } catch (QueryException $e) {
             return response()->json(['message' => 'Terjadi kesalahan saat menyimpan treatment', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
@@ -118,14 +134,28 @@ class TreatmentController extends Controller
     {
         try {
             $treatment = Treatment::find($id);
-
+    
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
             }
+    
+            // Hapus gambar jika ada
+            if (!empty($treatment->gambar_treatment)) {
+                $imagePath = "public/{$treatment->gambar_treatment}"; // Pastikan path benar
+                Log::info("Mencoba menghapus gambar: " . $imagePath);
 
+                if (Storage::exists($imagePath)) {
+                    Storage::delete($imagePath);
+                    Log::info("Gambar berhasil dihapus.");
+                } else {
+                    Log::warning("Gambar tidak ditemukan di storage.");
+                }
+            }
+    
+            // Hapus data treatment dari database
             $treatment->delete();
-
-            return response()->json(['message' => 'Treatment berhasil dihapus'], 200);
+    
+            return response()->json(['message' => 'Treatment dan gambar berhasil dihapus'], 200);
         } catch (UnauthorizedHttpException $e) {
             return response()->json(['message' => 'Akses tidak diizinkan', 'error' => $e->getMessage()], 401);
         } catch (AccessDeniedHttpException $e) {

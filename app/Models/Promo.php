@@ -9,14 +9,29 @@ class Promo extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_promo'; // Menyebutkan nama tabel jika berbeda
+    protected $table = 'tb_promo';
 
-    protected $primaryKey = 'id_promo'; // Tentukan primary key (jika tidak default id)
+    protected $primaryKey = 'id_promo'; // Primary key tabel
+
+    public $incrementing = true; // Pastikan primary key auto-increment
+    protected $keyType = 'int'; // Tipe data primary key
 
     protected $fillable = [
-        'judul_promo',
+        'nama_promo',
+        'jenis_promo',
         'deskripsi_promo',
-        'keterangan_promo',
-        'tenggat_waktu_promosi',
+        'tipe_potongan',
+        'potongan_harga',
+        'minimal_belanja',
+        'tanggal_mulai',
+        'tanggal_berakhir',
+        'gambar_promo',
+        'status_promo',
     ];
+
+    // Relasi ke Penjualan Produk
+    public function penjualanProduk()
+    {
+        return $this->hasMany(PembelianProduk::class, 'id_promo');
+    }
 }

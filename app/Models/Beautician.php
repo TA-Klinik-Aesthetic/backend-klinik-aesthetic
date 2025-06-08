@@ -20,7 +20,7 @@ class Beautician extends Model
     ];
 
     // Relasi ke model detail booking treatment
-    public function detail_booking_treatment()
+    public function booking_treatment()
     {
         return $this->hasMany(DetailBookingTreatment::class, 'id_beautician', 'id_beautician');
     }

@@ -15,10 +15,9 @@ class FeedbackTreatmentSeeder extends Seeder
     {
         DB::table('tb_feedback_treatment')->insert([
             [
-                'id_booking_treatment' => 1,
+                'id_detail_booking_treatment' => 1,
                 'rating' => 5,
                 'teks_feedback' => 'Pelayanan treatment sangat baik dan ramah.',
-                'balasan_feedback' => 'Terima kasih atas feedback Anda!',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

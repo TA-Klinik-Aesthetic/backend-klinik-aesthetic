@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Feedback;
+use App\Models\FeedbackKonsultasi;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +16,7 @@ class FeedbackControllerKonsultasi extends Controller
     public function index()
     {
         try {
-            $feedbacks = Feedback::with('konsultasi')->get();
+            $feedbacks = FeedbackKonsultasi::with('konsultasi')->get();
 
             return response()->json(['data' => $feedbacks], 200);
         } catch (QueryException $e) {
@@ -40,10 +40,9 @@ class FeedbackControllerKonsultasi extends Controller
                 'id_konsultasi' => 'required|exists:tb_konsultasi,id_konsultasi',
                 'rating' => 'nullable|integer|min:1|max:5',
                 'teks_feedback' => 'nullable|string',
-                'balasan_feedback' => 'nullable|string',
             ]);
 
-            $feedback = Feedback::create($validatedData);
+            $feedback = FeedbackKonsultasi::create($validatedData);
 
             return response()->json([
                 'message' => 'Feedback berhasil ditambahkan',
@@ -81,7 +80,7 @@ class FeedbackControllerKonsultasi extends Controller
     public function show($id_feedback_konsultasi)
     {
         try {
-            $feedback = Feedback::with('konsultasi')->find($id_feedback_konsultasi);
+            $feedback = FeedbackKonsultasi::with('konsultasi')->find($id_feedback_konsultasi);
 
             if (!$feedback) {
                 return response()->json(['message' => 'Feedback tidak ditemukan'], 404);
@@ -105,17 +104,15 @@ class FeedbackControllerKonsultasi extends Controller
     public function update(Request $request, $id_feedback_konsultasi)
     {
         try {
-            $feedback = Feedback::find($id_feedback_konsultasi);
+            $feedback = FeedbackKonsultasi::find($id_feedback_konsultasi);
 
             if (!$feedback) {
                 return response()->json(['message' => 'Feedback tidak ditemukan'], 404);
             }
 
             $validatedData = $request->validate([
-                'id_konsultasi' => 'sometimes|exists:tb_konsultasi,id_konsultasi',
-                'rating' => 'sometimes|integer|min:1|max:5',
-                'teks_feedback' => 'sometimes|string',
-                'balasan_feedback' => 'nullable|string',
+                'rating' => 'nullable|integer|min:1|max:5',
+                'teks_feedback' => 'nullable|string',
             ]);
 
             $feedback->update($validatedData);
@@ -156,7 +153,7 @@ class FeedbackControllerKonsultasi extends Controller
     public function destroy($id_feedback_konsultasi)
     {
         try {
-            $feedback = Feedback::find($id_feedback_konsultasi);
+            $feedback = FeedbackKonsultasi::find($id_feedback_konsultasi);
 
             if (!$feedback) {
                 return response()->json(['message' => 'Feedback tidak ditemukan'], 404);

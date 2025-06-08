@@ -26,4 +26,10 @@ class JenisTreatment extends Model
     {
         return $this->hasMany(Treatment::class, 'id_jenis_treatment', 'id_jenis_treatment');
     }
+
+    // // Relasi ke model Produk
+    // public function produk()
+    // {
+    //     return $this->hasMany(Produk::class, 'id_jenis_treatment', 'id_jenis_treatment');
+    // }
 }

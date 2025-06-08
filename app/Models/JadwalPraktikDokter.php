@@ -14,7 +14,6 @@ class JadwalPraktikDokter extends Model
 
     protected $fillable = [
         'id_dokter',
-        'hari',
         'tgl_kerja',
         'jam_mulai',
         'jam_selesai'

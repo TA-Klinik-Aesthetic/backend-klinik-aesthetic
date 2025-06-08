@@ -15,12 +15,18 @@ class DetailKonsultasi extends Model
     // Tentukan kolom yang bisa diisi secara massal
     protected $fillable = [
         'id_konsultasi',
-        'keluhan_pelanggan',
+        'diagnosis',
         'saran_tindakan',
+        'id_treatment'
     ];
 
     public function konsultasi()
     {
         return $this->belongsTo(Konsultasi::class, 'id_konsultasi', 'id_konsultasi');
+    }
+
+    public function treatment()
+    {
+        return $this->belongsTo(Treatment::class, 'id_treatment');
     }
 }

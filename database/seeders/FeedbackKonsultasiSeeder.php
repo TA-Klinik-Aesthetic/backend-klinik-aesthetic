@@ -19,7 +19,6 @@ class FeedbackKonsultasiSeeder extends Seeder
                 'id_konsultasi' => 1,
                 'rating' => 5,
                 'teks_feedback' => 'Pelayanan dokter sangat baik dan ramah.',
-                'balasan_feedback' => 'Terima kasih atas feedback Anda!',
                 'created_at' => now(),
                 'updated_at' => now()
             ],
