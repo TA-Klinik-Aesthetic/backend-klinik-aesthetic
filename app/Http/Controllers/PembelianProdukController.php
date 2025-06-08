@@ -12,75 +12,6 @@ use Exception;
 
 class PembelianProdukController extends Controller
 {
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'id_user' => 'required',
-    //         'produk' => 'required|array',
-    //         'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
-    //         'produk.*.jumlah_produk' => 'required|integer|min:1',
-    //         'potongan_harga' => 'nullable|numeric|min:0',
-    //     ]);
-
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $harga_total = 0;
-    //         $detail_produk = [];
-
-    //         foreach ($request->produk as $item) {
-    //             $produk = Produk::findOrFail($item['id_produk']);
-
-    //             if ($produk->stok_produk < $item['jumlah_produk']) {
-    //                 throw new Exception("Stok produk {$produk->nama_produk} tidak mencukupi");
-    //             }
-
-    //             $subtotal = $item['jumlah_produk'] * $produk->harga_produk;
-    //             $harga_total += $subtotal;
-
-    //             $detail_produk[] = [
-    //                 'id_produk' => $item['id_produk'],
-    //                 'jumlah_produk' => $item['jumlah_produk'],
-    //                 'harga_pembelian_produk' => $produk->harga_produk,
-    //             ];
-
-    //             $produk->decrement('stok_produk', $item['jumlah_produk']);
-    //         }
-
-    //         $pembelian = PembelianProduk::create([
-    //             'id_user' => $request->id_user,
-    //             'tgl_pembelian' => now(),
-    //             'harga_total' => $harga_total,
-    //             'potongan_harga' => $request->potongan_harga ?? 0,
-    //             'harga_akhir' => $harga_total - ($request->potongan_harga ?? 0),
-    //         ]);
-
-    //         foreach ($detail_produk as $detail) {
-    //             DetailPembelianProduk::create([
-    //                 'id_pembelian_produk' => $pembelian->id_pembelian_produk,
-    //                 'id_produk' => $detail['id_produk'],
-    //                 'jumlah_produk' => $detail['jumlah_produk'],
-    //                 'harga_pembelian_produk' => $detail['harga_pembelian_produk'],
-    //             ]);
-    //         }
-
-    //         DB::commit();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Pembelian berhasil disimpan',
-    //             'data' => $pembelian,
-    //         ]);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $e->getMessage(),
-    //         ], 400);
-    //     }
-    // }
-
     public function store(Request $request)
     {
         $request->validate([
@@ -183,84 +114,44 @@ class PembelianProdukController extends Controller
     }
 
 
-    // public function update(Request $request, $id)
-    // {
-    //     $pembelian = PembelianProduk::find($id);
+    public function getByUser($id_user)
+    {
+        try {
+            // Validate that the user exists
+            if (!DB::table('tb_user')->where('id_user', $id_user)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak ditemukan'
+                ], 404);
+            }
 
-    //     if (!$pembelian) {
-    //         return response()->json(['success' => false, 'message' => 'Data pembelian tidak ditemukan'], 404);
-    //     }
+            // Get all purchases for this user with their details
+            $pembelian = PembelianProduk::with(['detailPembelian.produk', 'user', 'promo'])
+                ->where('id_user', $id_user)
+                ->orderBy('tanggal_pembelian', 'desc')
+                ->get();
 
-    //     $request->validate([
-    //         'produk' => 'required|array',
-    //         'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
-    //         'produk.*.jumlah_produk' => 'required|integer|min:1',
-    //         'potongan_harga' => 'nullable|numeric|min:0',
-    //     ]);
+            if ($pembelian->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Belum ada pembelian untuk user ini',
+                    'data' => []
+                ]);
+            }
 
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $harga_total = 0;
-    //         $detail_produk = [];
-
-    //         foreach ($pembelian->detailPembelian as $detail) {
-    //             $produk = Produk::findOrFail($detail->id_produk);
-    //             $produk->increment('stok_produk', $detail->jumlah_produk);
-    //         }
-
-    //         $pembelian->detailPembelian()->delete();
-
-    //         foreach ($request->produk as $item) {
-    //             $produk = Produk::findOrFail($item['id_produk']);
-
-    //             if ($produk->stok_produk < $item['jumlah_produk']) {
-    //                 throw new Exception("Stok produk {$produk->nama_produk} tidak mencukupi");
-    //             }
-
-    //             $subtotal = $item['jumlah_produk'] * $produk->harga_produk;
-    //             $harga_total += $subtotal;
-
-    //             $detail_produk[] = [
-    //                 'id_produk' => $item['id_produk'],
-    //                 'jumlah_produk' => $item['jumlah_produk'],
-    //                 'harga_pembelian_produk' => $produk->harga_produk,
-    //             ];
-
-    //             $produk->decrement('stok_produk', $item['jumlah_produk']);
-    //         }
-
-    //         $pembelian->update([
-    //             'harga_total' => $harga_total,
-    //             'potongan_harga' => $request->potongan_harga ?? $pembelian->potongan_harga,
-    //             'harga_akhir' => $harga_total - ($request->potongan_harga ?? $pembelian->potongan_harga),
-    //         ]);
-
-    //         foreach ($detail_produk as $detail) {
-    //             DetailPembelianProduk::create([
-    //                 'id_pembelian_produk' => $pembelian->id_pembelian_produk,
-    //                 'id_produk' => $detail['id_produk'],
-    //                 'jumlah_produk' => $detail['jumlah_produk'],
-    //                 'harga_pembelian_produk' => $detail['harga_pembelian_produk'],
-    //             ]);
-    //         }
-
-    //         DB::commit();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Data pembelian berhasil diperbarui',
-    //             'data' => $pembelian,
-    //         ]);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $e->getMessage(),
-    //         ], 400);
-    //     }
-    // }
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pembelian berhasil diambil',
+                'data' => $pembelian
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data pembelian',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function update(Request $request, $id)
     {
@@ -312,17 +203,17 @@ class PembelianProdukController extends Controller
             $potongan_harga = $pembelian->potongan_harga;
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
-    
+
                 // Promo harus jenis Produk
                 if ($promo->jenis_promo !== 'Produk') {
                     throw new Exception("Promo yang digunakan bukan untuk penjualan produk.");
                 }
-    
+
                 // Promo tidak berlaku jika total belanja kurang dari minimum
                 if (!is_null($promo->minimal_belanja) && $harga_total < $promo->minimal_belanja) {
                     throw new Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
                 }
-    
+
                 $potongan_harga = $promo->potongan_harga;
             }
 
