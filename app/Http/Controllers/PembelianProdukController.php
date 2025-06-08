@@ -45,7 +45,9 @@ class PembelianProdukController extends Controller
                 ];
             }
 
-            $potongan_harga = 0;
+            $nilaiPotonganUntukDisimpan = 0;
+            $nilaiPotonganDihitung     = 0;
+
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
                 // Validasi jenis promo
@@ -58,7 +60,17 @@ class PembelianProdukController extends Controller
                     throw new Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
                 }
 
-                $potongan_harga = $promo->potongan_harga;
+                // nilai yang akan disimpan (persis seperti di tabel promo)
+                $nilaiPotonganUntukDisimpan = $promo->potongan_harga;
+
+                // nilai potong untuk menghitung harga akhir
+                if ($promo->tipe_potongan === 'Diskon') {
+                    // potongan_persen = 75 → diskon 75% dari hargaTotal
+                    $nilaiPotonganDihitung = ($harga_total * $promo->potongan_harga) / 100;
+                } else {
+                    // potongan langsung
+                    $nilaiPotonganDihitung = $promo->potongan_harga;
+                }
             }
 
             $pembelian = PembelianProduk::create([
@@ -66,8 +78,8 @@ class PembelianProdukController extends Controller
                 'tanggal_pembelian' => now(),
                 'harga_total' => $harga_total,
                 'id_promo' => $request->id_promo,
-                'potongan_harga' => $potongan_harga,
-                'harga_akhir' => $harga_total - $potongan_harga,
+                'potongan_harga' => $nilaiPotonganUntukDisimpan,
+                'harga_akhir' => $harga_total - $nilaiPotonganDihitung,
             ]);
 
             foreach ($detail_produk as $detail) {
