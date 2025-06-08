@@ -212,7 +212,13 @@ class PembelianProdukController extends Controller
                 $produk->decrement('stok_produk', $item['jumlah_produk']);
             }
 
-            $potongan_harga = $pembelian->potongan_harga;
+            // Simpan nilai potongan & hitung nilai diskon untuk harga akhir
+            $nilaiPotonganUntukDisimpan = 0;
+            $nilaiPotonganDihitung     = 0;
+
+            // Ambil promo lama (jika ada)
+            $lamaPromo = $pembelian->promo; // pastikan relasi `promo()` di-model sudah ada
+
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
 
@@ -226,14 +232,38 @@ class PembelianProdukController extends Controller
                     throw new Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
                 }
 
-                $potongan_harga = $promo->potongan_harga;
+                $nilaiPotonganUntukDisimpan = $promo->potongan_harga;
+                if ($promo->tipe_potongan === 'Diskon') {
+                    $nilaiPotonganDihitung = ($harga_total * $promo->potongan_harga) / 100;
+                } else {
+                    $nilaiPotonganDihitung = $promo->potongan_harga;
+                }
+
+            } elseif ($request->id_promo === null) {
+                // User mengosongkan promo → reset potongan
+                $nilaiPotonganUntukDisimpan = 0;
+                $nilaiPotonganDihitung     = 0;
+    
+            } else {
+                // Promo tidak diubah → pakai nilai lama
+                if ($lamaPromo) {
+                    $nilaiPotonganUntukDisimpan = $lamaPromo->potongan_harga;
+                    if ($lamaPromo->tipe_potongan === 'Diskon') {
+                        $nilaiPotonganDihitung = ($harga_total * $lamaPromo->potongan_harga) / 100;
+                    } else {
+                        $nilaiPotonganDihitung = $lamaPromo->potongan_harga;
+                    }
+                }
             }
+    
+            // Hitung harga akhir
+            $hargaAkhir = max(0, $harga_total - $nilaiPotonganDihitung);
 
             $pembelian->update([
                 'harga_total' => $harga_total,
                 'id_promo' => $request->id_promo,
-                'potongan_harga' => $potongan_harga,
-                'harga_akhir' => $harga_total - $potongan_harga,
+                'potongan_harga' => $nilaiPotonganUntukDisimpan,
+                'harga_akhir' => $hargaAkhir,
             ]);
 
             foreach ($detail_produk as $detail) {
