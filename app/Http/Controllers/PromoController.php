@@ -29,6 +29,7 @@ class PromoController extends Controller
                 'nama_promo' => 'required|string|max:255',
                 'jenis_promo' => 'required|string',
                 'deskripsi_promo' => 'required|string',
+                'tipe_potongan' => 'required|string',
                 'potongan_harga' => 'required|numeric|min:0',
                 'minimal_belanja' => 'nullable|numeric|min:0',
                 'tanggal_mulai' => 'required|date',
@@ -36,6 +37,13 @@ class PromoController extends Controller
                 'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
                 'status_promo' => 'required|string',
             ]);
+
+            // Validasi tambahan: jika tipe_potongan Diskon, maksimal 99
+            if ($validated['tipe_potongan'] === 'Diskon' && $validated['potongan_harga'] > 99) {
+                return response()->json([
+                    'message' => 'Potongan diskon tidak boleh lebih dari 99%.'
+                ], 422);
+            }
 
             // Jika ada file gambar, simpan ke storage
             if ($request->hasFile('gambar_promo')) {
@@ -94,14 +102,16 @@ class PromoController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'nama_promo' => 'sometimes|required|string|max:255',
-            'deskripsi_promo' => 'sometimes|required|string',
-            'potongan_harga' => 'sometimes|required|numeric|min:0',
+            'nama_promo' => 'required|string|max:255',
+            'jenis_promo' => 'required|string',
+            'deskripsi_promo' => 'required|string',
+            'tipe_potongan' => 'required|string',
+            'potongan_harga' => 'required|numeric|min:0',
             'minimal_belanja' => 'nullable|numeric|min:0',
-            'tanggal_mulai' => 'sometimes|required|date',
-            'tanggal_berakhir' => 'sometimes|required|date|after_or_equal:tanggal_mulai',
-            'gambar_promo' => 'nullable|string',
-            'status_promo' => 'sometimes|required|in:aktif,nonaktif',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_berakhir' => 'required|date|after_or_equal:tanggal_mulai',
+            'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
+            'status_promo' => 'required|string',
         ]);
 
         if ($validator->fails()) {

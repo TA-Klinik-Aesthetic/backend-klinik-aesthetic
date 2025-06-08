@@ -28,7 +28,7 @@ class PenjualanProdukSeeder extends Seeder
                 'id_user' => 2,
                 'tanggal_pembelian' => now(),
                 'harga_total' => 75000,
-                'id_promo' => 2,
+                'id_promo' => 3,
                 'potongan_harga' => 25000,
                 'harga_akhir' => 50000,
                 'created_at' => now(),

@@ -20,6 +20,7 @@ class Promo extends Model
         'nama_promo',
         'jenis_promo',
         'deskripsi_promo',
+        'tipe_potongan',
         'potongan_harga',
         'minimal_belanja',
         'tanggal_mulai',

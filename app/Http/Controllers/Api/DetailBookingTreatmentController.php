@@ -264,7 +264,9 @@ class DetailBookingTreatmentController extends Controller
 
             // Mengambil promo berdasarkan id_promo
             $promo = Promo::find($validatedBooking['id_promo']);
-            $potonganHarga = 0;
+            // $potonganHarga = 0;
+            $nilaiPotonganUntukDisimpan = 0; // ini akan disimpan di kolom potongan_harga
+            $nilaiDiskonDihitung = 0;        // ini untuk menghitung pengurangan harga
 
             if ($promo) {
                 // Cek apakah jenis promo adalah Treatment
@@ -277,16 +279,30 @@ class DetailBookingTreatmentController extends Controller
                     throw new \Exception("Promo tidak dapat digunakan karena total belanja kurang dari minimal belanja sebesar Rp" . number_format($promo->minimal_belanja, 0, ',', '.'));
                 }
 
-                $potonganHarga = $promo->potongan_harga;
+                // Simpan apa yang ada di tabel promo ke kolom potongan_harga
+                $nilaiPotonganUntukDisimpan = $promo->potongan_harga;
+
+                // Kalau tipe potongan “Diskon”, hitung persentase
+                if ($promo->tipe_potongan === 'Diskon') {
+                    // Contoh: kalau potongan_harga = 75 (75%), maka:
+                    $nilaiDiskonDihitung = ($hargaTotal * $promo->potongan_harga) / 100;
+                }
+                // Kalau “Rupiah”, maka diskon langsung = potongan_harga
+                else {
+                    $nilaiDiskonDihitung = $promo->potongan_harga;
+                }
             }
 
-            // Hitung harga akhir treatment dengan potongan harga dari promo
-            $hargaAkhir = $hargaTotal - $potonganHarga;
+            // Hitung harga akhir
+            $hargaAkhir = $hargaTotal - $nilaiDiskonDihitung;
+            if ($hargaAkhir < 0) {
+                $hargaAkhir = 0;
+            }
 
             // Update harga total, potongan harga, dan harga akhir treatment pada BookingTreatment
             $booking->update([
                 'harga_total' => $hargaTotal,
-                'potongan_harga' => $potonganHarga,  // Menyimpan potongan harga
+                'potongan_harga' => $nilaiPotonganUntukDisimpan,  // Menyimpan potongan harga
                 'harga_akhir_treatment' => $hargaAkhir > 0 ? $hargaAkhir : 0,
             ]);
 

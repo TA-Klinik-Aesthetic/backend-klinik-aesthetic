@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama_promo');
             $table->enum('jenis_promo', ['Treatment', 'Produk']);
             $table->text('deskripsi_promo');
+            $table->enum('tipe_potongan', ['Diskon', 'Rupiah']); // Jenis potongan harga baru
             $table->decimal('potongan_harga', 15, 2); // Ubah menjadi tipe double
             $table->decimal('minimal_belanja', 15, 2)->nullable(); // Ubah menjadi tipe double
             $table->date('tanggal_mulai');
