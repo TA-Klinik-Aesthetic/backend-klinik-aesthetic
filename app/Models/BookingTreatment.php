@@ -26,6 +26,7 @@ class BookingTreatment extends Model
         'harga_total',
         'id_promo',
         'potongan_harga',
+        'pajak',
         'harga_akhir_treatment',
     ];
 

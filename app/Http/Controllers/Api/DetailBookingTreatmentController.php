@@ -209,10 +209,12 @@ class DetailBookingTreatmentController extends Controller
                 'id_dokter' => $validatedBooking['id_dokter'],
                 'id_beautician' => $validatedBooking['id_beautician'],
                 'status_booking_treatment' => $validatedBooking['status_booking_treatment'],
-                'id_promo' => $validatedBooking['id_promo'],  // Menyimpan id_promo
                 'harga_total' => 0,
-                'harga_akhir_treatment' => 0,
+                'id_promo' => $validatedBooking['id_promo'],  // Menyimpan id_promo
                 'potongan_harga' => 0,  // Awalnya potongan_harga di-set 0
+                'pajak' => 10,    // pajak tetap 10%
+                'harga_akhir_treatment' => 0,
+                
             ]);
 
             $hargaTotal = 0;
@@ -293,17 +295,21 @@ class DetailBookingTreatmentController extends Controller
                 }
             }
 
-            // Hitung harga akhir
-            $hargaAkhir = $hargaTotal - $nilaiDiskonDihitung;
-            if ($hargaAkhir < 0) {
-                $hargaAkhir = 0;
+            // 6) Hitung pajak 10%
+            $subtotalSetelahDiskon = $hargaTotal - $nilaiDiskonDihitung;
+            if ($subtotalSetelahDiskon < 0) {
+                $subtotalSetelahDiskon = 0;
             }
+            $pajakHitung = ($subtotalSetelahDiskon * 10) / 100;
 
-            // Update harga total, potongan harga, dan harga akhir treatment pada BookingTreatment
+            // 7) Harga akhir
+            $hargaAkhir = $subtotalSetelahDiskon + $pajakHitung;
+
+            // 8) Update header
             $booking->update([
-                'harga_total' => $hargaTotal,
-                'potongan_harga' => $nilaiPotonganUntukDisimpan,  // Menyimpan potongan harga
-                'harga_akhir_treatment' => $hargaAkhir > 0 ? $hargaAkhir : 0,
+                'harga_total'            => $hargaTotal,
+                'potongan_harga'         => $nilaiPotonganUntukDisimpan,
+                'harga_akhir_treatment'  => $hargaAkhir,
             ]);
 
             DB::commit();

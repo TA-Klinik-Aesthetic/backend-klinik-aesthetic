@@ -23,8 +23,9 @@ class BookingTreatmentSeeder extends Seeder
                 'status_booking_treatment' => 'Verifikasi', 
                 'harga_total' => 550000,
                 'id_promo' => 2,
-                'potongan_harga' => 50000, 
-                'harga_akhir_treatment' => 500000, 
+                'potongan_harga' => 25000,
+                'pajak' => 10,  
+                'harga_akhir_treatment' => 500000, // hanya sekedar contoh
                 'created_at' => now(),
                 'updated_at' => now()
             ],

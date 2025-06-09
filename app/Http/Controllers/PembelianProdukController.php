@@ -73,13 +73,25 @@ class PembelianProdukController extends Controller
                 }
             }
 
+            // netto setelah diskon
+            $subtotalSetelahDiskon = $harga_total - $nilaiPotonganDihitung;
+
+            // pajak selalu 10 (persen)
+            $pajak = 10;
+            // hitung nominal pajak untuk perhitungan harga akhir
+            $pajakHitung = ($subtotalSetelahDiskon * $pajak) / 100;
+
+            // harga akhir = netto + pajak
+            $hargaAkhir = $subtotalSetelahDiskon + $pajakHitung;
+
             $pembelian = PembelianProduk::create([
                 'id_user' => $request->id_user,
                 'tanggal_pembelian' => now(),
                 'harga_total' => $harga_total,
                 'id_promo' => $request->id_promo,
                 'potongan_harga' => $nilaiPotonganUntukDisimpan,
-                'harga_akhir' => $harga_total - $nilaiPotonganDihitung,
+                'pajak' => $pajak,  
+                'harga_akhir' => $hargaAkhir,
             ]);
 
             foreach ($detail_produk as $detail) {
@@ -238,12 +250,10 @@ class PembelianProdukController extends Controller
                 } else {
                     $nilaiPotonganDihitung = $promo->potongan_harga;
                 }
-
             } elseif ($request->id_promo === null) {
                 // User mengosongkan promo → reset potongan
                 $nilaiPotonganUntukDisimpan = 0;
                 $nilaiPotonganDihitung     = 0;
-    
             } else {
                 // Promo tidak diubah → pakai nilai lama
                 if ($lamaPromo) {
@@ -255,7 +265,7 @@ class PembelianProdukController extends Controller
                     }
                 }
             }
-    
+
             // Hitung harga akhir
             $hargaAkhir = max(0, $harga_total - $nilaiPotonganDihitung);
 
