@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PembayaranProduk;
+use App\Models\Pembayaran;
 use App\Models\PembelianProduk;
 use App\Models\Produk;
 use App\Models\InventarisStok;
@@ -11,99 +11,116 @@ use Illuminate\Support\Facades\DB;
 
 class PembayaranProdukController extends Controller
 {
-    // Menampilkan semua pembayaran produk
     public function index()
     {
-        $pembayaranProdukList = PembayaranProduk::with('penjualanProduk')->get();
-        return response()->json($pembayaranProdukList);
+        // Ambil pembayaran (model Pembayaran) yang id_penjualan_produk-nya terisi
+        $list = Pembayaran::with('penjualanProduk')
+            ->whereNotNull('id_penjualan_produk')
+            ->get();
+
+        return response()->json($list);
     }
 
     // Menyimpan pembayaran produk baru
-    public function store(Request $request)
+    // public function store(Request $request)
+    // {
+    //     DB::beginTransaction();
+
+    //     try {
+    //         // Validasi input pembayaran produk
+    //         $validatedPayment = $request->validate([
+    //             'id_penjualan_produk' => 'required|exists:tb_penjualan_produk,id_penjualan_produk',
+    //             'metode_pembayaran' => 'required|string',
+    //         ]);
+
+    //         // Ambil data penjualan produk berdasarkan id_penjualan_produk
+    //         $penjualanProduk = PembelianProduk::findOrFail($validatedPayment['id_penjualan_produk']);
+    //         $hargaAkhirProduk = $penjualanProduk->harga_akhir;
+
+    //         // Menyimpan pembayaran produk
+    //         $pembayaranProduk = PembayaranProduk::create([
+    //             'id_penjualan_produk' => $validatedPayment['id_penjualan_produk'],
+    //             'metode_pembayaran' => $validatedPayment['metode_pembayaran'],
+    //             'harga_akhir' => $hargaAkhirProduk
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'pembayaran_produk' => $pembayaranProduk,
+    //             'message' => 'Pembayaran produk berhasil disimpan'
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return response()->json([
+    //             'message' => 'Error while creating pembayaran produk',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+    public function show($id)
     {
-        DB::beginTransaction();
+        // Mencari data pembayaran treatment berdasarkan ID
+        $pembayaran = Pembayaran::with('penjualanProduk.user', 'penjualanProduk.detailPembelian')->find($id);
 
-        try {
-            // Validasi input pembayaran produk
-            $validatedPayment = $request->validate([
-                'id_penjualan_produk' => 'required|exists:tb_penjualan_produk,id_penjualan_produk',
-                'metode_pembayaran' => 'required|string',
-            ]);
-
-            // Ambil data penjualan produk berdasarkan id_penjualan_produk
-            $penjualanProduk = PembelianProduk::findOrFail($validatedPayment['id_penjualan_produk']);
-            $hargaAkhirProduk = $penjualanProduk->harga_akhir;
-
-            // Menyimpan pembayaran produk
-            $pembayaranProduk = PembayaranProduk::create([
-                'id_penjualan_produk' => $validatedPayment['id_penjualan_produk'],
-                'metode_pembayaran' => $validatedPayment['metode_pembayaran'],
-                'harga_akhir' => $hargaAkhirProduk
-            ]);
-
-            DB::commit();
-
+        // Jika data tidak ditemukan, kembalikan respons error
+        if (!$pembayaran) {
             return response()->json([
-                'pembayaran_produk' => $pembayaranProduk,
-                'message' => 'Pembayaran produk berhasil disimpan'
-            ], 201);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Error while creating pembayaran produk',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Pembayaran Treatment tidak ditemukan',
+            ], 404);
         }
+
+        // Jika ini bukan pembayaran treatment
+        if (is_null($pembayaran->id_penjualan_produk)) {
+            return response()->json([
+                'message' => 'Pembayaran ini bukan pembayaran produk',
+            ], 400);
+        }
+
+        // Mengembalikan data pembayaran treatment
+        return response()->json([
+            'message' => 'Data Pembayaran Treatment ditemukan',
+            'data' => $pembayaran
+        ]);
     }
 
     // Memperbarui pembayaran produk yang sudah ada
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'uang' => 'required|numeric|min:0'
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            $pembayaranProduk = PembayaranProduk::findOrFail($id);
-            $hargaAkhirProduk = $pembayaranProduk->penjualanProduk->harga_akhir;
 
-            $pembayaranProduk->uang = $request->uang;
+            $request->validate([
+                'metode_pembayaran' => 'required|string|in:Tunai,Non Tunai',
+                'uang'               => 'required|numeric|min:0',
+            ]);
 
-            // Menghitung kembalian
-            $pembayaranProduk->kembalian = $request->uang - $hargaAkhirProduk;
-            $pembayaranProduk->save();
+            DB::beginTransaction();
+            // ambil baris pembayaran
+            $pembayaran = Pembayaran::findOrFail($id);
 
-            // Memperbarui status pembayaran pada tb_penjualan_produk menjadi "Sudah Dibayar"
-            $penjualanProduk = $pembayaranProduk->penjualanProduk;
-            $penjualanProduk->status_pembayaran = 'Sudah Dibayar';
-            $penjualanProduk->save();
+            // Hanya dari penjualan produk
+            $hargaAkhir = $pembayaran->penjualanProduk->harga_akhir;
 
-            // Kurangi stok produk setelah pembayaran berhasil
-            foreach ($penjualanProduk->detailPembelian as $detail) {
-                $produk = Produk::findOrFail($detail->id_produk);
-                $produk->decrement('stok_produk', $detail->jumlah_produk);
-
-                // Catat ke inventaris stok
-                // InventarisStok::create([
-                //     'id_produk' => $produk->id_produk,
-                //     'status_perubahan' => 'keluar',
-                //     'jumlah_perubahan' => $detail->jumlah_produk,
-                // ]);
-            }
+            // update pembayaran
+            $pembayaran->uang              = $request->uang;
+            $pembayaran->kembalian         = $request->uang - $hargaAkhir;
+            $pembayaran->metode_pembayaran = $request->metode_pembayaran;
+            $pembayaran->status_pembayaran = 'Sudah Dibayar';
+            $pembayaran->waktu_pembayaran  = now();
+            $pembayaran->save();
 
             DB::commit();
 
             return response()->json([
-                'pembayaran_produk' => $pembayaranProduk,
-                'message' => 'Pembayaran produk berhasil diperbarui'
+                'pembayaran_produk' => $pembayaran,
+                'message'           => 'Pembayaran produk berhasil diperbarui',
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Error while updating pembayaran produk',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

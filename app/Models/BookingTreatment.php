@@ -26,7 +26,7 @@ class BookingTreatment extends Model
         'harga_total',
         'id_promo',
         'potongan_harga',
-        'pajak',
+        'besaran_pajak',
         'harga_akhir_treatment',
     ];
 
@@ -62,6 +62,6 @@ class BookingTreatment extends Model
     // Relasi dengan pembayaran treatment
     public function pembayaranTreatment()
     {
-        return $this->hasMany(PembayaranTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
+        return $this->hasOne(Pembayaran::class, 'id_booking_treatment', 'id_booking_treatment');
     }
 }

@@ -22,7 +22,7 @@ class PembelianProduk extends Model
         'harga_total',
         'id_promo',
         'potongan_harga',
-        'pajak',
+        'besaran_pajak',
         'harga_akhir',
     ];
 
@@ -46,6 +46,6 @@ class PembelianProduk extends Model
 
     public function pembayaranProduk()
     {
-        return $this->hasMany(PembayaranProduk::class, 'id_penjualan_produk', 'id_penjualan_produk');
+        return $this->hasOne(Pembayaran::class, 'id_penjualan_produk', 'id_penjualan_produk');
     }
 }

@@ -5,24 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PembayaranProduk extends Model
+class Pembayaran extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_pembayaran_produk';
+    protected $table = 'tb_pembayaran';
 
-    protected $primaryKey = 'id_pembayaran_produk';
+    protected $primaryKey = 'id_pembayaran';
 
     protected $fillable = [
+        'id_booking_treatment',
         'id_penjualan_produk',
-        'metode_pembayaran',
-        'harga_akhir',
         'uang',
         'kembalian',
+        'metode_pembayaran',
+        'status_pembayaran',
+        'waktu_pembayaran',
     ];
 
     protected $casts = [
-        'harga_akhir' => 'decimal:2',
         'uang' => 'decimal:2',
         'kembalian' => 'decimal:2',
     ];
@@ -31,5 +32,10 @@ class PembayaranProduk extends Model
     public function penjualanProduk()
     {
         return $this->belongsTo(PembelianProduk::class, 'id_penjualan_produk');
+    }
+
+    public function bookingTreatment()
+    {
+        return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment');
     }
 }

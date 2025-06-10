@@ -11,6 +11,7 @@ use App\Models\Treatment;
 use App\Models\Produk;
 use App\Models\KompensasiDiberikan;
 use App\Models\Komplain;
+use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -212,9 +213,9 @@ class DetailBookingTreatmentController extends Controller
                 'harga_total' => 0,
                 'id_promo' => $validatedBooking['id_promo'],  // Menyimpan id_promo
                 'potongan_harga' => 0,  // Awalnya potongan_harga di-set 0
-                'pajak' => 10,    // pajak tetap 10%
+                'besaran_pajak' => 0,    // pajak tetap 10%
                 'harga_akhir_treatment' => 0,
-                
+
             ]);
 
             $hargaTotal = 0;
@@ -309,7 +310,19 @@ class DetailBookingTreatmentController extends Controller
             $booking->update([
                 'harga_total'            => $hargaTotal,
                 'potongan_harga'         => $nilaiPotonganUntukDisimpan,
+                'besaran_pajak'                 => $pajakHitung,
                 'harga_akhir_treatment'  => $hargaAkhir,
+            ]);
+
+            // ✨ Baru: Buat record pembayaran dengan FK otomatis
+            Pembayaran::create([
+                'id_booking_treatment' => $booking->id_booking_treatment,
+                'id_penjualan_produk'  => null,
+                'uang'                 => null,
+                'kembalian'            => null,
+                'metode_pembayaran'    => 'Tunai',
+                'status_pembayaran'    => 'Belum Dibayar',
+                'waktu_pembayaran'     => null,
             ]);
 
             DB::commit();

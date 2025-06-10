@@ -38,7 +38,7 @@ return new class extends Migration
             $table->decimal('harga_total', 15, 2)->nullable();
             $table->unsignedInteger('id_promo')->nullable();
             $table->decimal('potongan_harga', 15, 2)->nullable();
-            $table->decimal('pajak', 15, 2)->default(0); // Kolom untuk pajak
+            $table->decimal('besaran_pajak', 15, 2)->default(0); // Kolom untuk pajak
             $table->decimal('harga_akhir_treatment', 15, 2)->nullable();
             // $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
             $table->timestamps();

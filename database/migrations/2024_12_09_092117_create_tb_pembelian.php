@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('harga_total', 15, 2);
             $table->unsignedInteger('id_promo')->nullable(); // Foreign key ke tabel tb_user
             $table->decimal('potongan_harga', 15, 2)->nullable()->default(0);
-            $table->decimal('pajak', 15, 2)->default(0); // Kolom untuk pajak
+            $table->decimal('besaran_pajak', 15, 2)->default(0); // Kolom untuk pajak
             $table->decimal('harga_akhir', 15, 2);
             // $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
             $table->timestamps();

@@ -6,6 +6,7 @@ use App\Models\PembelianProduk;
 use App\Models\DetailPembelianProduk;
 use App\Models\Produk;
 use App\Models\Promo;
+use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -90,7 +91,7 @@ class PembelianProdukController extends Controller
                 'harga_total' => $harga_total,
                 'id_promo' => $request->id_promo,
                 'potongan_harga' => $nilaiPotonganUntukDisimpan,
-                'pajak' => $pajak,  
+                'besaran_pajak' => $pajakHitung,
                 'harga_akhir' => $hargaAkhir,
             ]);
 
@@ -102,6 +103,17 @@ class PembelianProdukController extends Controller
                     'harga_penjualan_produk' => $detail['harga_penjualan_produk'],
                 ]);
             }
+
+            // ✨ Baru: Buat record pembayaran untuk penjualan produk
+            Pembayaran::create([
+                'id_booking_treatment' => null,
+                'id_penjualan_produk'  => $pembelian->id_penjualan_produk,
+                'uang'                 => null,
+                'kembalian'            => null,
+                'metode_pembayaran'    => 'Tunai',
+                'status_pembayaran'    => 'Belum Dibayar',
+                'waktu_pembayaran'     => null,
+            ]);
 
             DB::commit();
 
@@ -220,8 +232,6 @@ class PembelianProdukController extends Controller
                     'jumlah_produk' => $item['jumlah_produk'],
                     'harga_penjualan_produk' => $produk->harga_produk,
                 ];
-
-                $produk->decrement('stok_produk', $item['jumlah_produk']);
             }
 
             // Simpan nilai potongan & hitung nilai diskon untuk harga akhir
@@ -266,13 +276,20 @@ class PembelianProdukController extends Controller
                 }
             }
 
-            // Hitung harga akhir
-            $hargaAkhir = max(0, $harga_total - $nilaiPotonganDihitung);
+            // 3) Netto setelah diskon
+            $subtotalSetelahDiskon = max(0, $harga_total - $nilaiPotonganDihitung);
+
+            // 4) Hitung nominal pajak 10%
+            $pajakHitung = ($subtotalSetelahDiskon * 10) / 100;
+
+            // 5) Harga akhir = netto + pajak
+            $hargaAkhir = $subtotalSetelahDiskon + $pajakHitung;
 
             $pembelian->update([
                 'harga_total' => $harga_total,
                 'id_promo' => $request->id_promo,
                 'potongan_harga' => $nilaiPotonganUntukDisimpan,
+                'besaran_pajak' => $pajakHitung,
                 'harga_akhir' => $hargaAkhir,
             ]);
 
