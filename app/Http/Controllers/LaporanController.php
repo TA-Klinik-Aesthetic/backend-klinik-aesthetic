@@ -24,8 +24,10 @@ class LaporanController extends Controller
             'detailBooking.treatment', // Mendapatkan informasi treatment untuk setiap detail booking
             'promo' // Mendapatkan informasi promo yang diterapkan
         ])
-            ->where('status_pembayaran', 'Sudah Dibayar') // Hanya ambil yang sudah dibayar
-            ->get();
+        ->whereHas('pembayaranTreatment', function ($query) {
+            $query->where('status_pembayaran', 'Sudah Dibayar');
+        })
+        ->get();
 
         // Data laporan
         $laporanData = [];
@@ -94,15 +96,15 @@ class LaporanController extends Controller
             'pembayaranTreatment' // Mengambil data pembayaran treatment yang sudah ada
         ])
             ->whereDate('waktu_treatment', $tanggal)  // Filter berdasarkan tanggal
-            ->where('status_pembayaran', 'Sudah Dibayar') // Hanya ambil yang sudah dibayar
+            ->whereHas('pembayaranTreatment', function ($query) {
+                $query->where('status_pembayaran', 'Sudah Dibayar');
+            })
             ->get();
 
         // Data laporan
         $laporanData = [];
         $promoUsageCount = [];
         $penjualanTreatment = [];
-        $totalUang = 0;
-        $pajak = 10;  // Pajak akan dihitung disini
         $totalPendapatan = 0;
 
         foreach ($laporanPenjualan as $bookingTreatment) {
@@ -112,9 +114,6 @@ class LaporanController extends Controller
             if ($bookingTreatment->promo) {
                 $promoName = $bookingTreatment->promo->nama_promo;
             }
-
-            // Menghitung total penjualan treatment berdasarkan harga_akhir_treatment
-            $totalUang += $bookingTreatment->harga_akhir_treatment;
 
             // Menambahkan data ke laporan untuk setiap detail booking treatment
             foreach ($bookingTreatment->detailBooking as $detail) {
@@ -152,6 +151,7 @@ class LaporanController extends Controller
                     $promoUsageCount[$promoName] = [
                         'count' => 1, // Inisialisasi dengan 1 penggunaan
                         'potongan_harga' => $bookingTreatment->promo->potongan_harga, // Set potongan harga pertama
+                        'tipe_potongan' => $bookingTreatment->promo->tipe_potongan
                     ];
                 } else {
                     // Jika promo sudah ada, update count dan potongan harga
@@ -160,13 +160,12 @@ class LaporanController extends Controller
             }
 
             // Menambahkan total pendapatan dari pembayaran treatment
-            foreach ($bookingTreatment->pembayaranTreatment as $payment) {
-                $totalPendapatan += $payment->total;
+            if ($bookingTreatment->pembayaranTreatment && $bookingTreatment->pembayaranTreatment->status_pembayaran === 'Sudah Dibayar') {
+                $totalPendapatan += $bookingTreatment->harga_akhir_treatment;
             }
         }
 
         // Format untuk total, pajak, dan total_pajak
-        $totalUang = number_format($totalUang, 2, '.', '');
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
 
         // Mengembalikan hasil laporan dalam format JSON
@@ -175,8 +174,6 @@ class LaporanController extends Controller
             'data' => $laporanData,
             'promo_usage_count' => $promoUsageCount,
             'penjualan_treatment' => $penjualanTreatment,
-            'subtotal' => $totalUang,
-            'pajak' => $pajak,
             'total_pendapatan' => $totalPendapatan,
         ]);
     }
@@ -198,15 +195,15 @@ class LaporanController extends Controller
         ])
             ->whereYear('waktu_treatment', $tahun)
             ->whereMonth('waktu_treatment', $bulan)
-            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereHas('pembayaranTreatment', function ($query) {
+                $query->where('status_pembayaran', 'Sudah Dibayar');
+            })
             ->get();
 
         // Data laporan
         $laporanData = [];
         $promoUsageCount = [];
         $penjualanTreatment = [];
-        $totalUang = 0;
-        $pajak = 10;  // Pajak akan dihitung disini
         $totalPendapatan = 0;
 
         foreach ($laporanPenjualan as $bookingTreatment) {
@@ -215,9 +212,6 @@ class LaporanController extends Controller
                 $promoName = $bookingTreatment->promo->nama_promo;
                 $promoDiscount = $bookingTreatment->promo->potongan_harga;
             }
-
-            // Menambahkan total uang yang dibayar berdasarkan harga_akhir_treatment
-            $totalUang += $bookingTreatment->harga_akhir_treatment;
 
             // Menambahkan data ke laporan untuk setiap detail booking treatment
             foreach ($bookingTreatment->detailBooking as $detail) {
@@ -255,20 +249,20 @@ class LaporanController extends Controller
                 if (!isset($promoUsageCount[$promoName])) {
                     $promoUsageCount[$promoName] = [
                         'count' => 1,
-                        'potongan_harga' => $promoDiscount
+                        'potongan_harga' => $promoDiscount,
+                        'tipe_potongan' => $bookingTreatment->promo->tipe_potongan
                     ];
                 } else {
                     $promoUsageCount[$promoName]['count']++;
                 }
             }
 
-            foreach ($bookingTreatment->pembayaranTreatment as $payment) {
-                $totalPendapatan += $payment->total;
+            if ($bookingTreatment->pembayaranTreatment && $bookingTreatment->pembayaranTreatment->status_pembayaran === 'Sudah Dibayar') {
+                $totalPendapatan += $bookingTreatment->harga_akhir_treatment;
             }
         }
 
         // Formatkan total uang, total pendapatan, dan pajak
-        $totalUang = number_format($totalUang, 2, '.', '');
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
 
         return response()->json([
@@ -276,8 +270,6 @@ class LaporanController extends Controller
             'data' => $laporanData,
             'promo_usage_count' => $promoUsageCount,
             'penjualan_treatment' => $penjualanTreatment,
-            'subtotal' => $totalUang,
-            'pajak' => $pajak,
             'total_pendapatan' => $totalPendapatan,
         ]);
     }
@@ -291,8 +283,10 @@ class LaporanController extends Controller
             'promo', // Mendapatkan informasi promo yang diterapkan
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
-            ->where('status_pembayaran', 'Sudah Dibayar') // Hanya ambil yang sudah dibayar
-            ->get();
+        ->whereHas('pembayaranProduk', function ($query) {
+            $query->where('status_pembayaran', 'Sudah Dibayar');
+        })
+        ->get();
 
         // Data laporan
         $laporanData = [];
@@ -355,7 +349,9 @@ class LaporanController extends Controller
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
             ->whereDate('tanggal_pembelian', $tanggal)  // Filter berdasarkan tanggal
-            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereHas('pembayaranProduk', function ($query) {
+                $query->where('status_pembayaran', 'Sudah Dibayar');
+            })
             ->get();
 
         // Data laporan
@@ -390,16 +386,17 @@ class LaporanController extends Controller
                 if (!isset($promoUsageCount[$promoName])) {
                     $promoUsageCount[$promoName] = [
                         'count' => 1, // Inisialisasi dengan 1 penggunaan
-                        'potongan_harga' => number_format($promoDiscount, 2, '.', '')
+                        'potongan_harga' => number_format($promoDiscount, 2, '.', ''),
+                        'tipe_potongan' => $penjualanProdukItem->promo->tipe_potongan
                     ];
                 } else {
                     $promoUsageCount[$promoName]['count']++;
                 }
             }
             // Menambahkan total pendapatan dari pembayaran produk
-            foreach ($penjualanProdukItem->pembayaranProduk as $payment) {
-                $totalPendapatan += $payment->harga_akhir;
-            }
+            if ($penjualanProdukItem->pembayaranProduk && $penjualanProdukItem->pembayaranProduk->status_pembayaran === 'Sudah Dibayar') {
+                $totalPendapatan += $penjualanProdukItem->harga_akhir;
+            }            
         }
 
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
@@ -475,7 +472,8 @@ class LaporanController extends Controller
                 if (!isset($promoUsageCount[$promoName])) {
                     $promoUsageCount[$promoName] = [
                         'count' => 1, // Inisialisasi dengan 1 penggunaan
-                        'potongan_harga' => $promoDiscount // Set potongan harga pertama
+                        'potongan_harga' => $promoDiscount, // Set potongan harga pertama
+                        'tipe_potongan' => $pembelianProduk->promo->tipe_potongan
                     ];
                 } else {
                     $promoUsageCount[$promoName]['count']++;
@@ -483,9 +481,9 @@ class LaporanController extends Controller
             }
 
             // Menambahkan total pendapatan dari pembayaran produk
-            foreach ($pembelianProduk->pembayaranProduk as $payment) {
-                $totalPendapatan += $payment->harga_akhir;
-            }
+            if ($pembelianProduk->pembayaranProduk && $pembelianProduk->pembayaranProduk->status_pembayaran === 'Sudah Dibayar') {
+                $totalPendapatan += $pembelianProduk->harga_akhir;
+            }            
         }
 
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
