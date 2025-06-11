@@ -140,7 +140,7 @@ class PembelianProdukController extends Controller
 
     public function show($id)
     {
-        $pembelian = PembelianProduk::with('detailPembelian')->find($id);
+        $pembelian = PembelianProduk::with('detailPembelian.produk', 'user')->find($id);
 
         if (!$pembelian) {
             return response()->json(['error' => 'Data pembelian tidak ditemukan'], 404);

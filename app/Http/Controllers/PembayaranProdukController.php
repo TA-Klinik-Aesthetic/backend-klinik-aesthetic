@@ -14,7 +14,7 @@ class PembayaranProdukController extends Controller
     public function index()
     {
         // Ambil pembayaran (model Pembayaran) yang id_penjualan_produk-nya terisi
-        $list = Pembayaran::with('penjualanProduk')
+        $list = Pembayaran::with('penjualanProduk.user')
             ->whereNotNull('id_penjualan_produk')
             ->get();
 
