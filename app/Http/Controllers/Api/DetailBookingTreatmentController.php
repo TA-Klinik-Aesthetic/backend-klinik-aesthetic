@@ -186,7 +186,6 @@ class DetailBookingTreatmentController extends Controller
                 'waktu_treatment' => 'required|date',
                 'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
                 'id_beautician' => 'nullable|exists:tb_beautician,id_beautician',
-                'status_booking_treatment' => 'required|string',
                 'id_promo' => 'nullable|exists:tb_promo,id_promo',  // Validasi id_promo
                 'details' => 'required|array',
                 'details.*.id_treatment' => 'required|exists:tb_treatment,id_treatment',
@@ -203,13 +202,19 @@ class DetailBookingTreatmentController extends Controller
                 throw new \Exception('Promo tidak dapat digunakan jika seluruh treatment menggunakan kompensasi.');
             }
 
+            $statusBooking = 'Verifikasi';
+            if (!empty($validatedBooking['id_dokter']) || !empty($validatedBooking['id_beautician'])) {
+                $statusBooking = 'Berhasil Dibooking';
+            }
+
+
             // Membuat Booking Treatment
             $booking = BookingTreatment::create([
                 'id_user' => $validatedBooking['id_user'],
                 'waktu_treatment' => $validatedBooking['waktu_treatment'],
                 'id_dokter' => $validatedBooking['id_dokter'],
                 'id_beautician' => $validatedBooking['id_beautician'],
-                'status_booking_treatment' => $validatedBooking['status_booking_treatment'],
+                'status_booking_treatment' => $statusBooking,
                 'harga_total' => 0,
                 'id_promo' => $validatedBooking['id_promo'],  // Menyimpan id_promo
                 'potongan_harga' => 0,  // Awalnya potongan_harga di-set 0
@@ -360,6 +365,13 @@ class DetailBookingTreatmentController extends Controller
         // Update data detail booking treatment
         $bookingTreatment->update($validated);
 
+        // Cek jika salah satu (atau keduanya) sudah diisi → ubah status menjadi "Berhasil Dibooking"
+        if (!empty($validated['id_dokter']) || !empty($validated['id_beautician'])) {
+            $bookingTreatment->update([
+                'status_booking_treatment' => 'Berhasil Dibooking'
+            ]);
+        }
+
         return response()->json([
             'booking_treatment' => $bookingTreatment,
             'message' => 'Booking Treatment updated successfully',
@@ -370,7 +382,7 @@ class DetailBookingTreatmentController extends Controller
     {
         // Validasi input untuk status booking treatment
         $validated = $request->validate([
-            'status_booking_treatment' => 'string|nullable',
+            'status_booking_treatment' => 'required|string|in:Selesai,Dibatalkan',
         ]);
 
         // Cari booking treatment berdasarkan ID
@@ -379,6 +391,18 @@ class DetailBookingTreatmentController extends Controller
         if (!$bookingTreatment) {
             return response()->json(['message' => 'Booking Treatment not found'], 404);
         }
+
+        // Jika status ingin diubah menjadi Dibatalkan, hapus pembayaran treatment (jika ada)
+        if ($validated['status_booking_treatment'] === 'Dibatalkan') {
+            $pembayaran = $bookingTreatment->pembayaranTreatment;
+
+            if ($pembayaran) {
+                $pembayaran->delete();
+            }
+        }
+
+        // refresh instance tanpa relasi pembayaran
+        $bookingTreatment->unsetRelation('pembayaranTreatment');
 
         // Update status booking treatment
         $bookingTreatment->update($validated);

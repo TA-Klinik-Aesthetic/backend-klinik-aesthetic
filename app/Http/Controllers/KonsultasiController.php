@@ -124,7 +124,7 @@ class KonsultasiController extends Controller
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'status_booking_konsultasi' => 'string|nullable',
+            'status_booking_konsultasi' => 'required|string|in:Berhasil Dibooking,Dibatalkan',
         ]);
 
         // Jika validasi gagal

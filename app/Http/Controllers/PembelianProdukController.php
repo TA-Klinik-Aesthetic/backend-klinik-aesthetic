@@ -325,35 +325,38 @@ class PembelianProdukController extends Controller
     public function destroy($id_pembelian_produk)
     {
         $pembelian = PembelianProduk::find($id_pembelian_produk);
-
+    
         if (!$pembelian) {
             return response()->json(['success' => false, 'message' => 'Data pembelian tidak ditemukan'], 404);
         }
-
+    
         DB::beginTransaction();
-
+    
         try {
-            foreach ($pembelian->detailPembelian as $detail) {
-                $produk = Produk::findOrFail($detail->id_produk);
-                $produk->increment('stok_produk', $detail->jumlah_produk);
-            }
-
+            // Hapus detail pembelian
             $pembelian->detailPembelian()->delete();
+    
+            // Hapus pembayaran produk (langsung via query)
+            Pembayaran::where('id_penjualan_produk', $pembelian->id_penjualan_produk)->delete();
+    
+            // Hapus data pembelian produk
             $pembelian->delete();
-
+    
             DB::commit();
-
+    
             return response()->json([
                 'success' => true,
-                'message' => 'Data pembelian berhasil dihapus',
+                'message' => 'Data pembelian dan pembayaran berhasil dihapus',
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-
+    
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }
     }
+    
+    
 }

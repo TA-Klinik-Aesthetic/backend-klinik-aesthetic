@@ -32,6 +32,13 @@ class DetailKonsultasiController extends Controller
                 return response()->json(['message' => 'Konsultasi tidak ditemukan.'], 404);
             }
 
+            // ❌ Hentikan jika status bukan "Berhasil Dibooking"
+            if ($konsultasi->status_booking_konsultasi !== 'Berhasil dibooking') {
+                return response()->json([
+                    'message' => 'Detail konsultasi hanya dapat dimasukkan jika status konsultasi adalah "Berhasil Dibooking".'
+                ], 403);
+            }
+
             $detailKonsultasiList = [];
 
             // Simpan setiap detail konsultasi ke dalam database
