@@ -6,6 +6,7 @@ use App\Models\Konsultasi;
 use App\Models\DetailKonsultasi;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\QueryException;
 
 use Illuminate\Http\Request;
 
@@ -237,5 +238,24 @@ class KonsultasiController extends Controller
             'success' => true,
             'message' => 'Data konsultasi dan detail konsultasi berhasil dihapus',
         ], 200);
+    }
+
+    public function totalVerifikasi()
+    {
+        try {
+            $total = Konsultasi::where('status_booking_konsultasi', 'Verifikasi')->count();
+
+            return response()->json([
+                'status' => true,
+                'total_verifikasi' => $total
+            ], 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal menghitung konsultasi',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }

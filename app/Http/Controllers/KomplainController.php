@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use App\Models\DetailBookingTreatment;
+use App\Models\BookingTreatment;
 // use App\Models\KomplainTreatment;
 use App\Models\KompensasiDiberikan;
 
@@ -99,6 +100,14 @@ class KomplainController extends Controller
                 'gambar_komplain.*' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             ]);
 
+            // 2) Ambil booking treatment dan cek kepemilikan user
+            $booking = BookingTreatment::find($validated['id_booking_treatment']);
+            if (!$booking || $booking->id_user != $validated['id_user']) {
+                return response()->json([
+                    'message' => 'User tidak berhak membuat komplain untuk booking treatment ini',
+                ], 422);
+            }
+
             // Validasi tambahan: Pastikan id_detail_booking_treatment terkait dengan id_booking_treatment
             $detail = DetailBookingTreatment::find($validated['id_detail_booking_treatment']);
 
@@ -151,39 +160,65 @@ class KomplainController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Validasi input balasan komplain dan tanggal berakhir kompensasi
+            // 1) Validasi input: balasan wajib, kompensasi opsional
             $data = $request->validate([
-                'balasan_komplain' => 'required|string',
-                'id_kompensasi' => 'nullable|exists:tb_kompensasi,id_kompensasi', // Menentukan kompensasi yang akan diberikan
-                'kode_kompensasi' => 'nullable|string|unique:tb_kompensasi_diberikan,kode_kompensasi', // Menambahkan validasi untuk kode kompensasi
-                'tanggal_berakhir_kompensasi' => 'nullable|date', // Validasi tanggal berakhir kompensasi
+                'balasan_komplain'            => 'required|string',
+                'id_kompensasi'               => 'nullable|exists:tb_kompensasi,id_kompensasi',
+                'kode_kompensasi'             => 'nullable|string|unique:tb_kompensasi_diberikan,kode_kompensasi',
+                'tanggal_berakhir_kompensasi' => 'nullable|date',
             ]);
 
-            // Ambil data komplain berdasarkan ID
+            // 2) Ambil komplain dan update balasan
             $komplain = Komplain::findOrFail($id);
-
-            // Update data komplain dengan balasan
             $komplain->balasan_komplain = $data['balasan_komplain'];
-            $komplain->pemberian_kompensasi = 'Sudah dikirim'; // Menandakan bahwa kompensasi sudah dikirim
+
+            // 3) Hanya kalau ada id_kompensasi kita juga ubah status pemberian kompensasi
+            if (! empty($data['id_kompensasi'])) {
+                $komplain->pemberian_kompensasi = 'Sudah diberikan';
+            }
+
             $komplain->save();
 
-            // Menyimpan kompensasi yang diberikan bersama dengan balasan komplain
-            $kompensasiDiberikan = KompensasiDiberikan::create([
-                'id_komplain' => $komplain->id_komplain,
-                'id_kompensasi' => $data['id_kompensasi'],
-                'kode_kompensasi' => $data['kode_kompensasi'], // Membuat kode kompensasi secara otomatis
-                'tanggal_berakhir_kompensasi' => $data['tanggal_berakhir_kompensasi'], // Menggunakan tanggal yang dikirimkan
-            ]);
+            $createdKomp = null;
+            // 4) Jika id_kompensasi di‐set, buat record kompensasi_diberikan
+            if (! empty($data['id_kompensasi'])) {
+                $createdKomp = KompensasiDiberikan::create([
+                    'id_komplain'                => $komplain->id_komplain,
+                    'id_kompensasi'              => $data['id_kompensasi'],
+                    'kode_kompensasi'            => $data['kode_kompensasi'] ?? null,
+                    'tanggal_berakhir_kompensasi' => $data['tanggal_berakhir_kompensasi'] ?? null,
+                ]);
+            }
 
-            // Mengembalikan respon sukses
+            // 5) Kembalikan response
             return response()->json([
-                'message' => 'Komplain berhasil diperbarui dan kompensasi berhasil dikirim',
-                'komplain' => $komplain,
-                'kompensasi_diberikan' => $kompensasiDiberikan,
+                'message'               => 'Komplain berhasil diperbarui',
+                'komplain'              => $komplain,
+                'kompensasi_diberikan'  => $createdKomp,
             ], 200);
-
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi data gagal',
+                'errors'  => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Terjadi kesalahan',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
+    }
+
+    public function totalPendingBalasan()
+    {
+        // Komplain dengan balasan_komplain NULL atau string kosong
+        $count = Komplain::whereNull('balasan_komplain')
+            ->orWhere('balasan_komplain', '')
+            ->count();
+
+        return response()->json([
+            'success'       => true,
+            'total_pending' => $count,
+        ]);
     }
 }

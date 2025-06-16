@@ -8,6 +8,7 @@ use App\Models\Produk;
 use App\Models\InventarisStok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class PembayaranProdukController extends Controller
 {
@@ -123,5 +124,32 @@ class PembayaranProdukController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function totalBayar(Request $request)
+    {
+        $year = $request->query('year', date('Y'));
+
+        $total = Pembayaran::whereNotNull('id_penjualan_produk')
+            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereYear('waktu_pembayaran', $year)
+            ->count();
+
+        $perbulan = Pembayaran::whereNotNull('id_penjualan_produk')
+            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereYear('waktu_pembayaran', $year)
+            ->select(
+                DB::raw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan"),
+                DB::raw("COUNT(*) AS total")
+            )
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get();
+
+        return response()->json([
+            'success'            => true,
+            'total_produk_bayar' => $total,
+            'bayar_per_bulan'    => $perbulan,
+        ]);
     }
 }

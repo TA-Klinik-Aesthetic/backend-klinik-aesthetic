@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Promo;
 use Exception;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class PromoController extends Controller
 {
@@ -77,6 +82,84 @@ class PromoController extends Controller
         }
     }
 
+    public function update(Request $request, $id)
+    {
+        try {
+            // 1) Cari promo
+            $promo = Promo::findOrFail($id);
+
+            // 2) Validasi input
+            $validated = $request->validate([
+                'nama_promo'          => 'sometimes|required|string|max:255',
+                'jenis_promo'         => 'sometimes|required|string',
+                'deskripsi_promo'     => 'sometimes|required|string',
+                'tipe_potongan'       => 'sometimes|required|in:Diskon,Rupiah',
+                'potongan_harga'      => 'sometimes|required|numeric|min:0',
+                'minimal_belanja'     => 'nullable|numeric|min:0',
+                'tanggal_mulai'       => 'sometimes|required|date',
+                'tanggal_berakhir'    => 'sometimes|required|date|after_or_equal:tanggal_mulai',
+                'status_promo'        => 'sometimes|required|string',
+                'gambar_promo'        => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            ]);
+
+            // 3) Validasi tambahan untuk diskon
+            if (($validated['tipe_potongan'] ?? $promo->tipe_potongan) === 'Diskon'
+                && ($validated['potongan_harga'] ?? $promo->potongan_harga) > 99
+            ) {
+                return response()->json([
+                    'message' => 'Potongan diskon tidak boleh lebih dari 99%.'
+                ], 422);
+            }
+
+            // 4) Jika ada upload gambar baru, hapus lama + simpan baru
+            if ($request->hasFile('gambar_promo')) {
+                // hapus file lama
+                if ($promo->gambar_promo && Storage::disk('public')->exists($promo->gambar_promo)) {
+                    Storage::disk('public')->delete($promo->gambar_promo);
+                }
+
+                // simpan upload baru
+                $file     = $request->file('gambar_promo');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path     = $file->storeAs('promo_images', $fileName, 'public');
+
+                if (! $path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar.'], 500);
+                }
+
+                $validated['gambar_promo'] = $path;
+            }
+
+            // 5) Update
+            $promo->update($validated);
+
+            return response()->json([
+                'message' => 'Promo berhasil diperbarui.',
+                'data'    => $promo,
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi data gagal.',
+                'errors'  => $e->errors(),
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Promo tidak ditemukan.',
+            ], 404);
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan di database.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan yang tidak terduga.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     // Menampilkan detail promo berdasarkan ID
     public function show($id)
@@ -95,48 +178,6 @@ class PromoController extends Controller
                 'message' => 'Promo tidak ditemukan',
                 'error' => $e->getMessage(),
             ], 404);
-        }
-    }
-
-    // Mengupdate promo
-    public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'nama_promo' => 'required|string|max:255',
-            'jenis_promo' => 'required|string',
-            'deskripsi_promo' => 'required|string',
-            'tipe_potongan' => 'required|string',
-            'potongan_harga' => 'required|numeric|min:0',
-            'minimal_belanja' => 'nullable|numeric|min:0',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_berakhir' => 'required|date|after_or_equal:tanggal_mulai',
-            'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
-            'status_promo' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        try {
-            $promo = Promo::findOrFail($id);
-            $promo->update($request->all());
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Promo berhasil diubah',
-                'data' => $promo,
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengubah promo',
-                'error' => $e->getMessage(),
-            ], 500);
         }
     }
 

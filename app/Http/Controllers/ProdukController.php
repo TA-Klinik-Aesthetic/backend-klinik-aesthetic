@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use App\Models\InventarisStok;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
 
 class ProdukController extends Controller
 {
@@ -102,51 +105,59 @@ class ProdukController extends Controller
         try {
             $produk = Produk::findOrFail($id);
 
+            // 1) Validasi input, termasuk file gambar jika ada
             $validated = $request->validate([
-                'id_kategori' => 'nullable|exists:tb_kategori,id_kategori',
-                'nama_produk' => 'nullable|string|max:255',
+                'id_kategori'      => 'nullable|exists:tb_kategori,id_kategori',
+                'nama_produk'      => 'nullable|string|max:255',
                 'deskripsi_produk' => 'nullable|string',
-                'harga_produk' => 'nullable|numeric',
-                'stok_produk' => 'nullable|integer',
-                'status_produk' => 'nullable|string|max:255',
-                'gambar_produk' => 'nullable|string|max:255',
+                'harga_produk'     => 'nullable|numeric',
+                'stok_produk'      => 'nullable|integer',
+                'status_produk'    => 'nullable|string|max:255',
+                'gambar_produk'    => 'nullable|image|mimes:jpeg,png,jpg,gif',
             ]);
 
+            // 2) Jika ada file gambar baru, hapus file lama dan simpan yang baru
+            if ($request->hasFile('gambar_produk')) {
+                // Hapus gambar lama di disk "public" jika ada
+                if ($produk->gambar_produk && Storage::disk('public')->exists($produk->gambar_produk)) {
+                    Storage::disk('public')->delete($produk->gambar_produk);
+                }
 
-            // $stokLama = $produk->stok_produk;
-            // $stokBaru = $request->input('stok_produk');
+                // Simpan file baru
+                $file     = $request->file('gambar_produk');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path     = $file->storeAs('produk_images', $fileName, 'public');
 
-            // // Cek apakah stok berubah
-            // if ($stokLama != $stokBaru) {
-            //     $status = $stokBaru > $stokLama ? 'masuk' : 'keluar';
-            //     $jumlahPerubahan = abs($stokBaru - $stokLama);
+                if (! $path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar produk'], 500);
+                }
 
-            //     InventarisStok::create([
-            //         'id_produk' => $produk->id_produk,
-            //         'status_perubahan' => $status,
-            //         'jumlah_perubahan' => $jumlahPerubahan,
-            //     ]);
-            // }
+                // Overwrite atribut untuk di-update
+                $validated['gambar_produk'] = $path;
+            }
 
+            // 3) Update semua atribut yang tervalidasi
             $produk->update($validated);
 
             return response()->json([
                 'message' => 'Produk berhasil diperbarui.',
-                'data' => $produk,
+                'data'    => $produk,
             ], 200);
-            // } catch (ModelNotFoundException $e) {
-            //     return response()->json([
-            //         'message' => 'Produk tidak ditemukan.',
-            //     ], 404);
-        } catch (\PDOException $e) {
+
+        } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Terjadi kesalahan pada koneksi database.',
-                'error' => $e->getMessage(),
+                'message' => 'Validasi data gagal',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat memperbarui produk',
+                'error'   => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Gagal memperbarui produk.',
-                'error' => $e->getMessage(),
+                'message' => 'Gagal memperbarui produk',
+                'error'   => $e->getMessage()
             ], 500);
         }
     }

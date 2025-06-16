@@ -77,6 +77,8 @@ Route::get('/beauticians', [BeauticianController::class, 'index']);
 // Endpoint untuk menampilkan seluruh data konsultasi
 Route::get('/konsultasi', [KonsultasiController::class, 'index']);
 
+Route::get('konsultasi/total-verifikasi', [KonsultasiController::class, 'totalVerifikasi']);
+
 // Endpoint untuk menampilkan data konsultasi berdasarkan id
 Route::get('/konsultasi/{id}', [KonsultasiController::class, 'show']);
 
@@ -97,6 +99,8 @@ Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
 
 // route untuk update status konsultasi
 Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateStatus']);
+
+
 
 //}
 
@@ -167,6 +171,8 @@ Route::prefix('bookingTreatments')->group(function () {
         ->parameters(['' => 'bookingTreatment']);
 });
 
+Route::get('detailBookingTreatments/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']);
+
 Route::prefix('detailBookingTreatments')->group(function () {
     Route::apiResource('/', DetailBookingTreatmentController::class)
         ->parameters(['' => 'detailBookingTreatment']);
@@ -215,6 +221,7 @@ Route::get('/kompensasi', [KompensasiController::class, 'index']);
 Route::post('/kompensasi', [KompensasiController::class, 'store']);
 Route::put('/kompensasi/{id}', [KompensasiController::class, 'update']);
 
+Route::get('komplain/total-pending', [KomplainController::class, 'totalPendingBalasan']);
 Route::get('/komplain', [KomplainController::class, 'index']);
 Route::post('/komplain', [KomplainController::class, 'store']);
 Route::put('/komplain/{id}', [KomplainController::class, 'update']);
@@ -227,13 +234,17 @@ Route::put('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 
 
 Route::get('/komplain-treatment', [KomplainTreatmentController::class, 'index']);
 
+Route::get('pembayaran-treatment/total-bayar', [PembayaranTreatmentController::class, 'totalBayar']);
 
 Route::get('/pembayaran-treatment', [PembayaranTreatmentController::class, 'index']);
 Route::get('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'show']);
 Route::post('/pembayaran-treatment', [PembayaranTreatmentController::class, 'store']);
 Route::put('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'update']);
 
+Route::get('pembayaran-produk/total-bayar', [PembayaranProdukController::class, 'totalBayar']);
+
 Route::resource('pembayaran-produk', PembayaranProdukController::class);
+
 
 Route::get('/rekam-medis', [RekamMedisController::class, 'index']);
 Route::get('/rekam-medis/{id_user}', [RekamMedisController::class, 'show']);

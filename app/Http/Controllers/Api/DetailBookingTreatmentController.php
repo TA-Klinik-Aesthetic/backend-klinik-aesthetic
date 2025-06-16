@@ -14,6 +14,7 @@ use App\Models\Komplain;
 use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 
 class DetailBookingTreatmentController extends Controller
@@ -450,4 +451,23 @@ class DetailBookingTreatmentController extends Controller
     //         'data' => $detailBookingProduk
     //     ], 200);
     // }
+
+    public function totalVerifikasi()
+    {
+        try {
+            $total = BookingTreatment::where('status_booking_treatment', 'Verifikasi')->count();
+
+            return response()->json([
+                'success'             => true,
+                'total_verifikasi'    => $total,
+            ], 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung booking treatment',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

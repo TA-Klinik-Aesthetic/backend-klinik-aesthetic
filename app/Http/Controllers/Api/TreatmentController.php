@@ -96,32 +96,46 @@ class TreatmentController extends Controller
     {
         try {
             $treatment = Treatment::find($id);
-
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
             }
-
+    
+            // Validasi input, termasuk file gambar jika ada
             $validated = $request->validate([
                 'id_jenis_treatment' => 'exists:tb_jenis_treatment,id_jenis_treatment',
-                'nama_treatment' => 'string|max:255',
-                'deskripsi_treatment' => 'nullable|string',
-                'biaya_treatment' => 'numeric',
+                'nama_treatment'     => 'string|max:255',
+                'deskripsi_treatment'=> 'nullable|string',
+                'biaya_treatment'    => 'numeric',
                 'estimasi_treatment' => 'nullable|string',
-                'gambar_treatment' => 'nullable|string|url',
+                'gambar_treatment'   => 'nullable|image|mimes:jpeg,png,jpg,gif',
             ]);
-
+    
+            // Jika ada file gambar baru, simpan dan hapus gambar lama
+            if ($request->hasFile('gambar_treatment')) {
+                // Hapus file lama jika ada
+                if ($treatment->gambar_treatment && Storage::disk('public')->exists($treatment->gambar_treatment)) {
+                    Storage::disk('public')->delete($treatment->gambar_treatment);
+                }
+    
+                $file     = $request->file('gambar_treatment');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path     = $file->storeAs('treatment_images', $fileName, 'public');
+                if (!$path) {
+                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
+                }
+                $validated['gambar_treatment'] = $path;
+            }
+    
+            // Update data
             $treatment->update($validated);
-
+    
             return response()->json([
                 'message' => 'Treatment berhasil diperbarui',
-                'data' => $treatment,
+                'data'    => $treatment,
             ], 200);
+    
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Validasi data gagal', 'errors' => $e->errors()], 422);
-        } catch (UnauthorizedHttpException $e) {
-            return response()->json(['message' => 'Akses tidak diizinkan', 'error' => $e->getMessage()], 401);
-        } catch (AccessDeniedHttpException $e) {
-            return response()->json(['message' => 'Akses ditolak', 'error' => $e->getMessage()], 403);
         } catch (QueryException $e) {
             return response()->json(['message' => 'Terjadi kesalahan saat memperbarui treatment', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {

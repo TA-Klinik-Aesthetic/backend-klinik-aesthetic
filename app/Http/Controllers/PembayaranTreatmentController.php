@@ -6,6 +6,7 @@ use App\Models\Pembayaran;
 use App\Models\BookingTreatment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class PembayaranTreatmentController extends Controller
 {
@@ -133,5 +134,34 @@ class PembayaranTreatmentController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function totalBayar(Request $request)
+    {
+        $year = $request->query('year', date('Y'));
+
+        // total bayar treatment tahun $year
+        $total = Pembayaran::whereNotNull('id_booking_treatment')
+            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereYear('waktu_pembayaran', $year)
+            ->count();
+
+        // detail per bulan
+        $perbulan = Pembayaran::whereNotNull('id_booking_treatment')
+            ->where('status_pembayaran', 'Sudah Dibayar')
+            ->whereYear('waktu_pembayaran', $year)
+            ->select(
+                DB::raw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan"),
+                DB::raw("COUNT(*) AS total")
+            )
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get();
+
+        return response()->json([
+            'success'             => true,
+            'total_treatment_bayar' => $total,
+            'bayar_perbulan'      => $perbulan,
+        ]);
     }
 }

@@ -72,7 +72,7 @@ return new class extends Migration
             $table->text('teks_komplain')->nullable();
             $table->text('gambar_komplain')->nullable();
             $table->text('balasan_komplain')->nullable();
-            $table->enum('pemberian_kompensasi', ['Menunggu pengiriman', 'Sudah dikirim'])->default('Menunggu pengiriman');
+            $table->enum('pemberian_kompensasi', ['Tidak ada pemberian', 'Sudah diberikan'])->default('Tidak ada pemberian');
             $table->timestamps();
         });
 
