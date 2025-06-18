@@ -135,6 +135,9 @@ Route::prefix('keranjang')->group(function () {
     Route::delete('/user/{id_user}', [KeranjangPembelianController::class, 'destroyByUser']);
 });
 
+
+Route::put('penjualan-produk/{id}/status-pengambilan', [PembelianProdukController::class, 'updateStatusPengambilan']);
+
 // Products Purchase Management
 Route::prefix('penjualan-produk')->group(function () {
     Route::post('/', [PembelianProdukController::class, 'store']); // Create new purchase
@@ -146,6 +149,7 @@ Route::prefix('penjualan-produk')->group(function () {
 });
 
 Route::delete('/detail-penjualan-produk/{id}', [DetailPembelianProdukController::class, 'destroy']);
+
 
 Route::prefix('promos')->group(function () {
     Route::get('/', [PromoController::class, 'index']); // Menampilkan semua promo

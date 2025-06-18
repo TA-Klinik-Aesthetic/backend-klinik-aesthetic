@@ -17,6 +17,8 @@ return new class extends Migration
             $table->decimal('potongan_harga', 15, 2)->nullable()->default(0);
             $table->decimal('besaran_pajak', 15, 2)->default(0); // Kolom untuk pajak
             $table->decimal('harga_akhir', 15, 2);
+            $table->enum('status_pengambilan_produk', ['Belum diambil', 'Sudah diambil'])->default('Belum diambil')->nullable();
+            $table->dateTime('waktu_pengambilan')->nullable();
             // $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
             $table->timestamps();
 

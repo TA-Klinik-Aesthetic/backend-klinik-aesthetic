@@ -24,6 +24,8 @@ class PembelianProduk extends Model
         'potongan_harga',
         'besaran_pajak',
         'harga_akhir',
+        'status_pengambilan_produk',
+        'waktu_pengambilan'
     ];
 
     // Relasi ke Detail Pembelian

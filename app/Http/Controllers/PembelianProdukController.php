@@ -21,6 +21,7 @@ class PembelianProdukController extends Controller
             'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
             'produk.*.jumlah_produk' => 'required|integer|min:1',
             'id_promo' => 'nullable|exists:tb_promo,id_promo',
+            'status_pengambilan_produk'    => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -85,6 +86,9 @@ class PembelianProdukController extends Controller
             // harga akhir = netto + pajak
             $hargaAkhir = $subtotalSetelahDiskon + $pajakHitung;
 
+            // 1) Ambil status, default 'Belum diambil'
+            $status = $request->input('status_pengambilan_produk', 'Belum diambil');
+
             $pembelian = PembelianProduk::create([
                 'id_user' => $request->id_user,
                 'tanggal_pembelian' => now(),
@@ -93,6 +97,10 @@ class PembelianProdukController extends Controller
                 'potongan_harga' => $nilaiPotonganUntukDisimpan,
                 'besaran_pajak' => $pajakHitung,
                 'harga_akhir' => $hargaAkhir,
+                // simpan status apa adanya (null jika tidak dikirim)
+                'status_pengambilan_produk' => $status,
+                // hanya set waktu jika benar-benar di‐request dan "Sudah diambil"
+                'waktu_pengambilan'          => $status === 'Sudah diambil' ? now() : null,
             ]);
 
             foreach ($detail_produk as $detail) {
@@ -325,38 +333,56 @@ class PembelianProdukController extends Controller
     public function destroy($id_pembelian_produk)
     {
         $pembelian = PembelianProduk::find($id_pembelian_produk);
-    
+
         if (!$pembelian) {
             return response()->json(['success' => false, 'message' => 'Data pembelian tidak ditemukan'], 404);
         }
-    
+
         DB::beginTransaction();
-    
+
         try {
             // Hapus detail pembelian
             $pembelian->detailPembelian()->delete();
-    
+
             // Hapus pembayaran produk (langsung via query)
             Pembayaran::where('id_penjualan_produk', $pembelian->id_penjualan_produk)->delete();
-    
+
             // Hapus data pembelian produk
             $pembelian->delete();
-    
+
             DB::commit();
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data pembelian dan pembayaran berhasil dihapus',
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-    
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }
     }
-    
-    
+
+    public function updateStatusPengambilan(Request $request, $id)
+    {
+        $data = $request->validate([
+            'status_pengambilan_produk' => 'required|in:Belum diambil,Sudah diambil',
+        ]);
+
+        $penjualan = PembelianProduk::findOrFail($id);
+        $penjualan->status_pengambilan_produk = $data['status_pengambilan_produk'];
+        $penjualan->waktu_pengambilan = $data['status_pengambilan_produk'] === 'Sudah diambil'
+            ? now()
+            : null;
+        $penjualan->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status pengambilan produk berhasil diperbarui',
+            'data' => $penjualan,
+        ]);
+    }
 }
