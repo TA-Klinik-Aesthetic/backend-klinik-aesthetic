@@ -37,8 +37,7 @@ use App\Http\Controllers\KompensasiController;
 use App\Http\Controllers\KomplainController;
 use App\Http\Controllers\KomplainTreatmentController;
 use App\Http\Controllers\KompensasiDiberikanController;
-use App\Http\Controllers\PembayaranTreatmentController;
-use App\Http\Controllers\PembayaranProdukController;
+use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
@@ -141,6 +140,7 @@ Route::put('penjualan-produk/{id}/status-pengambilan', [PembelianProdukControlle
 // Products Purchase Management
 Route::prefix('penjualan-produk')->group(function () {
     Route::post('/', [PembelianProdukController::class, 'store']); // Create new purchase
+    Route::post('/kasir', [PembelianProdukController::class, 'storeKasir']);
     Route::get('/', [PembelianProdukController::class, 'index']); // Get all purchases
     Route::get('/{id}', [PembelianProdukController::class, 'show']); // Get purchase details by ID
     Route::get('/user/{id_user}', [PembelianProdukController::class, 'getByUser']); // Get purchases by user ID
@@ -238,16 +238,26 @@ Route::put('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 
 
 Route::get('/komplain-treatment', [KomplainTreatmentController::class, 'index']);
 
-Route::get('pembayaran-treatment/total-bayar', [PembayaranTreatmentController::class, 'totalBayar']);
+Route::get('pembayaran-treatment/total-bayar', [PembayaranController::class, 'totalBayarTreatment']);
 
-Route::get('/pembayaran-treatment', [PembayaranTreatmentController::class, 'index']);
-Route::get('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'show']);
-Route::post('/pembayaran-treatment', [PembayaranTreatmentController::class, 'store']);
-Route::put('/pembayaran-treatment/{id}', [PembayaranTreatmentController::class, 'update']);
+Route::get('pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
-Route::get('pembayaran-produk/total-bayar', [PembayaranProdukController::class, 'totalBayar']);
+// Treatment
+Route::prefix('pembayaran-treatment')->group(function(){
+    Route::get('/',            [PembayaranController::class,'indexTreatment']);
+    Route::get('/{id}',        [PembayaranController::class,'showTreatment']);
+    Route::put('/{id}',        [PembayaranController::class,'updateTreatment']);
+});
 
-Route::resource('pembayaran-produk', PembayaranProdukController::class);
+// Produk
+Route::prefix('pembayaran-produk')->group(function(){
+    Route::get('/',            [PembayaranController::class,'indexProduk']);
+    Route::post('/',           [PembayaranController::class,'storeProduk']);  
+    Route::get('/{id}',        [PembayaranController::class,'showProduk']);
+    Route::put('/{id}',        [PembayaranController::class,'updateProduk']);
+});
+
+
 
 
 Route::get('/rekam-medis', [RekamMedisController::class, 'index']);
