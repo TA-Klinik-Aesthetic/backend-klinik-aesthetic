@@ -43,13 +43,13 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 
-//authentikasi {
-//endpoint untuk register
+// Authentikasi
+// Endpoint untuk register
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::put('users/{id}/password',[AuthController::class, 'updatePassword']);
 
-//endpoint untuk login
+// Endpoint untuk login
 Route::post('/login', [AuthController::class, 'login']);
 
 // Route::middleware('auth:sanctum')->group(function () {
@@ -243,24 +243,25 @@ Route::get('pembayaran-treatment/total-bayar', [PembayaranController::class, 'to
 
 Route::get('pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
-// Treatment
-Route::prefix('pembayaran-treatment')->group(function(){
-    Route::get('/',            [PembayaranController::class,'indexTreatment']);
-    Route::get('/{id}',        [PembayaranController::class,'showTreatment']);
-    Route::put('/{id}',        [PembayaranController::class,'updateTreatment']);
-});
+// Treatment payment routes
+Route::post('/pembayaran-treatment/create', [PembayaranController::class, 'createTreatment']);
+Route::get('/pembayaran-treatment', [PembayaranController::class, 'indexTreatment']);
+Route::get('/pembayaran-treatment/{id}', [PembayaranController::class, 'showTreatment']);
+Route::put('/pembayaran-treatment/{id}', [PembayaranController::class, 'updateTreatment']);
+Route::get('/pembayaran-treatment/total-bayar', [PembayaranController::class, 'totalBayarTreatment']);
 
-// Produk
-Route::prefix('pembayaran-produk')->group(function(){
-    Route::get('/',            [PembayaranController::class,'indexProduk']);
-    Route::post('/',           [PembayaranController::class,'storeProduk']);  
-    Route::get('/{id}',        [PembayaranController::class,'showProduk']);
-    Route::put('/{id}',        [PembayaranController::class,'updateProduk']);
-});
+// Product payment routes
+Route::get('/pembayaran-produk', [PembayaranController::class, 'indexProduk']);
+Route::get('/pembayaran-produk/{id}', [PembayaranController::class, 'showProduk']);
+Route::post('/pembayaran-produk', [PembayaranController::class, 'storeProduk']);
+Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProduk']);
+Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
+// Midtrans notification and finish endpoints
+Route::post('/payment/notification', [PembayaranController::class, 'handleNotification']);
+Route::get('/payment/finish', [PembayaranController::class, 'finishPayment']);
 
-
-
+// Rekam Medis
 Route::get('/rekam-medis', [RekamMedisController::class, 'index']);
 Route::get('/rekam-medis/{id_user}', [RekamMedisController::class, 'show']);
 
