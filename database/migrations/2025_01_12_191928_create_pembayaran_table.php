@@ -11,43 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('tb_pembayaran_treatment', function (Blueprint $table) {
-        //     $table->increments('id_pembayaran_treatment'); // Primary key
-        //     $table->unsignedInteger('id_booking_treatment'); // Foreign key ke tabel tb_user
-        //     $table->decimal('harga_akhir_treatment', 15, 2)->nullable(); // Ubah menjadi tipe double
-        //     $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
-        //     // $table->decimal('pajak', 15, 2)->default(0); // Kolom untuk pajak
-        //     $table->decimal('total', 15, 2)->nullable(); // Kolom untuk total bayar, termasuk pajak
-        //     $table->decimal('uang', 15, 2)->nullable(); // Kolom untuk uang yang dibayar
-        //     $table->decimal('kembalian', 15, 2)->nullable(); // Ubah menjadi tipe double
-        //     $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
-        //     $table->timestamps();
-
-        //     $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
-        // });
-
-        // Schema::create('tb_pembayaran_produk', function (Blueprint $table) {
-        //     $table->increments('id_pembayaran_produk'); // Primary key
-        //     $table->unsignedInteger('id_penjualan_produk'); // Foreign key ke tabel tb_user
-        //     $table->decimal('harga_akhir', 15, 2);
-        //     $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
-        //     $table->decimal('uang', 15, 2)->nullable(); // Ubah menjadi tipe double
-        //     $table->decimal('kembalian', 15, 2)->nullable(); // Ubah menjadi tipe double
-        //     $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar'])->default('Belum Dibayar');
-        //     $table->timestamps();
-
-        //     $table->foreign('id_penjualan_produk')->references('id_penjualan_produk')->on('tb_penjualan_produk')->onDelete('cascade');
-        // });
-
         Schema::create('tb_pembayaran', function (Blueprint $table) {
             $table->increments('id_pembayaran');
             $table->unsignedInteger('id_booking_treatment')->nullable();
             $table->unsignedInteger('id_penjualan_produk')->nullable();
-            $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
+            $table->enum('metode_pembayaran', ['Tunai', 'QRIS', 'Virtual Account', 'E-Wallet', 'Non Tunai'])->default('Tunai');
             $table->decimal('uang', 15, 2)->nullable();
             $table->decimal('kembalian', 15, 2)->nullable();
-            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Dibatalkan'])->default('Belum Dibayar');
+            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Dibatalkan', 'Pending', 'Berhasil', 'Gagal'])->default('Belum Dibayar');
             $table->dateTime('waktu_pembayaran')->nullable();
+            $table->string('payment_type')->nullable();
+            $table->string('transaction_id')->nullable();
+            $table->string('order_id')->nullable();
+            $table->string('snap_token')->nullable();
+            $table->string('snap_url')->nullable();
+            $table->json('payment_details')->nullable();
             $table->timestamps();
 
             $table->foreign('id_booking_treatment')
@@ -64,8 +42,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::dropIfExists('tb_pembayaran_treatment');
-        // Schema::dropIfExists('tb_pembayaran_produk');
         Schema::dropIfExists('tb_pembayaran');
     }
 };
