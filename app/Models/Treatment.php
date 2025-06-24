@@ -42,4 +42,25 @@ class Treatment extends Model
     {
         return $this->hasMany(DetailKonsultasi::class, 'id_treatment');
     }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class, 'id_treatment', 'id_treatment');
+    }
+
+    /**
+     * Cek apakah treatment difavoritkan oleh user tertentu
+     */
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('id_user', $userId)->exists();
+    }
+
+    /**
+     * Hitung jumlah favorit untuk treatment ini
+     */
+    public function getFavoritesCountAttribute()
+    {
+        return $this->favorites()->count();
+    }
 }

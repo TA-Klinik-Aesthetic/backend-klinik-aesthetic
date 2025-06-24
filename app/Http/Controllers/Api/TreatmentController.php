@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Treatment;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
@@ -15,13 +16,66 @@ use Illuminate\Support\Facades\Storage;
 class TreatmentController extends Controller
 {
     // GET: List semua treatment
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $userId = $request->query('id_user');
             $treatments = Treatment::with('jenis_treatment')->get();
+
+            if ($userId) {
+                foreach ($treatments as $treatment) {
+                    $treatment->is_favorited = $treatment->isFavoritedBy($userId);
+                    $treatment->favorites_count = $treatment->getFavoritesCountAttribute();
+                }
+            }
+
             return response()->json(['data' => $treatments], 200);
         } catch (QueryException $e) {
             return response()->json(['message' => 'Terjadi kesalahan saat mengambil data treatment', 'error' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan yang tidak terduga', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Method lainnya tetap sama
+
+    public function toggleFavorite(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_user' => 'required|exists:tb_user,id_user',
+                'id_treatment' => 'required|exists:tb_treatment,id_treatment'
+            ]);
+
+            $userId = $request->id_user;
+            $treatmentId = $request->id_treatment;
+
+            $favorite = Favorite::where('id_user', $userId)
+                ->where('id_treatment', $treatmentId)
+                ->first();
+
+            if ($favorite) {
+                // Jika sudah favorit, hapus dari favorit
+                $favorite->delete();
+                $message = 'Treatment dihapus dari favorit';
+                $status = false;
+            } else {
+                // Jika belum favorit, tambahkan ke favorit
+                Favorite::create([
+                    'id_user' => $userId,
+                    'id_treatment' => $treatmentId
+                ]);
+                $message = 'Treatment ditambahkan ke favorit';
+                $status = true;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_favorited' => $status
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Validasi data gagal', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan yang tidak terduga', 'error' => $e->getMessage()], 500);
         }
@@ -39,27 +93,27 @@ class TreatmentController extends Controller
                 'estimasi_treatment' => 'nullable|string',
                 'gambar_treatment' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Maksimal 2MB
             ]);
-    
+
             // Jika ada file gambar, simpan ke storage
             if ($request->hasFile('gambar_treatment')) {
                 $file = $request->file('gambar_treatment');
-                
+
                 // Buat nama unik agar tidak tertimpa
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                
+
                 // Simpan ke storage di folder 'public/treatment_images'
                 $path = $file->storeAs('treatment_images', $fileName, 'public');
-    
+
                 if (!$path) {
                     return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
                 }
-                
+
                 $validated['gambar_treatment'] = $path; // Simpan path ke database
             }
-    
+
             // Simpan data treatment ke database
             $treatment = Treatment::create($validated);
-    
+
             return response()->json([
                 'message' => 'Treatment berhasil ditambahkan',
                 'data' => $treatment,
@@ -74,13 +128,19 @@ class TreatmentController extends Controller
     }
 
     // GET: Detail treatment berdasarkan ID
-    public function show($id)
+    public function show($id, Request $request)
     {
         try {
+            $userId = $request->query('id_user');
             $treatment = Treatment::with('jenis_treatment')->find($id);
 
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
+            }
+
+            if ($userId) {
+                $treatment->is_favorited = $treatment->isFavoritedBy($userId);
+                $treatment->favorites_count = $treatment->getFavoritesCountAttribute();
             }
 
             return response()->json(['data' => $treatment], 200);
@@ -99,7 +159,7 @@ class TreatmentController extends Controller
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
             }
-    
+
             // Validasi input, termasuk file gambar jika ada
             $validated = $request->validate([
                 'id_jenis_treatment' => 'exists:tb_jenis_treatment,id_jenis_treatment',
@@ -109,14 +169,14 @@ class TreatmentController extends Controller
                 'estimasi_treatment' => 'nullable|string',
                 'gambar_treatment'   => 'nullable|image|mimes:jpeg,png,jpg,gif',
             ]);
-    
+
             // Jika ada file gambar baru, simpan dan hapus gambar lama
             if ($request->hasFile('gambar_treatment')) {
                 // Hapus file lama jika ada
                 if ($treatment->gambar_treatment && Storage::disk('public')->exists($treatment->gambar_treatment)) {
                     Storage::disk('public')->delete($treatment->gambar_treatment);
                 }
-    
+
                 $file     = $request->file('gambar_treatment');
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $path     = $file->storeAs('treatment_images', $fileName, 'public');
@@ -125,15 +185,15 @@ class TreatmentController extends Controller
                 }
                 $validated['gambar_treatment'] = $path;
             }
-    
+
             // Update data
             $treatment->update($validated);
-    
+
             return response()->json([
                 'message' => 'Treatment berhasil diperbarui',
                 'data'    => $treatment,
             ], 200);
-    
+
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Validasi data gagal', 'errors' => $e->errors()], 422);
         } catch (QueryException $e) {
@@ -148,11 +208,11 @@ class TreatmentController extends Controller
     {
         try {
             $treatment = Treatment::find($id);
-    
+
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
             }
-    
+
             // Hapus gambar jika ada
             if (!empty($treatment->gambar_treatment)) {
                 $imagePath = "public/{$treatment->gambar_treatment}"; // Pastikan path benar
@@ -165,10 +225,10 @@ class TreatmentController extends Controller
                     Log::warning("Gambar tidak ditemukan di storage.");
                 }
             }
-    
+
             // Hapus data treatment dari database
             $treatment->delete();
-    
+
             return response()->json(['message' => 'Treatment dan gambar berhasil dihapus'], 200);
         } catch (UnauthorizedHttpException $e) {
             return response()->json(['message' => 'Akses tidak diizinkan', 'error' => $e->getMessage()], 401);

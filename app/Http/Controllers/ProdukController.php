@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produk;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
 use App\Models\InventarisStok;
 use Illuminate\Support\Facades\Storage;
@@ -11,10 +12,41 @@ use Illuminate\Validation\ValidationException;
 
 class ProdukController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $userId = $request->query('id_user');
             $produk = Produk::with('kategori')->get();
+
+            if ($userId) {
+                foreach ($produk as $item) {
+                    $item->is_favorited = $item->isFavoritedBy($userId);
+                    $item->favorites_count = $item->getFavoritesCountAttribute();
+                }
+            }
+
+            return response()->json([
+                'message' => 'Data produk berhasil diambil.',
+                'data' => $produk,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengambil data produk.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show($id, Request $request)
+    {
+        try {
+            $userId = $request->query('id_user');
+            $produk = Produk::with('kategori')->findOrFail($id);
+
+            if ($userId) {
+                $produk->is_favorited = $produk->isFavoritedBy($userId);
+                $produk->favorites_count = $produk->getFavoritesCountAttribute();
+            }
 
             return response()->json([
                 'message' => 'Data produk berhasil diambil.',
@@ -76,27 +108,6 @@ class ProdukController extends Controller
                 'message' => 'Gagal menambahkan produk.',
                 'error' => $e->getMessage(),
             ], 400);
-        }
-    }
-
-    public function show($id)
-    {
-        try {
-            $produk = Produk::with('kategori')->findOrFail($id);
-
-            return response()->json([
-                'message' => 'Data produk berhasil diambil.',
-                'data' => $produk,
-            ], 200);
-            // } catch (ModelNotFoundException $e) {
-            //     return response()->json([
-            //         'message' => 'Produk tidak ditemukan.',
-            //     ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Gagal mengambil data produk.',
-                'error' => $e->getMessage(),
-            ], 500);
         }
     }
 
@@ -194,23 +205,72 @@ class ProdukController extends Controller
         }
     }
 
-    public function getProdukByKategori($id_kategori)
+    // Method lainnya tetap sama
+    public function toggleFavorite(Request $request)
     {
-        // Ambil data produk berdasarkan id_kategori
-        $produk = Produk::where('id_kategori', $id_kategori)->get();
+        $request->validate([
+            'id_user' => 'required|exists:tb_user,id_user',
+            'id_produk' => 'required|exists:tb_produk,id_produk'
+        ]);
 
-        // Periksa apakah data produk ditemukan
-        if ($produk->isEmpty()) {
-            return response()->json([
-                'message' => 'Tidak ada produk untuk kategori ini.',
-                'data' => [],
-            ], 404);
+        $userId = $request->id_user;
+        $produkId = $request->id_produk;
+
+        $favorite = Favorite::where('id_user', $userId)
+            ->where('id_produk', $produkId)
+            ->first();
+
+        if ($favorite) {
+            // Jika sudah favorit, hapus dari favorit
+            $favorite->delete();
+            $message = 'Produk dihapus dari favorit';
+            $status = false;
+        } else {
+            // Jika belum favorit, tambahkan ke favorit
+            Favorite::create([
+                'id_user' => $userId,
+                'id_produk' => $produkId
+            ]);
+            $message = 'Produk ditambahkan ke favorit';
+            $status = true;
         }
 
-        // Kembalikan data produk dalam format JSON
         return response()->json([
-            'message' => 'Produk ditemukan.',
-            'data' => $produk,
-        ], 200);
+            'success' => true,
+            'message' => $message,
+            'is_favorited' => $status
+        ]);
+    }
+
+    public function getProdukByKategori($id_kategori, Request $request)
+    {
+        try {
+            $userId = $request->query('id_user');
+            $produk = Produk::where('id_kategori', $id_kategori)->get();
+
+            if ($produk->isEmpty()) {
+                return response()->json([
+                    'message' => 'Tidak ada produk untuk kategori ini.',
+                    'data' => [],
+                ], 404);
+            }
+
+            if ($userId) {
+                foreach ($produk as $item) {
+                    $item->is_favorited = $item->isFavoritedBy($userId);
+                    $item->favorites_count = $item->getFavoritesCountAttribute();
+                }
+            }
+
+            return response()->json([
+                'message' => 'Produk ditemukan.',
+                'data' => $produk,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengambil data produk.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

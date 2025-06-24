@@ -37,4 +37,25 @@ class Dokter extends Model
     {
         return $this->hasMany(JadwalPraktikDokter::class, 'id_dokter');
     }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class, 'id_dokter', 'id_dokter');
+    }
+
+    /**
+     * Cek apakah dokter difavoritkan oleh user tertentu
+     */
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('id_user', $userId)->exists();
+    }
+
+    /**
+     * Hitung jumlah favorit untuk dokter ini
+     */
+    public function getFavoritesCountAttribute()
+    {
+        return $this->favorites()->count();
+    }
 }

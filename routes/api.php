@@ -42,6 +42,7 @@ use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
+use App\Http\Controllers\FavoriteController;
 
 //authentikasi {
 //endpoint untuk register
@@ -160,6 +161,22 @@ Route::prefix('promos')->group(function () {
     Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
 });
 
+// Routes untuk Favorit
+Route::prefix('favorites')->group(function () {
+    // Get All Favorites
+    Route::get('/user/{userId}', [FavoriteController::class, 'getUserFavorites']);
+
+    // Get Specific Type Favorites
+    Route::get('/user/{userId}/doctors', [FavoriteController::class, 'getFavoriteDoctors']);
+    Route::get('/user/{userId}/products', [FavoriteController::class, 'getFavoriteProducts']);
+    Route::get('/user/{userId}/treatments', [FavoriteController::class, 'getFavoriteTreatments']);
+});
+
+// Toggle Favorite Routes
+Route::post('/doctors/toggle-favorite', [DokterController::class, 'toggleFavorite']);
+Route::post('/products/toggle-favorite', [ProdukController::class, 'toggleFavorite']);
+Route::post('/treatments/toggle-favorite', [TreatmentController::class, 'toggleFavorite']);
+
 //ALL about TREATMENTSSSSSSS
 Route::prefix('treatments')->group(function () {
     Route::apiResource('/', TreatmentController::class)
@@ -253,7 +270,7 @@ Route::prefix('pembayaran-treatment')->group(function(){
 // Produk
 Route::prefix('pembayaran-produk')->group(function(){
     Route::get('/',            [PembayaranController::class,'indexProduk']);
-    Route::post('/',           [PembayaranController::class,'storeProduk']);  
+    Route::post('/',           [PembayaranController::class,'storeProduk']);
     Route::get('/{id}',        [PembayaranController::class,'showProduk']);
     Route::put('/{id}',        [PembayaranController::class,'updateProduk']);
 });
