@@ -271,7 +271,7 @@ class PembelianProdukController extends Controller
             }
 
             // Get all purchases for this user with their details
-            $pembelian = PembelianProduk::with(['detailPembelian.produk', 'user', 'promo'])
+            $pembelian = PembelianProduk::with(['detailPembelian.produk', 'user', 'promo', 'pembayaranProduk'])
                 ->where('id_user', $id_user)
                 ->orderBy('tanggal_pembelian', 'desc')
                 ->get();

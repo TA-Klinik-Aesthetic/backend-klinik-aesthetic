@@ -23,8 +23,8 @@ class FeedbackTreatment extends Model
         'teks_feedback',
     ];
 
-    public function bookingTreatment()
+    public function detailBooking()
     {
-        return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
+        return $this->belongsTo(DetailBookingTreatment::class, 'id_detail_booking_treatment', 'id_detail_booking_treatment');
     }
 }

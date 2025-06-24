@@ -16,7 +16,7 @@ class FeedbackControllerKonsultasi extends Controller
     public function index()
     {
         try {
-            $feedbacks = FeedbackKonsultasi::with('konsultasi')->get();
+            $feedbacks = FeedbackKonsultasi::with('konsultasi.user',)->get();
 
             return response()->json(['data' => $feedbacks], 200);
         } catch (QueryException $e) {
@@ -80,7 +80,7 @@ class FeedbackControllerKonsultasi extends Controller
     public function show($id_feedback_konsultasi)
     {
         try {
-            $feedback = FeedbackKonsultasi::with('konsultasi')->find($id_feedback_konsultasi);
+            $feedback = FeedbackKonsultasi::with('konsultasi.user')->find($id_feedback_konsultasi);
 
             if (!$feedback) {
                 return response()->json(['message' => 'Feedback tidak ditemukan'], 404);
