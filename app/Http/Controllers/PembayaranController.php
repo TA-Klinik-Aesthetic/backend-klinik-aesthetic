@@ -46,33 +46,50 @@ class PembayaranController extends Controller
     /** PUT  /api/pembayaran-treatment/{id} */
     public function updateTreatment(Request $request, $id)
     {
-        // kopi paste dari PembayaranTreatmentController@update
         $request->validate([
             'metode_pembayaran' => 'required|string|in:Tunai,Non Tunai',
-            'uang'               => 'required|numeric|min:0',
+            'uang'               => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
         try {
             $pembayaran = Pembayaran::findOrFail($id);
+
+            if (!$pembayaran->bookingTreatment) {
+                return response()->json([
+                    'message' => 'Data booking treatment tidak ditemukan pada pembayaran ini.',
+                ], 400);
+            }
+
             $hargaAkhir = $pembayaran->bookingTreatment->harga_akhir_treatment;
 
-            $pembayaran->uang              = $request->uang;
-            $pembayaran->kembalian         = $request->uang - $hargaAkhir;
             $pembayaran->metode_pembayaran = $request->metode_pembayaran;
-            $pembayaran->status_pembayaran = 'Sudah Dibayar';
-            $pembayaran->waktu_pembayaran  = now();
-            $pembayaran->save();
 
+            if ($request->metode_pembayaran === 'Tunai') {
+                $pembayaran->uang              = $request->uang;
+                $pembayaran->kembalian         = $request->uang - $hargaAkhir;
+                $pembayaran->status_pembayaran = 'Sudah Dibayar';
+                $pembayaran->waktu_pembayaran  = now();
+            } else {
+                $pembayaran->uang              = null;
+                $pembayaran->kembalian         = null;
+                $pembayaran->status_pembayaran = 'Belum Dibayar';
+                $pembayaran->waktu_pembayaran  = null;
+            }
+
+            $pembayaran->save();
             DB::commit();
 
             return response()->json([
                 'pembayaran_produk' => $pembayaran,
-                'message'           => 'Pembayaran produk berhasil diperbarui',
+                'message'           => 'Pembayaran treatment berhasil diperbarui',
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Error while updating pembayaran produk', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Error while updating pembayaran treatment',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -136,35 +153,42 @@ class PembayaranController extends Controller
 
     public function storeProduk(Request $request)
     {
-        // validasi
         $request->validate([
             'id_penjualan_produk' => 'required|exists:tb_penjualan_produk,id_penjualan_produk',
             'metode_pembayaran'   => 'required|string|in:Tunai,Non Tunai',
-            'uang'                => 'required|numeric|min:0',
+            'uang'                => 'nullable|numeric|min:0',
         ]);
-
+    
         DB::beginTransaction();
         try {
-            // ambil penjualan untuk dapatkan harga akhir
             $penjualan = PembelianProduk::findOrFail($request->id_penjualan_produk);
             $hargaAkhir = $penjualan->harga_akhir;
-
-            // hitung kembalian
-            $kembalian = $request->uang - $hargaAkhir;
-
-            // simpan pembayaran
+    
+            // Default null
+            $uang = null;
+            $kembalian = null;
+            $statusPembayaran = 'Belum Dibayar';
+            $waktuPembayaran  = null;
+    
+            if ($request->metode_pembayaran === 'Tunai') {
+                $uang = $request->uang;
+                $kembalian = $request->uang - $hargaAkhir;
+                $statusPembayaran = 'Sudah Dibayar';
+                $waktuPembayaran  = now();
+            }
+    
             $pembayaran = Pembayaran::create([
                 'id_booking_treatment'   => null,
                 'id_penjualan_produk'    => $request->id_penjualan_produk,
-                'uang'                   => $request->uang,
+                'uang'                   => $uang,
                 'kembalian'              => $kembalian,
                 'metode_pembayaran'      => $request->metode_pembayaran,
-                'status_pembayaran'      => 'Sudah Dibayar',
-                'waktu_pembayaran'       => now(),
+                'status_pembayaran'      => $statusPembayaran,
+                'waktu_pembayaran'       => $waktuPembayaran,
             ]);
-
+    
             DB::commit();
-
+    
             return response()->json([
                 'message'  => 'Pembayaran produk berhasil disimpan',
                 'data'     => $pembayaran,
@@ -177,6 +201,7 @@ class PembayaranController extends Controller
             ], 500);
         }
     }
+    
 
     /** PUT  /api/pembayaran-produk/{id} */
     public function updateProduk(Request $request, $id)

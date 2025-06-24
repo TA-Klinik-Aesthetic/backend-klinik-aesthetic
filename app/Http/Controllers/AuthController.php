@@ -70,6 +70,24 @@ class AuthController extends Controller
         ], 200);
     }
 
+    public function updatePassword(Request $request, $id)
+    {
+        $data = $request->validate([
+            'password'               => 'required|string|min:8|confirmed',
+            // password_confirmation must be present and match
+        ]);
+
+        $user = User::findOrFail($id);
+
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil diubah',
+        ]);
+    }
+
     /**
      * Logout the user (invalidate the token).
      */

@@ -47,6 +47,7 @@ use App\Http\Controllers\DetailPembelianProdukController;
 //endpoint untuk register
 
 Route::post('/register', [AuthController::class, 'register']);
+Route::put('users/{id}/password',[AuthController::class, 'updatePassword']);
 
 //endpoint untuk login
 Route::post('/login', [AuthController::class, 'login']);
