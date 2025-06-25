@@ -77,13 +77,12 @@ class ProdukController extends Controller
             if ($request->hasFile('gambar_produk')) {
                 $file = $request->file('gambar_produk');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('produk_images', $fileName, 'public');
 
-                if (!$path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
-                }
+                // Simpan langsung ke public/produk_images
+                $file->move(public_path('produk_images'), $fileName);
 
-                $validated['gambar_produk'] = $path; // Simpan path ke database
+                // Simpan path-nya ke database
+                $validated['gambar_produk'] = 'produk_images/' . $fileName;
             }
 
             $produk = Produk::create($validated);
@@ -129,22 +128,18 @@ class ProdukController extends Controller
 
             // 2) Jika ada file gambar baru, hapus file lama dan simpan yang baru
             if ($request->hasFile('gambar_produk')) {
-                // Hapus gambar lama di disk "public" jika ada
-                if ($produk->gambar_produk && Storage::disk('public')->exists($produk->gambar_produk)) {
-                    Storage::disk('public')->delete($produk->gambar_produk);
+                // Hapus gambar lama jika ada
+                $oldPath = public_path($produk->gambar_produk);
+                if ($produk->gambar_produk && file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
 
-                // Simpan file baru
-                $file     = $request->file('gambar_produk');
+                // Upload gambar baru
+                $file = $request->file('gambar_produk');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $path     = $file->storeAs('produk_images', $fileName, 'public');
+                $file->move(public_path('produk_images'), $fileName);
 
-                if (! $path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar produk'], 500);
-                }
-
-                // Overwrite atribut untuk di-update
-                $validated['gambar_produk'] = $path;
+                $validated['gambar_produk'] = 'produk_images/' . $fileName;
             }
 
             // 3) Update semua atribut yang tervalidasi
@@ -154,7 +149,6 @@ class ProdukController extends Controller
                 'message' => 'Produk berhasil diperbarui.',
                 'data'    => $produk,
             ], 200);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validasi data gagal',

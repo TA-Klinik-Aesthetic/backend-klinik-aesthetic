@@ -54,13 +54,8 @@ class PromoController extends Controller
             if ($request->hasFile('gambar_promo')) {
                 $file = $request->file('gambar_promo');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('promo_images', $fileName, 'public');
-
-                if (!$path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
-                }
-
-                $validated['gambar_promo'] = $path; // Simpan path ke database
+                $file->move(public_path('promo_images'), $fileName);
+                $validated['gambar_promo'] = 'promo_images/' . $fileName;
             }
 
             $promo = Promo::create($validated);
@@ -113,21 +108,14 @@ class PromoController extends Controller
 
             // 4) Jika ada upload gambar baru, hapus lama + simpan baru
             if ($request->hasFile('gambar_promo')) {
-                // hapus file lama
-                if ($promo->gambar_promo && Storage::disk('public')->exists($promo->gambar_promo)) {
-                    Storage::disk('public')->delete($promo->gambar_promo);
+                if ($promo->gambar_promo && file_exists(public_path($promo->gambar_promo))) {
+                    unlink(public_path($promo->gambar_promo));
                 }
-
-                // simpan upload baru
-                $file     = $request->file('gambar_promo');
+    
+                $file = $request->file('gambar_promo');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $path     = $file->storeAs('promo_images', $fileName, 'public');
-
-                if (! $path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar.'], 500);
-                }
-
-                $validated['gambar_promo'] = $path;
+                $file->move(public_path('promo_images'), $fileName);
+                $validated['gambar_promo'] = 'promo_images/' . $fileName;
             }
 
             // 5) Update

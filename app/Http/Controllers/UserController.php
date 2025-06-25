@@ -78,22 +78,19 @@ class UserController extends Controller
             }
 
             if ($request->hasFile('foto_profil')) {
-                if ($request->hasFile('foto_profil')) {
-                    Log::info('File terdeteksi:', [$request->file('foto_profil')]);
-                }
+                Log::info('File terdeteksi:', [$request->file('foto_profil')]);
+    
                 $file = $request->file('foto_profil');
-            
-                // Buat nama unik
                 $fileName = time() . '_' . $file->getClientOriginalName();
-            
-                // Simpan ke folder storage/app/public/profil_user/
-                $path = $file->storeAs('profil_user', $fileName, 'public');
-            
-                if (!$path) {
-                    return response()->json(['success' => false, 'message' => 'Gagal menyimpan foto profil'], 500);
+                $destinationPath = public_path('profil_user');
+    
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
                 }
-            
-                $validatedData['foto_profil'] = $path;
+    
+                $file->move($destinationPath, $fileName);
+    
+                $validatedData['foto_profil'] = 'profil_user/' . $fileName;
             }
 
             $user->update($validatedData);

@@ -96,19 +96,10 @@ class TreatmentController extends Controller
 
             // Jika ada file gambar, simpan ke storage
             if ($request->hasFile('gambar_treatment')) {
-                $file = $request->file('gambar_treatment');
-
-                // Buat nama unik agar tidak tertimpa
+                $file     = $request->file('gambar_treatment');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-
-                // Simpan ke storage di folder 'public/treatment_images'
-                $path = $file->storeAs('treatment_images', $fileName, 'public');
-
-                if (!$path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
-                }
-
-                $validated['gambar_treatment'] = $path; // Simpan path ke database
+                $file->move(public_path('treatment_images'), $fileName);
+                $validated['gambar_treatment'] = 'treatment_images/' . $fileName;
             }
 
             // Simpan data treatment ke database
@@ -172,18 +163,15 @@ class TreatmentController extends Controller
 
             // Jika ada file gambar baru, simpan dan hapus gambar lama
             if ($request->hasFile('gambar_treatment')) {
-                // Hapus file lama jika ada
-                if ($treatment->gambar_treatment && Storage::disk('public')->exists($treatment->gambar_treatment)) {
-                    Storage::disk('public')->delete($treatment->gambar_treatment);
+                // Hapus file lama dari folder public jika ada
+                if ($treatment->gambar_treatment && file_exists(public_path($treatment->gambar_treatment))) {
+                    unlink(public_path($treatment->gambar_treatment));
                 }
-
+    
                 $file     = $request->file('gambar_treatment');
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $path     = $file->storeAs('treatment_images', $fileName, 'public');
-                if (!$path) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar'], 500);
-                }
-                $validated['gambar_treatment'] = $path;
+                $file->move(public_path('treatment_images'), $fileName);
+                $validated['gambar_treatment'] = 'treatment_images/' . $fileName;
             }
 
             // Update data

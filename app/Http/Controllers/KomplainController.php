@@ -123,10 +123,14 @@ class KomplainController extends Controller
             if ($request->hasFile('gambar_komplain')) {
                 foreach ($request->file('gambar_komplain') as $file) {
                     $fileName = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('komplain_images', $fileName, 'public');
-                    if ($path) {
-                        $gambarPaths[] = $path;
+                    $filePath = public_path('komplain_images');
+    
+                    if (!file_exists($filePath)) {
+                        mkdir($filePath, 0755, true);
                     }
+    
+                    $file->move($filePath, $fileName);
+                    $gambarPaths[] = 'komplain_images/' . $fileName;
                 }
             }
 
