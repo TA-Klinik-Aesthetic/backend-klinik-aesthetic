@@ -20,7 +20,7 @@ class MidtransService
         Config::$is3ds = true;
     }
 
-    public function createSnapTokenTreatment(BookingTreatment $booking, Pembayaran $pembayaran)
+    public function createTransactionTokenTreatment(BookingTreatment $booking, Pembayaran $pembayaran)
     {
         $user = $booking->user;
 
@@ -53,28 +53,30 @@ class MidtransService
             'phone' => $user->nomor_telepon,
         ];
 
-        $enabled_payments = ['qris', 'gopay', 'shopeepay', 'bca_va', 'bni_va', 'bri_va', 'permata_va'];
-
+        // Format berbeda untuk SDK Flutter
         $transaction_data = [
             'transaction_details' => $transaction_details,
             'item_details' => $item_details,
             'customer_details' => $customer_details,
-            'enabled_payments' => $enabled_payments,
+            'credit_card' => [
+                'secure' => true
+            ],
+            // Untuk SDK, tidak perlu enabled_payments karena akan dikelola di sisi client
         ];
 
         try {
-            $snapToken = Snap::getSnapToken($transaction_data);
-            $snapUrl = Snap::getSnapUrl($transaction_data);
+            $transactionToken = Snap::getSnapToken($transaction_data);
 
             $pembayaran->update([
                 'order_id' => $transaction_details['order_id'],
-                'snap_token' => $snapToken,
-                'snap_url' => $snapUrl,
+                'snap_token' => $transactionToken,
             ]);
 
             return [
-                'token' => $snapToken,
-                'redirect_url' => $snapUrl,
+                'token' => $transactionToken,
+                'client_key' => config('midtrans.client_key'),
+                'order_id' => $transaction_details['order_id'],
+                'gross_amount' => $transaction_details['gross_amount'],
             ];
         } catch (\Exception $e) {
             Log::error('Midtrans error: ' . $e->getMessage());
@@ -82,7 +84,7 @@ class MidtransService
         }
     }
 
-    public function createSnapTokenProduk(PembelianProduk $penjualan, Pembayaran $pembayaran)
+    public function createTransactionTokenProduk(PembelianProduk $penjualan, Pembayaran $pembayaran)
     {
         $user = $penjualan->user;
         $item_details = [];
@@ -107,28 +109,30 @@ class MidtransService
             'phone' => $user->nomor_telepon,
         ];
 
-        $enabled_payments = ['qris', 'gopay', 'shopeepay', 'bca_va', 'bni_va', 'bri_va', 'permata_va'];
-
+        // Format berbeda untuk SDK Flutter
         $transaction_data = [
             'transaction_details' => $transaction_details,
             'item_details' => $item_details,
             'customer_details' => $customer_details,
-            'enabled_payments' => $enabled_payments,
+            'credit_card' => [
+                'secure' => true
+            ],
+            // Untuk SDK, tidak perlu enabled_payments karena akan dikelola di sisi client
         ];
 
         try {
-            $snapToken = Snap::getSnapToken($transaction_data);
-            $snapUrl = Snap::getSnapUrl($transaction_data);
+            $transactionToken = Snap::getSnapToken($transaction_data);
 
             $pembayaran->update([
                 'order_id' => $transaction_details['order_id'],
-                'snap_token' => $snapToken,
-                'snap_url' => $snapUrl,
+                'snap_token' => $transactionToken,
             ]);
 
             return [
-                'token' => $snapToken,
-                'redirect_url' => $snapUrl,
+                'token' => $transactionToken,
+                'client_key' => config('midtrans.client_key'),
+                'order_id' => $transaction_details['order_id'],
+                'gross_amount' => $transaction_details['gross_amount'],
             ];
         } catch (\Exception $e) {
             Log::error('Midtrans error: ' . $e->getMessage());

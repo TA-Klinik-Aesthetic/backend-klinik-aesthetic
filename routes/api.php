@@ -257,9 +257,18 @@ Route::post('/pembayaran-produk', [PembayaranController::class, 'storeProduk']);
 Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProduk']);
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
-// Midtrans notification and finish endpoints
-Route::post('/payment/notification', [PembayaranController::class, 'handleNotification']);
-Route::get('/payment/finish', [PembayaranController::class, 'finishPayment']);
+// Midtrans payment routes
+Route::prefix('midtrans')->group(function () {
+    // Treatment payments
+    Route::post('/treatment', [MidtransController::class, 'createTreatmentPayment']);
+
+    // Product payments
+    Route::post('/product', [MidtransController::class, 'createProductPayment']);
+
+    // Webhook and status endpoints
+    Route::post('/notification', [MidtransController::class, 'handleNotification']);
+    Route::post('/status', [MidtransController::class, 'checkPaymentStatus']);
+});
 
 // Rekam Medis
 Route::get('/rekam-medis', [RekamMedisController::class, 'index']);
