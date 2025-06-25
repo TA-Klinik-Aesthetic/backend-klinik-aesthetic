@@ -42,6 +42,9 @@ use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\MidtransController;
 
 // Authentikasi
 // Endpoint untuk register
@@ -54,7 +57,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Route::middleware('auth:sanctum')->group(function () {
 // Logout
-Route::post('/logout', [AuthController::class, 'logout']);
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 //informasi tiap entitas{
 Route::get('/users', [UserController::class, 'index']);
@@ -159,6 +162,22 @@ Route::prefix('promos')->group(function () {
     Route::put('/{id}', [PromoController::class, 'update']); // Memperbarui promo berdasarkan ID
     Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
 });
+
+// Routes untuk Favorit
+Route::prefix('favorites')->group(function () {
+    // Get All Favorites
+    Route::get('/user/{userId}', [FavoriteController::class, 'getUserFavorites']);
+
+    // Get Specific Type Favorites
+    Route::get('/user/{userId}/doctors', [FavoriteController::class, 'getFavoriteDoctors']);
+    Route::get('/user/{userId}/products', [FavoriteController::class, 'getFavoriteProducts']);
+    Route::get('/user/{userId}/treatments', [FavoriteController::class, 'getFavoriteTreatments']);
+});
+
+// Toggle Favorite Routes
+Route::post('/doctors/toggle-favorite', [DokterController::class, 'toggleFavorite']);
+Route::post('/products/toggle-favorite', [ProdukController::class, 'toggleFavorite']);
+Route::post('/treatments/toggle-favorite', [TreatmentController::class, 'toggleFavorite']);
 
 //ALL about TREATMENTSSSSSSS
 Route::prefix('treatments')->group(function () {
@@ -268,6 +287,12 @@ Route::prefix('midtrans')->group(function () {
     // Webhook and status endpoints
     Route::post('/notification', [MidtransController::class, 'handleNotification']);
     Route::post('/status', [MidtransController::class, 'checkPaymentStatus']);
+// Produk
+Route::prefix('pembayaran-produk')->group(function(){
+    Route::get('/',            [PembayaranController::class,'indexProduk']);
+    Route::post('/',           [PembayaranController::class,'storeProduk']);
+    Route::get('/{id}',        [PembayaranController::class,'showProduk']);
+    Route::put('/{id}',        [PembayaranController::class,'updateProduk']);
 });
 
 // Rekam Medis
@@ -283,6 +308,3 @@ Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProd
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
 
 
-// Route::get('/inventaris-stok', [InventarisStokController::class, 'index']);
-
-// });

@@ -39,4 +39,25 @@ class Produk extends Model
     // {
     //     return $this->belongsTo(JenisTreatment::class, 'id_jenis_treatment', 'id_jenis_treatment');
     // }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class, 'id_produk', 'id_produk');
+    }
+
+    /**
+     * Cek apakah produk difavoritkan oleh user tertentu
+     */
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('id_user', $userId)->exists();
+    }
+
+    /**
+     * Hitung jumlah favorit untuk produk ini
+     */
+    public function getFavoritesCountAttribute()
+    {
+        return $this->favorites()->count();
+    }
 }
