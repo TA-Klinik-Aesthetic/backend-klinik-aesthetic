@@ -43,7 +43,6 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\MidtransController;
 
 // Authentikasi
@@ -287,6 +286,8 @@ Route::prefix('midtrans')->group(function () {
     // Webhook and status endpoints
     Route::post('/notification', [MidtransController::class, 'handleNotification']);
     Route::post('/status', [MidtransController::class, 'checkPaymentStatus']);
+});
+
 // Produk
 Route::prefix('pembayaran-produk')->group(function(){
     Route::get('/',            [PembayaranController::class,'indexProduk']);
