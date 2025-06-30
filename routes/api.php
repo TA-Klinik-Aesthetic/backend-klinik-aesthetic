@@ -275,17 +275,28 @@ Route::post('/pembayaran-produk', [PembayaranController::class, 'storeProduk']);
 Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProduk']);
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
-// Midtrans payment routes
+// Midtrans Payment Routes
 Route::prefix('midtrans')->group(function () {
-    // Treatment payments
-    Route::post('/treatment', [MidtransController::class, 'createTreatmentPayment']);
+    // Treatment Payment
+    Route::post('/treatment', [PembayaranMidtransController::class, 'createTreatmentPayment']);
 
-    // Product payments
-    Route::post('/product', [MidtransController::class, 'createProductPayment']);
+    // Product Payment
+    Route::post('/product', [PembayaranMidtransController::class, 'createProductPayment']);
 
-    // Webhook and status endpoints
-    Route::post('/notification', [MidtransController::class, 'handleNotification']);
-    Route::post('/status', [MidtransController::class, 'checkPaymentStatus']);
+    // Notification Handler (Webhook)
+    Route::post('/notification', [PembayaranMidtransController::class, 'handleNotification']);
+
+    // Check Payment Status
+    Route::post('/status', [PembayaranMidtransController::class, 'checkStatus']);
+
+    // Get Payment Detail
+    Route::get('/detail/{id}', [PembayaranMidtransController::class, 'getDetail']);
+
+    // Get Payment List
+    Route::get('/payments', [PembayaranMidtransController::class, 'getAll']);
+
+    // Get Available Payment Methods
+    Route::get('/payment-methods', [PembayaranMidtransController::class, 'getAvailablePaymentMethods']);
 });
 
 // Produk
