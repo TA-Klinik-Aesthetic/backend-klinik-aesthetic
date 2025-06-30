@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('tb_pembayaran', function (Blueprint $table) {
             $table->string('order_id')->nullable();
+            $table->string('snap_token')->nullable();
             $table->string('transaction_id')->nullable();
             $table->string('transaction_status')->nullable();
             $table->string('payment_type')->nullable();

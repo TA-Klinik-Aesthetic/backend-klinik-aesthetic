@@ -38,12 +38,12 @@ use App\Http\Controllers\KomplainController;
 use App\Http\Controllers\KomplainTreatmentController;
 use App\Http\Controllers\KompensasiDiberikanController;
 use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PembayaranMidtransController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\MidtransController;
 
 // Authentikasi
 // Endpoint untuk register
@@ -277,6 +277,8 @@ Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'tota
 
 // Midtrans Payment Routes
 Route::prefix('midtrans')->group(function () {
+    Route::get('/info', [PembayaranMidtransController::class, 'getApiInfo']);
+
     // Treatment Payment
     Route::post('/treatment', [PembayaranMidtransController::class, 'createTreatmentPayment']);
 

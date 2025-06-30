@@ -361,6 +361,86 @@ class PembayaranMidtransController extends Controller
         }
     }
 
+    public function getApiInfo()
+    {
+        return response()->json([
+        'status' => 'OK',
+        'message' => 'Simple test endpoint working',
+        'timestamp' => date('Y-m-d H:i:s')
+    ]);
+    }
+
+    public function getAvailablePaymentMethods()
+    {
+        try {
+            $methods = [
+                [
+                    'id' => 'bca',
+                    'name' => 'BCA Virtual Account',
+                    'group' => 'bank_transfer',
+                    'image' => 'bca.png',
+                    'description' => 'Bayar dari BCA melalui Virtual Account'
+                ],
+                [
+                    'id' => 'bni',
+                    'name' => 'BNI Virtual Account',
+                    'group' => 'bank_transfer',
+                    'image' => 'bni.png',
+                    'description' => 'Bayar dari BNI melalui Virtual Account'
+                ],
+                [
+                    'id' => 'bri',
+                    'name' => 'BRI Virtual Account',
+                    'group' => 'bank_transfer',
+                    'image' => 'bri.png',
+                    'description' => 'Bayar dari BRI melalui Virtual Account'
+                ],
+                [
+                    'id' => 'mandiri',
+                    'name' => 'Mandiri Bill Payment',
+                    'group' => 'bank_transfer',
+                    'image' => 'mandiri.png',
+                    'description' => 'Bayar dari Mandiri melalui Bill Payment'
+                ],
+                [
+                    'id' => 'gopay',
+                    'name' => 'GoPay',
+                    'group' => 'e_wallet',
+                    'image' => 'gopay.png',
+                    'description' => 'Bayar dengan GoPay'
+                ],
+                [
+                    'id' => 'shopeepay',
+                    'name' => 'ShopeePay',
+                    'group' => 'e_wallet',
+                    'image' => 'shopeepay.png',
+                    'description' => 'Bayar dengan ShopeePay'
+                ],
+                [
+                    'id' => 'qris',
+                    'name' => 'QRIS',
+                    'group' => 'qris',
+                    'image' => 'qris.png',
+                    'description' => 'Bayar dengan QRIS (Dana, OVO, LinkAja, dll)'
+                ],
+            ];
+
+            return response()->json([
+                'message' => 'Daftar metode pembayaran berhasil diambil',
+                'data' => $methods
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error saat mengambil metode pembayaran: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+
+            return response()->json([
+                'message' => 'Gagal mengambil daftar metode pembayaran',
+                'error' => 'Terjadi kesalahan di server'
+            ], 500);
+        }
+    }
+
     /**
      * Mendapatkan daftar semua pembayaran yang menggunakan Midtrans
      *
