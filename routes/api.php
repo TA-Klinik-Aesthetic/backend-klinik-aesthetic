@@ -269,11 +269,13 @@ Route::put('/pembayaran-treatment/{id}', [PembayaranController::class, 'updateTr
 Route::get('/pembayaran-treatment/total-bayar', [PembayaranController::class, 'totalBayarTreatment']);
 
 // Product payment routes
+Route::put('/pembayaran-produk/{id}/konfirmasi', [PembayaranController::class, 'confirmPayment']);
 Route::get('/pembayaran-produk', [PembayaranController::class, 'indexProduk']);
 Route::get('/pembayaran-produk/{id}', [PembayaranController::class, 'showProduk']);
 Route::post('/pembayaran-produk', [PembayaranController::class, 'storeProduk']);
 Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProduk']);
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
+
 
 // Midtrans Payment Routes
 Route::prefix('midtrans')->group(function () {

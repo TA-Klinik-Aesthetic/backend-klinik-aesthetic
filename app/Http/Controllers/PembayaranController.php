@@ -202,6 +202,41 @@ class PembayaranController extends Controller
         }
     }
 
+    public function confirmPayment($id)
+    {
+        // 1. Cari record pembayaran
+        $pembayaran = Pembayaran::findOrFail($id);
+
+        // 2. Cek dulu: hanya yang belum dibayar saja
+        if ($pembayaran->status_pembayaran === 'Sudah Dibayar') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
+            ], 422);
+        }
+
+        // 3. Ambil harga_akhir dari penjualan_produk yang terkait
+        // Pastikan kamu sudah definisikan relasi di model PembayaranProduk:
+        // public function penjualanProduk() {
+        //     return $this->belongsTo(PenjualanProduk::class, 'id_penjualan_produk');
+        // }
+        $hargaAkhir = $pembayaran->penjualanProduk->harga_akhir;
+
+        // 4. Update field sesuai permintaan
+        $pembayaran->status_pembayaran = 'Sudah Dibayar';
+        $pembayaran->waktu_pembayaran   = now();
+        $pembayaran->uang               = $hargaAkhir;  // bayar pas penuh
+        $pembayaran->kembalian          = 0;            // tidak ada kembalian
+        $pembayaran->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pembayaran berhasil dikonfirmasi.',
+            'data'    => $pembayaran
+        ], 200);
+    }
+
+
 
     /** PUT  /api/pembayaran-produk/{id} */
     public function updateProduk(Request $request, $id)
