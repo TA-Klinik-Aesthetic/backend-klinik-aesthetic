@@ -15,17 +15,11 @@ return new class extends Migration
             $table->increments('id_pembayaran');
             $table->unsignedInteger('id_booking_treatment')->nullable();
             $table->unsignedInteger('id_penjualan_produk')->nullable();
-            $table->enum('metode_pembayaran', ['Tunai', 'QRIS', 'Virtual Account', 'E-Wallet', 'Non Tunai'])->default('Tunai');
+            $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
             $table->decimal('uang', 15, 2)->nullable();
             $table->decimal('kembalian', 15, 2)->nullable();
-            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Dibatalkan', 'Pending', 'Berhasil', 'Gagal'])->default('Belum Dibayar');
+            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Dibatalkan'])->default('Belum Dibayar');
             $table->dateTime('waktu_pembayaran')->nullable();
-            $table->string('payment_type')->nullable();
-            $table->string('transaction_id')->nullable();
-            $table->string('order_id')->nullable();
-            $table->string('snap_token')->nullable();
-            $table->string('snap_url')->nullable();
-            $table->json('payment_details')->nullable();
             $table->timestamps();
 
             $table->foreign('id_booking_treatment')
@@ -42,6 +36,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Schema::dropIfExists('tb_pembayaran_treatment');
+        // Schema::dropIfExists('tb_pembayaran_produk');
         Schema::dropIfExists('tb_pembayaran');
     }
 };
