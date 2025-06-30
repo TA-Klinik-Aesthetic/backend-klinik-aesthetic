@@ -137,6 +137,13 @@ class MidtransService
     public function createTransactionTokenProduk(PembelianProduk $penjualan, Pembayaran $pembayaran, $paymentMethod = null)
     {
         try {
+            // Log untuk debugging
+            Log::info('Memulai pembuatan token untuk produk', [
+                'id_penjualan' => $penjualan->id_penjualan_produk,
+                'id_pembayaran' => $pembayaran->id_pembayaran,
+                'payment_method' => $paymentMethod
+            ]);
+
             $user = $penjualan->user;
             if (!$user) {
                 Log::error('User tidak ditemukan untuk PembelianProduk ID: ' . $penjualan->id_penjualan_produk);
@@ -155,13 +162,11 @@ class MidtransService
                 ];
             } else {
                 foreach ($penjualan->detailPembelian as $detail) {
-                    if (!$detail->produk) {
-                        continue;
-                    }
+                    if (!$detail->produk) continue;
 
                     $item_details[] = [
-                        'id' => 'produk-' . $detail->id_detail_pembelian,
-                        'price' => intval($detail->harga_jual),
+                        'id' => 'produk-' . $detail->id_detail_penjualan_produk,
+                        'price' => intval($detail->harga_penjualan_produk),
                         'quantity' => $detail->jumlah_produk,
                         'name' => $detail->produk->nama_produk ?? 'Produk',
                     ];
@@ -183,59 +188,79 @@ class MidtransService
             ];
 
             $customer_details = [
-                'first_name' => $user->nama_lengkap ?? 'Customer',
+                'first_name' => $user->nama_user ?? 'Customer',
                 'email' => $user->email ?? 'customer@example.com',
-                'phone' => $user->nomor_telepon ?? '08123456789',
+                'phone' => $user->no_telp ?? '08123456789',
             ];
 
-            // Konfigurasikan metode pembayaran yang spesifik
-            $enabled_payments = $this->getEnabledPaymentMethods($paymentMethod);
-
-            // Format data transaksi
+            // Data transaksi
             $transaction_data = [
                 'transaction_details' => $transaction_details,
                 'item_details' => $item_details,
                 'customer_details' => $customer_details,
-                'credit_card' => [
-                    'secure' => true
-                ],
             ];
 
-            // Tambahkan enabled_payments jika ada
-            if (!empty($enabled_payments)) {
-                $transaction_data['enabled_payments'] = $enabled_payments;
+            // Tambahkan pengaturan metode pembayaran jika ditentukan
+            if ($paymentMethod) {
+                switch ($paymentMethod) {
+                    case 'bca':
+                    case 'bni':
+                    case 'bri':
+                        $transaction_data['enabled_payments'] = [$paymentMethod . '_va'];
+                        break;
+                    case 'mandiri':
+                        $transaction_data['enabled_payments'] = ['echannel'];
+                        break;
+                    case 'gopay':
+                    case 'shopeepay':
+                    case 'qris':
+                        $transaction_data['enabled_payments'] = [$paymentMethod];
+                        break;
+                }
             }
 
-            // Tambahkan konfigurasi spesifik berdasarkan metode pembayaran
-            $this->addPaymentSpecificConfig($transaction_data, $paymentMethod);
-
             // Log transaction data untuk debugging
-            Log::info('Mengirim data produk ke Midtrans', [
-                'transaction_data' => $transaction_data,
-                'payment_method' => $paymentMethod
+            Log::info('Data transaksi Midtrans', $transaction_data);
+
+            // Cek konfigurasi Midtrans
+            $serverKey = config('midtrans.server_key');
+            $clientKey = config('midtrans.client_key');
+            $isProduction = config('midtrans.is_production');
+
+            Log::info('Konfigurasi Midtrans', [
+                'server_key_exists' => !empty($serverKey),
+                'client_key_exists' => !empty($clientKey),
+                'is_production' => $isProduction,
             ]);
 
-            $transactionToken = Snap::getSnapToken($transaction_data);
+            // Ambil token dari Midtrans
+            try {
+                $snapToken = \Midtrans\Snap::getSnapToken($transaction_data);
 
-            $pembayaran->update([
-                'order_id' => $transaction_details['order_id'],
-                'snap_token' => $transactionToken,
-            ]);
+                Log::info('Token berhasil dibuat', ['token' => $snapToken]);
 
-            Log::info('Token produk berhasil dibuat', [
-                'token' => $transactionToken
-            ]);
+                // Update pembayaran dengan token dan order_id
+                $pembayaran->update([
+                    'order_id' => $transaction_details['order_id'],
+                    'snap_token' => $snapToken,
+                ]);
 
-            return [
-                'token' => $transactionToken,
-                'client_key' => config('midtrans.client_key'),
-                'order_id' => $transaction_details['order_id'],
-                'gross_amount' => $transaction_details['gross_amount'],
-            ];
+                return [
+                    'token' => $snapToken,
+                    'client_key' => $clientKey,
+                    'order_id' => $transaction_details['order_id'],
+                    'gross_amount' => $transaction_details['gross_amount'],
+                ];
+            } catch (\Exception $snapException) {
+                Log::error('Error saat membuat Snap token: ' . $snapException->getMessage(), [
+                    'exception' => $snapException,
+                    'trace' => $snapException->getTraceAsString()
+                ]);
+                return null;
+            }
         } catch (\Exception $e) {
             Log::error('Error di createTransactionTokenProduk: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'exception' => $e,
                 'trace' => $e->getTraceAsString()
             ]);
             return null;

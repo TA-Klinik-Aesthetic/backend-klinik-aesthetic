@@ -98,12 +98,23 @@ class PembayaranMidtransController extends Controller
     {
         $request->validate([
             'id_penjualan_produk' => 'required|exists:tb_penjualan_produk,id_penjualan_produk',
+            'payment_method' => 'nullable|string|in:bca,bni,bri,mandiri,gopay,shopeepay,qris',
         ]);
 
         DB::beginTransaction();
         try {
+            // Log request untuk debugging
+            Log::info('Request pembayaran produk', $request->all());
+
             $penjualan = PembelianProduk::with('user', 'detailPembelian.produk')
                 ->findOrFail($request->id_penjualan_produk);
+
+            // Log data penjualan
+            Log::info('Data penjualan ditemukan', [
+                'id' => $penjualan->id_penjualan_produk,
+                'harga_akhir' => $penjualan->harga_akhir,
+                'user_id' => $penjualan->id_user
+            ]);
 
             // Cek apakah sudah ada pembayaran untuk penjualan ini
             $existingPayment = Pembayaran::where('id_penjualan_produk', $penjualan->id_penjualan_produk)->first();
@@ -117,22 +128,35 @@ class PembayaranMidtransController extends Controller
 
                 // Jika tidak berhasil, update token pembayaran
                 $pembayaran = $existingPayment;
+                Log::info('Pembayaran sudah ada, akan diupdate', [
+                    'id_pembayaran' => $pembayaran->id_pembayaran,
+                    'status' => $pembayaran->status_pembayaran
+                ]);
             } else {
                 // Buat pembayaran baru
                 $pembayaran = Pembayaran::create([
                     'id_booking_treatment' => null,
                     'id_penjualan_produk' => $penjualan->id_penjualan_produk,
                     'status_pembayaran' => 'Pending',
-                    'metode_pembayaran' => 'Non Tunai',
+                    'metode_pembayaran' => $this->mapPaymentMethod($request->payment_method ?? 'bank_transfer'),
                     'waktu_pembayaran' => null,
-                    'gross_amount' => $penjualan->harga_akhir
+                    'gross_amount' => $penjualan->harga_akhir,
+                ]);
+
+                Log::info('Pembayaran baru dibuat', [
+                    'id_pembayaran' => $pembayaran->id_pembayaran
                 ]);
             }
 
             // Buat token pembayaran untuk Flutter SDK
-            $paymentData = $this->midtransService->createTransactionTokenProduk($penjualan, $pembayaran);
+            $paymentData = $this->midtransService->createTransactionTokenProduk(
+                $penjualan,
+                $pembayaran,
+                $request->payment_method
+            );
 
             if (!$paymentData) {
+                Log::error('Gagal membuat token pembayaran, tidak ada data yang dikembalikan dari service');
                 throw new \Exception('Gagal membuat token pembayaran');
             }
 
@@ -147,6 +171,7 @@ class PembayaranMidtransController extends Controller
             DB::rollBack();
             Log::error('Error membuat pembayaran produk: ' . $e->getMessage(), [
                 'exception' => $e,
+                'trace' => $e->getTraceAsString(),
                 'request' => $request->all()
             ]);
 
@@ -154,6 +179,30 @@ class PembayaranMidtransController extends Controller
                 'message' => 'Gagal membuat token pembayaran produk',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Pemetaan metode pembayaran ke format yang disimpan di database
+     *
+     * @param string $method
+     * @return string
+     */
+    private function mapPaymentMethod($method)
+    {
+        switch ($method) {
+            case 'bca':
+            case 'bni':
+            case 'bri':
+            case 'mandiri':
+                return 'Virtual Account';
+            case 'gopay':
+            case 'shopeepay':
+                return 'E-Wallet';
+            case 'qris':
+                return 'QRIS';
+            default:
+                return 'Non Tunai';
         }
     }
 
