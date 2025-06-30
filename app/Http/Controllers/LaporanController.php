@@ -24,10 +24,10 @@ class LaporanController extends Controller
             'detailBooking.treatment', // Mendapatkan informasi treatment untuk setiap detail booking
             'promo' // Mendapatkan informasi promo yang diterapkan
         ])
-        ->whereHas('pembayaranTreatment', function ($query) {
-            $query->where('status_pembayaran', 'Sudah Dibayar');
-        })
-        ->get();
+            ->whereHas('pembayaranTreatment', function ($query) {
+                $query->where('status_pembayaran', 'Sudah Dibayar');
+            })
+            ->get();
 
         // Data laporan
         $laporanData = [];
@@ -50,8 +50,8 @@ class LaporanController extends Controller
                     'waktu_treatment' => $bookingTreatment->waktu_treatment,
                     'nama_treatment' => $detail->treatment->nama_treatment, // Nama treatment per detail
                     'biaya_treatment' => $detail->biaya_treatment, // Biaya treatment per detail
-                    'dokter' => $detail->dokter ? $detail->dokter->nama_dokter : 'Dokter Tidak Tersedia',
-                    'beautician' => $detail->beautician ? $detail->beautician->nama_beautician : 'Beautician Tidak Tersedia',
+                    'dokter'          => $bookingTreatment->dokter ? $bookingTreatment->dokter->nama_dokter : 'Dokter Tidak Tersedia',
+                    'beautician'      => $bookingTreatment->beautician ? $bookingTreatment->beautician->nama_beautician : 'Beautician Tidak Tersedia',
                     'kompensasi' => $detail->kompensasiDiberikan ? $detail->kompensasiDiberikan->kompensasi->nama_kompensasi : 'Tidak ada kompensasi',
                 ];
             }
@@ -134,8 +134,8 @@ class LaporanController extends Controller
                     'waktu_treatment' => $bookingTreatment->waktu_treatment,
                     'nama_treatment' => $detail->treatment->nama_treatment, // Nama treatment per detail
                     'biaya_treatment' => number_format($detail->biaya_treatment, 2, '.', ''), // Format biaya treatment
-                    'dokter' => $detail->dokter ? $detail->dokter->nama_dokter : 'Dokter Tidak Tersedia',
-                    'beautician' => $detail->beautician ? $detail->beautician->nama_beautician : 'Beautician Tidak Tersedia',
+                    'dokter'          => $bookingTreatment->dokter ? $bookingTreatment->dokter->nama_dokter : 'Dokter Tidak Tersedia',
+                    'beautician'      => $bookingTreatment->beautician ? $bookingTreatment->beautician->nama_beautician : 'Beautician Tidak Tersedia',
                     'kompensasi' => $detail->kompensasiDiberikan ? $detail->kompensasiDiberikan->kompensasi->nama_kompensasi : 'Tidak ada kompensasi',
                 ];
             }
@@ -232,8 +232,8 @@ class LaporanController extends Controller
                     'waktu_treatment' => $bookingTreatment->waktu_treatment,
                     'nama_treatment' => $detail->treatment->nama_treatment,
                     'biaya_treatment' => number_format($detail->biaya_treatment, 2, '.', ''),
-                    'dokter' => $detail->dokter ? $detail->dokter->nama_dokter : 'Dokter Tidak Tersedia',
-                    'beautician' => $detail->beautician ? $detail->beautician->nama_beautician : 'Beautician Tidak Tersedia',
+                    'dokter'          => $bookingTreatment->dokter ? $bookingTreatment->dokter->nama_dokter : 'Dokter Tidak Tersedia',
+                    'beautician'      => $bookingTreatment->beautician ? $bookingTreatment->beautician->nama_beautician : 'Beautician Tidak Tersedia',
                     'kompensasi' => $detail->kompensasiDiberikan ? $detail->kompensasiDiberikan->kompensasi->nama_kompensasi : 'Tidak ada kompensasi',
                 ];
             }
@@ -283,10 +283,10 @@ class LaporanController extends Controller
             'promo', // Mendapatkan informasi promo yang diterapkan
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
-        ->whereHas('pembayaranProduk', function ($query) {
-            $query->where('status_pembayaran', 'Sudah Dibayar');
-        })
-        ->get();
+            ->whereHas('pembayaranProduk', function ($query) {
+                $query->where('status_pembayaran', 'Sudah Dibayar');
+            })
+            ->get();
 
         // Data laporan
         $laporanData = [];
@@ -396,7 +396,7 @@ class LaporanController extends Controller
             // Menambahkan total pendapatan dari pembayaran produk
             if ($penjualanProdukItem->pembayaranProduk && $penjualanProdukItem->pembayaranProduk->status_pembayaran === 'Sudah Dibayar') {
                 $totalPendapatan += $penjualanProdukItem->harga_akhir;
-            }            
+            }
         }
 
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
@@ -483,7 +483,7 @@ class LaporanController extends Controller
             // Menambahkan total pendapatan dari pembayaran produk
             if ($pembelianProduk->pembayaranProduk && $pembelianProduk->pembayaranProduk->status_pembayaran === 'Sudah Dibayar') {
                 $totalPendapatan += $pembelianProduk->harga_akhir;
-            }            
+            }
         }
 
         $totalPendapatan = number_format($totalPendapatan, 2, '.', '');
