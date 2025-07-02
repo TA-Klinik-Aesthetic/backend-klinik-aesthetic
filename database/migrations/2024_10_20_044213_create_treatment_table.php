@@ -31,7 +31,8 @@ return new class extends Migration
         Schema::create('tb_booking_treatment', function (Blueprint $table) {
             $table->increments('id_booking_treatment');
             $table->unsignedInteger('id_user');
-            $table->dateTime('waktu_treatment');
+            $table->date('waktu_treatment');
+            $table->unsignedInteger('id_detail_jadwal_treatment');
             $table->unsignedInteger('id_dokter')->nullable();
             $table->unsignedInteger('id_beautician')->nullable();
             $table->enum('status_booking_treatment', ['Verifikasi', 'Berhasil dibooking', 'Dibatalkan', 'Selesai'])->default('Verifikasi')->nullable();
@@ -93,6 +94,7 @@ return new class extends Migration
         });
         Schema::table('tb_booking_treatment', function (Blueprint $table) {
             $table->foreign('id_user')->references('id_user')->on('tb_user')->onDelete('cascade');
+            $table->foreign('id_detail_jadwal_treatment')->references('id_detail_jadwal_treatment')->on('tb_detail_jadwal_treatment')->onDelete('cascade');
             $table->foreign('id_dokter')->references('id_dokter')->on('tb_dokter')->onDelete('set null');
             $table->foreign('id_beautician')->references('id_beautician')->on('tb_beautician')->onDelete('set null');
             $table->foreign('id_promo')->references('id_promo')->on('tb_promo')->onDelete('cascade');

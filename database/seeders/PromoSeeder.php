@@ -25,7 +25,7 @@ class PromoSeeder extends Seeder
                 'minimal_belanja' => 30000,
                 'tanggal_mulai' => '2025-01-01',
                 'tanggal_berakhir' => '2025-01-31',
-                'gambar_promo' => 'https://images.unsplash.com/photo-1562809683-67b524a5ce11?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                'gambar_promo' => '',
                 'status_promo' => 'Aktif',
                 'created_at' => now(),
                 'updated_at' => now(),

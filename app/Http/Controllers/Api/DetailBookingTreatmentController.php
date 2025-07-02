@@ -12,9 +12,12 @@ use App\Models\Produk;
 use App\Models\KompensasiDiberikan;
 use App\Models\Komplain;
 use App\Models\Pembayaran;
+use App\Models\DetailJadwalTreatment;
+use App\Models\JadwalTreatment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use Carbon\Carbon;  
 
 
 class DetailBookingTreatmentController extends Controller
@@ -160,6 +163,7 @@ class DetailBookingTreatmentController extends Controller
             'beautician',
             'promo',
             'detailBooking.treatment',
+            'pembayaranTreatment'
         ])->find($id);
 
         // Cek jika data booking treatment tidak ditemukan
@@ -185,6 +189,7 @@ class DetailBookingTreatmentController extends Controller
             $validatedBooking = $request->validate([
                 'id_user' => 'required|exists:tb_user,id_user',
                 'waktu_treatment' => 'required|date',
+                'id_detail_jadwal_treatment'    => 'required|exists:tb_detail_jadwal_treatment,id_detail_jadwal_treatment',
                 'id_dokter' => 'nullable|exists:tb_dokter,id_dokter',
                 'id_beautician' => 'nullable|exists:tb_beautician,id_beautician',
                 'id_promo' => 'nullable|exists:tb_promo,id_promo',  // Validasi id_promo
@@ -192,6 +197,12 @@ class DetailBookingTreatmentController extends Controller
                 'details.*.id_treatment' => 'required|exists:tb_treatment,id_treatment',
                 'details.*.id_kompensasi_diberikan' => 'nullable|exists:tb_kompensasi_diberikan,id_kompensasi_diberikan',
             ]);
+
+            // 2) PASTIKAN TANGGAL TERSEDIA
+            $tanggal = Carbon::parse($validatedBooking['waktu_treatment'])->toDateString();
+            if (! JadwalTreatment::where('tanggal_treatment', $tanggal)->exists()) {
+                throw new \Exception("Tanggal treatment {$tanggal} belum tersedia.");
+            }
 
             // Memastikan promo tidak bisa diisi jika semua treatment menggunakan kompensasi
             $allTreatmentsHaveCompensation = collect($validatedBooking['details'])->every(function ($detail) {
@@ -208,11 +219,13 @@ class DetailBookingTreatmentController extends Controller
                 $statusBooking = 'Berhasil Dibooking';
             }
 
+            $slotId = $validatedBooking['id_detail_jadwal_treatment'];
 
             // Membuat Booking Treatment
             $booking = BookingTreatment::create([
                 'id_user' => $validatedBooking['id_user'],
                 'waktu_treatment' => $validatedBooking['waktu_treatment'],
+                'id_detail_jadwal_treatment'    => $slotId,   
                 'id_dokter' => $validatedBooking['id_dokter'],
                 'id_beautician' => $validatedBooking['id_beautician'],
                 'status_booking_treatment' => $statusBooking,
@@ -228,6 +241,22 @@ class DetailBookingTreatmentController extends Controller
 
             // Memasukkan detail booking treatment (lebih dari satu treatment)
             foreach ($validatedBooking['details'] as $detail) {
+                // ➊ ambil slot dengan lock untuk menghindari race condition
+                $slot = DetailJadwalTreatment::lockForUpdate()->find($slotId);
+                if (! $slot) {
+                    throw new \Exception("Slot tidak ditemukan.");
+                }
+                
+                // 🆕 cek bahwa slot ini milik tanggal yang di‐request
+                if ($slot->jadwal->tanggal_treatment !== $tanggal) {
+                    throw new \Exception("Slot pada {$slot->waktu_tersedia} tidak tersedia pada tanggal {$tanggal}.");
+                }
+                
+                // ➋ cek status
+                if ($slot->status_jadwal !== 'tersedia') {
+                    throw new \Exception("Slot pada {$slot->waktu_tersedia} sudah dipesan.");
+                }
+
                 $treatment = Treatment::find($detail['id_treatment']);
                 if (!$treatment) {
                     throw new \Exception("Treatment ID {$detail['id_treatment']} not found");
@@ -270,6 +299,12 @@ class DetailBookingTreatmentController extends Controller
                 DetailBookingTreatment::create($detail);
                 $hargaTotal += $biayaTreatment;
             }
+
+            $slot->maks_booking -= 1;
+            if ($slot->maks_booking <= 0) {
+                $slot->status_jadwal = 'sudah dipesan';
+            }
+            $slot->save();
 
             // Mengambil promo berdasarkan id_promo
             $promo = Promo::find($validatedBooking['id_promo']);
@@ -461,7 +496,6 @@ class DetailBookingTreatmentController extends Controller
                 'success'             => true,
                 'total_verifikasi'    => $total,
             ], 200);
-
         } catch (QueryException $e) {
             return response()->json([
                 'success' => false,
