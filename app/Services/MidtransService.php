@@ -28,6 +28,7 @@ class MidtransService
      * @param string $paymentMethod
      * @return array|null
      */
+
     public function createTransactionTokenTreatment(BookingTreatment $booking, Pembayaran $pembayaran, $paymentMethod = null)
     {
         try {
@@ -137,11 +138,14 @@ class MidtransService
     public function createTransactionTokenProduk(PembelianProduk $penjualan, Pembayaran $pembayaran, $paymentMethod = null)
     {
         try {
-            // Log untuk debugging
-            Log::info('Memulai pembuatan token untuk produk', [
+            Log::info('Membuat token untuk produk', [
                 'id_penjualan' => $penjualan->id_penjualan_produk,
-                'id_pembayaran' => $pembayaran->id_pembayaran,
-                'payment_method' => $paymentMethod
+                'payment_method' => $paymentMethod,
+                'config' => [
+                    'server_key_exists' => !empty(config('midtrans.server_key')),
+                    'client_key_exists' => !empty(config('midtrans.client_key')),
+                    'is_production' => config('midtrans.is_production')
+                ]
             ]);
 
             $user = $penjualan->user;
@@ -235,7 +239,23 @@ class MidtransService
 
             // Ambil token dari Midtrans
             try {
+                // Explicitly set Midtrans configuration
+                \Midtrans\Config::$serverKey = config('midtrans.server_key');
+                \Midtrans\Config::$clientKey = config('midtrans.client_key');
+                \Midtrans\Config::$isProduction = config('midtrans.is_production');
+                \Midtrans\Config::$isSanitized = true;
+                \Midtrans\Config::$is3ds = true;
+
+                Log::info('Mengirim data ke Midtrans Snap API', [
+                    'transaction_data' => $transaction_data,
+                ]);
+
                 $snapToken = \Midtrans\Snap::getSnapToken($transaction_data);
+
+                if (empty($snapToken)) {
+                    Log::error('Snap token kosong');
+                    return null;
+                }
 
                 Log::info('Token berhasil dibuat', ['token' => $snapToken]);
 
@@ -247,20 +267,22 @@ class MidtransService
 
                 return [
                     'token' => $snapToken,
-                    'client_key' => $clientKey,
+                    'client_key' => config('midtrans.client_key'),
                     'order_id' => $transaction_details['order_id'],
                     'gross_amount' => $transaction_details['gross_amount'],
                 ];
             } catch (\Exception $snapException) {
-                Log::error('Error saat membuat Snap token: ' . $snapException->getMessage(), [
-                    'exception' => $snapException,
+                Log::error('Error di Midtrans Snap: ' . $snapException->getMessage(), [
+                    'file' => $snapException->getFile(),
+                    'line' => $snapException->getLine(),
                     'trace' => $snapException->getTraceAsString()
                 ]);
                 return null;
             }
         } catch (\Exception $e) {
             Log::error('Error di createTransactionTokenProduk: ' . $e->getMessage(), [
-                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return null;

@@ -160,9 +160,63 @@ class KonsultasiController extends Controller
         ], 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function updateKeluhan(Request $request, $id_konsultasi)
+    {
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'keluhan_pelanggan' => 'required|string',
+        ]);
+
+        // Jika validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        try {
+            // Ambil data konsultasi berdasarkan id_konsultasi
+            $konsultasi = Konsultasi::find($id_konsultasi);
+
+            // Jika konsultasi tidak ditemukan
+            if (!$konsultasi) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konsultasi tidak ditemukan'
+                ], 404);
+            }
+
+            // Periksa apakah status booking konsultasi masih "Verifikasi" & "Berhasil dibooking"
+            if ($konsultasi->status_booking_konsultasi !== 'Verifikasi' &&
+                $konsultasi->status_booking_konsultasi !== 'Berhasil Dibooking') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Keluhan pelanggan hanya dapat diubah ketika status booking konsultasi masih "Verifikasi"',
+                    'status_saat_ini' => $konsultasi->status_booking_konsultasi
+                ], 403);
+            }
+
+            // Perbarui keluhan pelanggan
+            $konsultasi->keluhan_pelanggan = $request->keluhan_pelanggan;
+            $konsultasi->save();
+
+            // Kembalikan response sukses
+            return response()->json([
+                'success' => true,
+                'message' => 'Keluhan pelanggan berhasil diperbarui',
+                'data' => $konsultasi
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui keluhan pelanggan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function show(string $id)
     {
         // Ambil konsultasi beserta semua detail konsultasinya

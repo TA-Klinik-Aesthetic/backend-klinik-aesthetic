@@ -61,7 +61,11 @@ class PembayaranMidtransController extends Controller
             }
 
             // Buat token pembayaran untuk Flutter SDK
-            $paymentData = $this->midtransService->createTransactionTokenTreatment($booking, $pembayaran);
+            $paymentData = $this->midtransService->createTransactionTokenTreatment(
+                $booking,
+                $pembayaran,
+                $request->payment_method
+            );
 
             if (!$paymentData) {
                 throw new \Exception('Gagal membuat token pembayaran');

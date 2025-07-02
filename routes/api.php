@@ -103,6 +103,8 @@ Route::delete('/konsultasi/{id}', [KonsultasiController::class, 'destroy']);
 // route untuk update status konsultasi
 Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateStatus']);
 
+// Route untuk update keluhan pelanggan
+Route::put('/konsultasi/{id_konsultasi}/keluhan', [KonsultasiController::class, 'updateKeluhan']);
 
 
 //}
