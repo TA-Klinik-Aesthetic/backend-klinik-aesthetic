@@ -247,6 +247,7 @@ Route::get('/kompensasi', [KompensasiController::class, 'index']);
 Route::post('/kompensasi', [KompensasiController::class, 'store']);
 Route::put('/kompensasi/{id}', [KompensasiController::class, 'update']);
 
+Route::get('/komplain/user/{id}', [KomplainController::class, 'getByUser']);
 Route::get('komplain/total-pending', [KomplainController::class, 'totalPendingBalasan']);
 Route::get('/komplain', [KomplainController::class, 'index']);
 Route::post('/komplain', [KomplainController::class, 'store']);

@@ -88,6 +88,25 @@ class KomplainController extends Controller
     //     }
     // }
 
+    public function getByUser($id)
+    {
+        $komplain = Komplain::with(['bookingTreatment', 'user', 'detailBookingTreatment.treatment'])
+            ->where('id_user', $id)
+            ->get();
+
+        if ($komplain->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada komplain ditemukan untuk user ini',
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data komplain berhasil diambil',
+            'data' => $komplain
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {
@@ -124,11 +143,11 @@ class KomplainController extends Controller
                 foreach ($request->file('gambar_komplain') as $file) {
                     $fileName = time() . '_' . $file->getClientOriginalName();
                     $filePath = public_path('komplain_images');
-    
+
                     if (!file_exists($filePath)) {
                         mkdir($filePath, 0755, true);
                     }
-    
+
                     $file->move($filePath, $fileName);
                     $gambarPaths[] = 'komplain_images/' . $fileName;
                 }
