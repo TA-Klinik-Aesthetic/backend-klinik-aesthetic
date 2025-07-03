@@ -189,8 +189,10 @@ class KonsultasiController extends Controller
             }
 
             // Periksa apakah status booking konsultasi masih "Verifikasi" & "Berhasil dibooking"
-            if ($konsultasi->status_booking_konsultasi !== 'Verifikasi' &&
-                $konsultasi->status_booking_konsultasi !== 'Berhasil Dibooking') {
+            if (
+                $konsultasi->status_booking_konsultasi !== 'Verifikasi' &&
+                $konsultasi->status_booking_konsultasi !== 'Berhasil Dibooking'
+            ) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Keluhan pelanggan hanya dapat diubah ketika status booking konsultasi masih "Verifikasi"',
@@ -232,6 +234,27 @@ class KonsultasiController extends Controller
         return response()->json([
             'success' => true,
             'data' => $konsultasi,
+        ]);
+    }
+
+    public function getByUser($id_user)
+    {
+        // Ambil semua konsultasi milik user, lengkap dengan relasi user, dokter, dan detail_konsultasi + treatment
+        $konsultasis = Konsultasi::with(['user', 'dokter', 'detail_konsultasi.treatment'])
+            ->where('id_user', $id_user)
+            ->get();
+
+        // Cek jika tidak ada data
+        if ($konsultasis->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data konsultasi untuk user ini tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $konsultasis,
         ]);
     }
 
@@ -303,7 +326,6 @@ class KonsultasiController extends Controller
                 'status' => true,
                 'total_verifikasi' => $total
             ], 200);
-
         } catch (QueryException $e) {
             return response()->json([
                 'status' => false,

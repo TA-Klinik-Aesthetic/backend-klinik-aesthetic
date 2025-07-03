@@ -106,6 +106,9 @@ Route::put('/konsultasi/{id_konsultasi}', [KonsultasiController::class, 'updateS
 // Route untuk update keluhan pelanggan
 Route::put('/konsultasi/{id_konsultasi}/keluhan', [KonsultasiController::class, 'updateKeluhan']);
 
+Route::get('/konsultasi/user/{id_user}', [KonsultasiController::class, 'getByUser']);
+
+
 
 //}
 
@@ -198,6 +201,8 @@ Route::prefix('bookingTreatments')->group(function () {
 });
 
 Route::get('detailBookingTreatments/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']);
+Route::get('/detailBookingTreatments/user/{id_user}', [DetailBookingTreatmentController::class, 'getByUser']);
+
 
 Route::prefix('detailBookingTreatments')->group(function () {
     Route::apiResource('/', DetailBookingTreatmentController::class)
