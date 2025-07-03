@@ -610,33 +610,54 @@ class DetailBookingTreatmentController extends Controller
 
     public function updateStatusBooking(Request $request, $id)
     {
-        // Validasi input untuk status booking treatment
+        // Validasi status yang diizinkan
         $validated = $request->validate([
-            'status_booking_treatment' => 'required|string|in:Selesai,Dibatalkan',
+            'status_booking_treatment' => 'required|string|in:Treatment dimulai,Selesai,Dibatalkan',
         ]);
-
-        // Cari booking treatment berdasarkan ID
+    
         $bookingTreatment = BookingTreatment::find($id);
-
+    
         if (!$bookingTreatment) {
             return response()->json(['message' => 'Booking Treatment not found'], 404);
         }
-
-        // Jika status ingin diubah menjadi Dibatalkan, hapus pembayaran treatment (jika ada)
-        if ($validated['status_booking_treatment'] === 'Dibatalkan') {
+    
+        $currentStatus = $bookingTreatment->status_booking_treatment;
+        $newStatus = $validated['status_booking_treatment'];
+    
+        // Validasi alur perubahan status
+        if ($newStatus === 'Treatment Dimulai' && $currentStatus !== 'Berhasil dibooking') {
+            return response()->json(['message' => 'Status hanya bisa diubah ke "Treatment Dimulai" jika status saat ini adalah "Berhasil dibooking"'], 422);
+        }
+    
+        if ($newStatus === 'Selesai' && $currentStatus !== 'Treatment dimulai') {
+            return response()->json(['message' => 'Status hanya bisa diubah ke "Selesai" jika status saat ini adalah "Treatment Dimulai"'], 422);
+        }
+    
+        // Jika Dibatalkan, hapus pembayaran jika ada
+        if ($newStatus === 'Dibatalkan') {
             $pembayaran = $bookingTreatment->pembayaranTreatment;
-
             if ($pembayaran) {
                 $pembayaran->delete();
             }
         }
-
-        // refresh instance tanpa relasi pembayaran
+    
+        // Jika Treatment Dimulai → set waktu mulai jika belum ada
+        if ($newStatus === 'Treatment dimulai' && !$bookingTreatment->treatment_mulai) {
+            $bookingTreatment->treatment_mulai = now();
+        }
+    
+        // Jika Selesai → set waktu selesai jika belum ada
+        if ($newStatus === 'Selesai' && !$bookingTreatment->treatment_selesai) {
+            $bookingTreatment->treatment_selesai = now();
+        }
+    
+        // Update status
+        $bookingTreatment->status_booking_treatment = $newStatus;
+        $bookingTreatment->save();
+    
+        // Hapus relasi agar fresh jika ada
         $bookingTreatment->unsetRelation('pembayaranTreatment');
-
-        // Update status booking treatment
-        $bookingTreatment->update($validated);
-
+    
         return response()->json([
             'booking_treatment' => $bookingTreatment,
             'message' => 'Status Booking Treatment updated successfully',

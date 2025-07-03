@@ -38,4 +38,9 @@ class Konsultasi extends Model
     {
         return $this->hasMany(DetailKonsultasi::class, 'id_konsultasi', 'id_konsultasi');
     }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }

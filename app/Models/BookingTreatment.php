@@ -70,4 +70,9 @@ class BookingTreatment extends Model
     {
         return $this->belongsTo(DetailJadwalTreatment::class, 'id_detail_jadwal_treatment', 'id_detail_jadwal_treatment');
     }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }

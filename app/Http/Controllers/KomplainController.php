@@ -11,6 +11,7 @@ use App\Models\DetailBookingTreatment;
 use App\Models\BookingTreatment;
 // use App\Models\KomplainTreatment;
 use App\Models\KompensasiDiberikan;
+use App\Models\Kompensasi;
 
 
 class KomplainController extends Controller
@@ -203,21 +204,39 @@ class KomplainController extends Controller
             $komplain->save();
 
             $createdKomp = null;
-            // 4) Jika id_kompensasi di‐set, buat record kompensasi_diberikan
-            if (! empty($data['id_kompensasi'])) {
+            // 4️⃣ Jika ada id_kompensasi, buat kompensasi_diberikan
+            if (!empty($data['id_kompensasi'])) {
+                // ➕ Generate kode kompensasi jika tidak disediakan
+                $kodeKompensasi = $data['kode_kompensasi'] ?? $this->generateKodeKompensasi();
+
+                // Ambil kompensasi
+                $kompensasi = Kompensasi::findOrFail($data['id_kompensasi']);
+
+                // Ambil detail booking treatment dari komplain
+                $detailBooking = DetailBookingTreatment::find($komplain->id_detail_booking_treatment);
+
+                // Validasi id_treatment-nya sama
+                if ($kompensasi->id_treatment != $detailBooking->id_treatment) {
+                    return response()->json([
+                        'message' => 'Kompensasi tidak valid karena treatment tidak sesuai dengan treatment.',
+                    ], 422);
+                }
+
+                // ➕ Simpan ke kompensasi_diberikan
                 $createdKomp = KompensasiDiberikan::create([
                     'id_komplain'                => $komplain->id_komplain,
                     'id_kompensasi'              => $data['id_kompensasi'],
-                    'kode_kompensasi'            => $data['kode_kompensasi'] ?? null,
+                    'kode_kompensasi'            => $kodeKompensasi,
                     'tanggal_berakhir_kompensasi' => $data['tanggal_berakhir_kompensasi'] ?? null,
+                    'status_kompensasi'           => 'Belum Digunakan',
                 ]);
             }
 
-            // 5) Kembalikan response
+            // 5️⃣ Response
             return response()->json([
-                'message'               => 'Komplain berhasil diperbarui',
-                'komplain'              => $komplain,
-                'kompensasi_diberikan'  => $createdKomp,
+                'message'              => 'Komplain berhasil diperbarui',
+                'komplain'             => $komplain,
+                'kompensasi_diberikan' => $createdKomp,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -230,6 +249,16 @@ class KomplainController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Generate kode kompensasi otomatis
+     */
+    private function generateKodeKompensasi()
+    {
+        $prefix = 'KOMP-';
+        $random = strtoupper(substr(md5(uniqid(rand(), true)), 8, 6));
+        return $prefix . $random;
     }
 
     public function totalPendingBalasan()

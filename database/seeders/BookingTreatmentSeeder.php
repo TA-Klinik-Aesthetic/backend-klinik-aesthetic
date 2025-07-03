@@ -17,8 +17,7 @@ class BookingTreatmentSeeder extends Seeder
         DB::table('tb_booking_treatment')->insert([
             [
                 'id_user' => 1, 
-                'waktu_treatment' => '2025-07-10',
-                'id_detail_jadwal_treatment' => 1, 
+                'waktu_treatment' => '2025-07-10 10:00:00',
                 'id_dokter' => 1, 
                 'id_beautician' => 1, 
                 'status_booking_treatment' => 'Verifikasi', 

@@ -50,4 +50,9 @@ class PembelianProduk extends Model
     {
         return $this->hasOne(Pembayaran::class, 'id_penjualan_produk', 'id_penjualan_produk');
     }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }
