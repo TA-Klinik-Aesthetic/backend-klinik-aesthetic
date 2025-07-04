@@ -7,11 +7,18 @@ use App\Models\DetailKonsultasi;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\QueryException;
-
 use Illuminate\Http\Request;
+use App\Services\NotifikasiService;
+
 
 class KonsultasiController extends Controller
 {
+    protected $notifikasiService;
+
+    public function __construct(NotifikasiService $notifikasiService)
+    {
+        $this->notifikasiService = $notifikasiService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -74,52 +81,6 @@ class KonsultasiController extends Controller
         ], 201);
     }
 
-
-
-    // Menambahkan atau memperbarui nama dokter pada konsultasi berdasarkan id_konsultasi
-    // public function updateDokter(Request $request, $id_konsultasi)
-    // {
-    //     // Validasi input
-    //     $validator = Validator::make($request->all(), [
-    //         'id_dokter' => 'required|exists:tb_dokter,id_dokter',
-    //     ]);
-
-    //     // Jika validasi gagal
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Validasi gagal',
-    //             'errors' => $validator->errors()
-    //         ], 400);
-    //     }
-
-    //     // Ambil data konsultasi berdasarkan id_konsultasi
-    //     $konsultasi = Konsultasi::find($id_konsultasi);
-
-    //     // Jika konsultasi tidak ditemukan
-    //     if (!$konsultasi) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Konsultasi tidak ditemukan'
-    //         ], 404);
-    //     }
-
-    //     // Perbarui id_dokter jika ada dalam permintaan
-    //     if ($request->has('id_dokter')) {
-    //         $konsultasi->id_dokter = $request->id_dokter;
-    //     }
-
-    //     // Simpan perubahan
-    //     $konsultasi->save();
-
-    //     // Kembalikan response sukses
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Data konsultasi berhasil diperbarui',
-    //         'data' => $konsultasi
-    //     ], 200);
-    // }
-
     // Menambahkan atau memperbarui nama dokter pada konsultasi berdasarkan id_konsultasi
     public function updateStatus(Request $request, $id_konsultasi)
     {
@@ -149,8 +110,18 @@ class KonsultasiController extends Controller
         }
 
         // Simpan perubahan
+        $oldStatus = $konsultasi->status_booking_konsultasi;
         $konsultasi->status_booking_konsultasi = $request->status_booking_konsultasi;
         $konsultasi->save();
+
+        // Kirim notifikasi jika status berubah
+        if ($oldStatus != $konsultasi->status_booking_konsultasi) {
+            $this->notifikasiService->sendKonsultasiNotification(
+                $konsultasi->id_user,
+                $konsultasi->id_konsultasi,
+                $konsultasi->status_booking_konsultasi
+            );
+        }
 
         // Kembalikan response sukses
         return response()->json([

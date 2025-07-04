@@ -10,9 +10,16 @@ use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Services\NotifikasiService;
 
 class PembelianProdukController extends Controller
 {
+    protected $notifikasiService;
+
+    public function __construct(NotifikasiService $notifikasiService)
+    {
+        $this->notifikasiService = $notifikasiService;
+    }
 
     public function storeKasir(Request $request) //untuk website
     {
@@ -24,30 +31,30 @@ class PembelianProdukController extends Controller
             'id_promo'                    => 'nullable|exists:tb_promo,id_promo',
             'status_pengambilan_produk'   => 'nullable|string',
         ]);
-    
+
         DB::beginTransaction();
-    
+
         try {
             $harga_total    = 0;
             $detail_produk  = [];
-    
+
             foreach ($request->produk as $item) {
                 $produk = Produk::findOrFail($item['id_produk']);
-    
+
                 if ($produk->stok_produk < $item['jumlah_produk']) {
                     throw new Exception("Stok produk {$produk->nama_produk} tidak mencukupi");
                 }
-    
+
                 $subtotal      = $item['jumlah_produk'] * $produk->harga_produk;
                 $harga_total  += $subtotal;
-    
+
                 $detail_produk[] = [
                     'id_produk'               => $item['id_produk'],
                     'jumlah_produk'           => $item['jumlah_produk'],
                     'harga_penjualan_produk'  => $produk->harga_produk,
                 ];
             }
-    
+
             // Hitung potongan jika ada promo
             $nilaiPotonganUntukDisimpan = 0;
             $nilaiPotonganDihitung     = 0;
@@ -64,16 +71,16 @@ class PembelianProdukController extends Controller
                     ? ($harga_total * $promo->potongan_harga) / 100
                     : $promo->potongan_harga;
             }
-    
+
             // Pajak 10%
             $subtotalSetelahDiskon = $harga_total - $nilaiPotonganDihitung;
             $pajakHitung          = ($subtotalSetelahDiskon * 10) / 100;
             $hargaAkhir           = $subtotalSetelahDiskon + $pajakHitung;
-    
+
             // Status pengambilan + waktu pengambilan
             $status = $request->input('status_pengambilan_produk', 'Belum diambil');
             $waktu  = $status === 'Sudah diambil' ? now() : null;
-    
+
             // Simpan penjualan
             $pembelian = PembelianProduk::create([
                 'id_user'                     => $request->id_user,
@@ -86,7 +93,7 @@ class PembelianProdukController extends Controller
                 'status_pengambilan_produk'   => $status,
                 'waktu_pengambilan'           => $waktu,
             ]);
-    
+
             // Simpan detail produk
             foreach ($detail_produk as $detail) {
                 DetailPembelianProduk::create([
@@ -96,9 +103,9 @@ class PembelianProdukController extends Controller
                     'harga_penjualan_produk'      => $detail['harga_penjualan_produk'],
                 ]);
             }
-    
+
             DB::commit();
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Penjualan (kasir) berhasil disimpan',
@@ -106,7 +113,7 @@ class PembelianProdukController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -474,11 +481,21 @@ class PembelianProdukController extends Controller
         ]);
 
         $penjualan = PembelianProduk::findOrFail($id);
+        $oldStatus = $penjualan->status_pengambilan_produk;
         $penjualan->status_pengambilan_produk = $data['status_pengambilan_produk'];
         $penjualan->waktu_pengambilan = $data['status_pengambilan_produk'] === 'Sudah diambil'
             ? now()
             : null;
         $penjualan->save();
+
+        // Kirim notifikasi jika status berubah
+        if ($oldStatus != $penjualan->status_pengambilan_produk) {
+            $this->notifikasiService->sendPembelianNotification(
+                $penjualan->id_user,
+                $penjualan->id_penjualan_produk,
+                $penjualan->status_pengambilan_produk
+            );
+        }
 
         return response()->json([
             'success' => true,

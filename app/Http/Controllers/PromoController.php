@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\NotifikasiService;
 
 
 class PromoController extends Controller
@@ -39,7 +40,7 @@ class PromoController extends Controller
                 'minimal_belanja' => 'nullable|numeric|min:0',
                 'tanggal_mulai' => 'required|date',
                 'tanggal_berakhir' => 'required|date|after_or_equal:tanggal_mulai',
-                'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif', // Validasi file gambar
+                'gambar_promo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
                 'status_promo' => 'required|string',
             ]);
 
@@ -59,6 +60,12 @@ class PromoController extends Controller
             }
 
             $promo = Promo::create($validated);
+
+            // Kirim notifikasi untuk promo baru
+            if ($promo->status_promo == 'Aktif') {
+                $gambarUrl = $promo->gambar_promo ? url($promo->gambar_promo) : null;
+                $this->notifikasiService->sendPromoNotification($promo->id_promo, $promo->nama_promo, $gambarUrl);
+            }
 
             return response()->json([
                 'message' => 'Promo berhasil ditambahkan.',
@@ -111,7 +118,7 @@ class PromoController extends Controller
                 if ($promo->gambar_promo && file_exists(public_path($promo->gambar_promo))) {
                     unlink(public_path($promo->gambar_promo));
                 }
-    
+
                 $file = $request->file('gambar_promo');
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path('promo_images'), $fileName);

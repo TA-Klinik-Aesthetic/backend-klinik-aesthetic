@@ -44,6 +44,8 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FCMTokenController;
+use App\Http\Controllers\NotifikasiController;
 
 // Authentikasi
 // Endpoint untuk register
@@ -332,4 +334,14 @@ Route::get('/laporan-penjualan-produk', [LaporanController::class, 'indexProduk'
 Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProduk']);
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
 
+Route::get('jadwal-treatment/{tanggal}', [JadwalTreatmentController::class, 'showByDate']);
 
+// FCM Token Routes
+Route::post('/fcm/register', [FcmTokenController::class, 'store']);
+Route::post('/fcm/unregister', [FcmTokenController::class, 'destroy']);
+
+// Notification Routes
+Route::get('/notifications/{idUser}', [NotifikasiController::class, 'getUserNotifications']);
+Route::post('/notifications/read/{id}', [NotifikasiController::class, 'markAsRead']);
+Route::post('/notifications/read-all/{idUser}', [NotifikasiController::class, 'markAllAsRead']);
+Route::post('/notifications/test', [NotifikasiController::class, 'sendTestNotification']);
