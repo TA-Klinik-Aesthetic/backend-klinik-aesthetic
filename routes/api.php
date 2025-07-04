@@ -260,6 +260,7 @@ Route::get('/komplain/{id}', [KomplainController::class, 'show']);
 
 Route::get('/kompensasi-diberikan', [KompensasiDiberikanController::class, 'index']);
 Route::get('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 'show']);
+Route::get('/kompensasi-diberikan/user/{id_user}', [KompensasiDiberikanController::class, 'getByUser']);
 Route::post('/kompensasi-diberikan', [KompensasiDiberikanController::class, 'store']);
 Route::put('/kompensasi-diberikan/{id}', [KompensasiDiberikanController::class, 'update']);
 
