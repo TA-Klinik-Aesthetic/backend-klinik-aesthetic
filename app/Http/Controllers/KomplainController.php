@@ -18,7 +18,7 @@ class KomplainController extends Controller
 {
     public function index()
     {
-        return response()->json(Komplain::with(['bookingTreatment', 'user'])->get());
+        return response()->json(Komplain::with(['bookingTreatment', 'user', 'detailBookingTreatment.treatment'])->get());
     }
 
     // public function store(Request $request)
