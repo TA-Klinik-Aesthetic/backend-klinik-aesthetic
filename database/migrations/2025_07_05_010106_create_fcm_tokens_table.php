@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tb_fcm_token', function (Blueprint $table) {
             $table->id('id_fcm_token');
-            $table->unsignedBigInteger('id_user');
+            $table->unsignedInteger('id_user');
             $table->string('device_token', 255);
             $table->string('device_type', 50)->nullable(); // 'android', 'ios'
             $table->boolean('is_active')->default(true);

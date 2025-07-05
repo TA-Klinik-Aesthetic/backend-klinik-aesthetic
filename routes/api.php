@@ -44,7 +44,6 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\JadwalTreatmentController;
 use App\Http\Controllers\FCMTokenController;
 use App\Http\Controllers\NotifikasiController;
 
@@ -334,8 +333,6 @@ Route::get('/laporan-treatment-bulan', [LaporanController::class, 'laporanBulana
 Route::get('/laporan-penjualan-produk', [LaporanController::class, 'indexProduk']);
 Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProduk']);
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
-
-Route::get('jadwal-treatment/{tanggal}', [JadwalTreatmentController::class, 'showByDate']);
 
 // FCM Token Routes
 Route::post('/fcm/register', [FcmTokenController::class, 'store']);

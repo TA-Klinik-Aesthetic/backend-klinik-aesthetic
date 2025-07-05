@@ -20,6 +20,7 @@ class FeedbackKonsultasi extends Model
         'id_konsultasi',
         'rating',
         'teks_feedback',
+        'status_feedback'
     ];
 
     // Relasi ke model User

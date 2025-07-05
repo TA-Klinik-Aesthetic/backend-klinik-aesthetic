@@ -48,6 +48,7 @@ return new class extends Migration
             $table->unsignedInteger('id_konsultasi'); // Foreign key ke tabel tb_konsultasi
             $table->tinyInteger('rating')->unsigned()->nullable();
             $table->text('teks_feedback')->nullable();
+            $table->enum('status_feedback', ['Sudah terisi'])->default('Sudah terisi')->nullable();
             // $table->text('balasan_feedback')->nullable();
             $table->timestamps();
         

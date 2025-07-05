@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('tb_notifikasi', function (Blueprint $table) {
             $table->id('id_notifikasi');
-            $table->unsignedBigInteger('id_user');
+            $table->unsignedInteger('id_user');
             $table->string('judul', 255);
             $table->text('pesan');
             $table->string('jenis', 50); // 'treatment', 'konsultasi', 'produk', 'promo'
-            $table->unsignedBigInteger('id_referensi')->nullable(); // ID referensi ke tabel lain
+            $table->unsignedInteger('id_referensi')->nullable(); // ID referensi ke tabel lain
             $table->string('status', 50)->default('unread'); // 'read', 'unread'
             $table->string('gambar')->nullable(); // Path ke gambar notifikasi
             $table->timestamp('tanggal_notifikasi')->useCurrent();
