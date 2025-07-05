@@ -61,6 +61,7 @@ class DetailBookingTreatmentController extends Controller
             'beautician',
             'promo',
             'detailBooking.treatment',
+            'detailBooking.kompensasiDiberikan.kompensasi',
             'pembayaranTreatment'
         ])->find($id);
 
