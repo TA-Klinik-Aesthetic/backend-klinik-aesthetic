@@ -44,7 +44,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\FCMTokenController;
+use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\NotifikasiController;
 
 // Authentikasi
