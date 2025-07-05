@@ -329,7 +329,7 @@ class DetailBookingTreatmentController extends Controller
         $newStatus = $validated['status_booking_treatment'];
 
         // Validasi alur perubahan status
-        if ($newStatus === 'Treatment Dimulai' && $currentStatus !== 'Berhasil dibooking') {
+        if ($newStatus === 'Treatment dimulai' && $currentStatus !== 'Berhasil dibooking') {
             return response()->json(['message' => 'Status hanya bisa diubah ke "Treatment Dimulai" jika status saat ini adalah "Berhasil dibooking"'], 422);
         }
 
