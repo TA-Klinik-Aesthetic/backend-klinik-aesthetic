@@ -250,7 +250,7 @@ class PembelianProdukController extends Controller
 
     public function index()
     {
-        $pembelian = PembelianProduk::with('detailPembelian', 'user')->get();
+        $pembelian = PembelianProduk::with('detailPembelian', 'user', 'pembayaranProduk')->get();
         return response()->json($pembelian);
     }
 
