@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pembayaran;
 use App\Models\BookingTreatment;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -175,6 +176,19 @@ class PembayaranController extends Controller
                 $kembalian = $request->uang - $hargaAkhir;
                 $statusPembayaran = 'Sudah Dibayar';
                 $waktuPembayaran  = now();
+
+                // ─── Tambahkan: kurangi stok produk ─────
+                // Ambil semua detail produk yang dibeli
+                $penjualan->detailPembelian->each(function ($detail) {
+                    $produk = Produk::findOrFail($detail->id_produk);
+                    // Pastikan stok cukup (bisa juga di-handle di front/backend saat storeKasir)
+                    if ($produk->stok_produk < $detail->jumlah_produk) {
+                        throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi saat pembayaran.");
+                    }
+                    // Kurangi stok
+                    $produk->decrement('stok_produk', $detail->jumlah_produk);
+                });
+                // ──────────────────────────────────────────
             }
 
             $pembayaran = Pembayaran::create([
@@ -204,37 +218,65 @@ class PembayaranController extends Controller
 
     public function confirmPayment($id)
     {
-        // 1. Cari record pembayaran
-        $pembayaran = Pembayaran::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            // 1. Cari record pembayaran
+            $pembayaran = Pembayaran::findOrFail($id);
 
-        // 2. Cek dulu: hanya yang belum dibayar saja
-        if ($pembayaran->status_pembayaran === 'Sudah Dibayar') {
+            // hanya Non Tunai yang boleh lewat sini
+            if ($pembayaran->metode_pembayaran !== 'Non Tunai') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya pembayaran Non Tunai yang dapat dikonfirmasi di endpoint ini.'
+                ], 422);
+            }
+
+            // 2. Cek dulu: hanya yang belum dibayar saja
+            if ($pembayaran->status_pembayaran === 'Sudah Dibayar') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
+                ], 422);
+            }
+
+            // 3. Ambil penjualan & harga akhir
+            $penjualan  = $pembayaran->penjualanProduk;
+            $hargaAkhir = $penjualan->harga_akhir;
+
+            // 4. Kurangi stok untuk tiap produk di detail penjualan
+            foreach ($penjualan->detailPembelian as $detail) {
+                $produk = Produk::findOrFail($detail->id_produk);
+                if ($produk->stok_produk < $detail->jumlah_produk) {
+                    throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi.");
+                }
+                // decrement stok
+                $produk->decrement('stok_produk', $detail->jumlah_produk);
+            }
+
+            // 5. Tandai sudah dibayar, set waktu, uang & kembalian
+            //    Untuk Non Tunai tetap kita anggap sudah dibayar penuh tanpa kembalian
+            $pembayaran->status_pembayaran = 'Sudah Dibayar';
+            $pembayaran->waktu_pembayaran   = now();
+            $pembayaran->uang               = $hargaAkhir;
+            $pembayaran->kembalian          = 0;
+            $pembayaran->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran berhasil dikonfirmasi.',
+                'data'    => $pembayaran
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
-            ], 422);
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        // 3. Ambil harga_akhir dari penjualan_produk yang terkait
-        // Pastikan kamu sudah definisikan relasi di model PembayaranProduk:
-        // public function penjualanProduk() {
-        //     return $this->belongsTo(PenjualanProduk::class, 'id_penjualan_produk');
-        // }
-        $hargaAkhir = $pembayaran->penjualanProduk->harga_akhir;
-
-        // 4. Update field sesuai permintaan
-        $pembayaran->status_pembayaran = 'Sudah Dibayar';
-        $pembayaran->waktu_pembayaran   = now();
-        $pembayaran->uang               = $hargaAkhir;  // bayar pas penuh
-        $pembayaran->kembalian          = 0;            // tidak ada kembalian
-        $pembayaran->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Pembayaran berhasil dikonfirmasi.',
-            'data'    => $pembayaran
-        ], 200);
     }
+
 
 
 
@@ -244,21 +286,47 @@ class PembayaranController extends Controller
         // kopi paste dari PembayaranProdukController@update
         $request->validate([
             'metode_pembayaran' => 'required|string|in:Tunai,Non Tunai',
-            'uang'               => 'required|numeric|min:0',
+            'uang'               => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
         try {
             $pembayaran = Pembayaran::findOrFail($id);
+
+            if (! $pembayaran->penjualanProduk) {
+                return response()->json([
+                    'message' => 'Data penjualan produk tidak ditemukan pada pembayaran ini.',
+                ], 400);
+            }
+
+            $wasPaid = $pembayaran->status_pembayaran === 'Sudah Dibayar';
             $hargaAkhir = $pembayaran->penjualanProduk->harga_akhir;
 
-            $pembayaran->uang              = $request->uang;
-            $pembayaran->kembalian         = $request->uang - $hargaAkhir;
+            // Set metode
             $pembayaran->metode_pembayaran = $request->metode_pembayaran;
-            $pembayaran->status_pembayaran = 'Sudah Dibayar';
-            $pembayaran->waktu_pembayaran  = now();
-            $pembayaran->save();
 
+            if ($request->metode_pembayaran === 'Tunai') {
+                // Untuk Tunai: wajib ada uang
+                $pembayaran->uang      = $request->uang;
+                $pembayaran->kembalian = $request->uang - $hargaAkhir;
+                $pembayaran->status_pembayaran = 'Sudah Dibayar';
+                $pembayaran->waktu_pembayaran  = now();
+    
+                // Kurangi stok hanya sekali (ketika status berganti dari belum ke sudah)
+                if (! $wasPaid) {
+                    foreach ($pembayaran->penjualanProduk->detailPembelian as $item) {
+                        Produk::where('id_produk', $item->id_produk)
+                              ->decrement('stok_produk', $item->jumlah_produk);
+                    }
+                }
+            } else {
+                // Untuk Non Tunai: skip uang & kembalian, kembalikan status ke Belum Dibayar
+                $pembayaran->uang              = null;
+                $pembayaran->kembalian         = null;
+                $pembayaran->status_pembayaran = 'Belum Dibayar';
+                $pembayaran->waktu_pembayaran  = null;
+            }
+            
             DB::commit();
 
             return response()->json([
