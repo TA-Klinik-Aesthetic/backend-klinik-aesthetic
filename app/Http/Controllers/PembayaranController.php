@@ -327,6 +327,7 @@ class PembayaranController extends Controller
                 $pembayaran->waktu_pembayaran  = null;
             }
             
+            $pembayaran->save();
             DB::commit();
 
             return response()->json([
