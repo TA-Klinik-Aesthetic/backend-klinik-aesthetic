@@ -273,6 +273,7 @@ Route::get('pembayaran-treatment/total-bayar', [PembayaranController::class, 'to
 Route::get('pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
 // Treatment payment routes
+Route::put('/pembayaran-treatment/{id}/konfirmasi', [PembayaranController::class, 'confirmPaymentTreatment']);
 Route::post('/pembayaran-treatment/create', [PembayaranController::class, 'createTreatment']);
 Route::get('/pembayaran-treatment', [PembayaranController::class, 'indexTreatment']);
 Route::get('/pembayaran-treatment/{id}', [PembayaranController::class, 'showTreatment']);

@@ -277,6 +277,56 @@ class PembayaranController extends Controller
         }
     }
 
+    public function confirmPaymentTreatment($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1. Ambil record pembayaran
+            $pembayaran = Pembayaran::findOrFail($id);
+
+            // 2. Hanya Non Tunai boleh lewat sini
+            if ($pembayaran->metode_pembayaran !== 'Non Tunai') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya pembayaran Non Tunai yang dapat dikonfirmasi di endpoint ini.'
+                ], 422);
+            }
+
+            // 3. Pastikan belum dibayar
+            if ($pembayaran->status_pembayaran === 'Sudah Dibayar') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
+                ], 422);
+            }
+
+            // 4. Ambil booking treatment & harga akhir treatment
+            $booking   = $pembayaran->bookingTreatment;
+            $hargaAkhir = $booking->harga_akhir_treatment;
+
+            // 5. Tandai sudah dibayar penuh tanpa kembalian
+            $pembayaran->status_pembayaran = 'Sudah Dibayar';
+            $pembayaran->waktu_pembayaran  = now();
+            $pembayaran->uang              = $hargaAkhir;
+            $pembayaran->kembalian         = 0;
+            $pembayaran->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran treatment berhasil dikonfirmasi.',
+                'data'    => $pembayaran
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
 
@@ -311,12 +361,12 @@ class PembayaranController extends Controller
                 $pembayaran->kembalian = $request->uang - $hargaAkhir;
                 $pembayaran->status_pembayaran = 'Sudah Dibayar';
                 $pembayaran->waktu_pembayaran  = now();
-    
+
                 // Kurangi stok hanya sekali (ketika status berganti dari belum ke sudah)
                 if (! $wasPaid) {
                     foreach ($pembayaran->penjualanProduk->detailPembelian as $item) {
                         Produk::where('id_produk', $item->id_produk)
-                              ->decrement('stok_produk', $item->jumlah_produk);
+                            ->decrement('stok_produk', $item->jumlah_produk);
                     }
                 }
             } else {
@@ -326,7 +376,7 @@ class PembayaranController extends Controller
                 $pembayaran->status_pembayaran = 'Belum Dibayar';
                 $pembayaran->waktu_pembayaran  = null;
             }
-            
+
             $pembayaran->save();
             DB::commit();
 
