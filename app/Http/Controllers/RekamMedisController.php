@@ -19,8 +19,13 @@ class RekamMedisController extends Controller
 
         // Loop untuk menghitung total konsultasi dan total booking treatment untuk setiap user
         foreach ($users as $user) {
-            $totalKonsultasi = Konsultasi::where('id_user', $user->id_user)->count();
-            $totalBookingTreatment = BookingTreatment::where('id_user', $user->id_user)->count();
+            $totalKonsultasi = Konsultasi::where('id_user', $user->id_user)
+            ->where('status_booking_konsultasi', 'Selesai')
+            ->count();
+
+            $totalBookingTreatment = BookingTreatment::where('id_user', $user->id_user)
+            ->where('status_booking_treatment', 'Selesai')
+            ->count();
 
             $medicalRecords[] = [
                 'user' => $user,
