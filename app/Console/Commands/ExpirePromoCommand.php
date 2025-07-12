@@ -15,11 +15,11 @@ class ExpirePromoCommand extends Command
     {
         $now = Carbon::now();
         $expiredPromos = Promo::where('tanggal_berakhir', '<=', $now)
-                              ->where('status_promo', 'aktif')
+                              ->where('status_promo', 'Aktif')
                               ->get();
 
         foreach ($expiredPromos as $promo) {
-            $promo->update(['status_promo' => 'tidak aktif']);
+            $promo->update(['status_promo' => 'Tidak Aktif']);
         }
 
         $this->info(count($expiredPromos) . ' promo telah dinonaktifkan.');
