@@ -13,6 +13,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('promo:expire')->everyMinute();
+        $schedule->command('kompensasi:expire')->dailyAt('00:00');
+
 
         // $schedule->call(function () {
         //     $cutoff = now()->startOfMonth()->toDateString();
