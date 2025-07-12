@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
             $table->decimal('uang', 15, 2)->nullable();
             $table->decimal('kembalian', 15, 2)->nullable();
+            $table->string('gambar_bukti_pembayaran', 255)->nullable();
             $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Menunggu Pembayaran', 'Dibatalkan'])->default('Belum Dibayar');
             $table->dateTime('waktu_pembayaran')->nullable();
             $table->timestamps();

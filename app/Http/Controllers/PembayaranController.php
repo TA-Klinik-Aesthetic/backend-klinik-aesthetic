@@ -216,8 +216,12 @@ class PembayaranController extends Controller
         }
     }
 
-    public function confirmPayment($id)
+    public function confirmPayment(Request $request, $id)
     {
+        $request->validate([
+            'gambar_bukti_pembayaran' => 'required|image|max:2048', // max 2 MB
+        ]);
+
         DB::beginTransaction();
         try {
             // 1. Cari record pembayaran
@@ -237,6 +241,15 @@ class PembayaranController extends Controller
                     'success' => false,
                     'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
                 ], 422);
+            }
+
+            if ($request->hasFile('gambar_bukti_pembayaran')) {
+                $file     = $request->file('gambar_bukti_pembayaran');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                // simpan ke public/gambar_bukti_pembayaran
+                $file->move(public_path('gambar_bukti_pembayaran'), $fileName);
+                // simpan path ke kolom yang sesuai
+                $pembayaran->gambar_bukti_pembayaran = 'gambar_bukti_pembayaran/' . $fileName;
             }
 
             // 3. Ambil penjualan & harga akhir
@@ -277,8 +290,12 @@ class PembayaranController extends Controller
         }
     }
 
-    public function confirmPaymentTreatment($id)
+    public function confirmPaymentTreatment(Request $request, $id)
     {
+        $request->validate([
+            'gambar_bukti_pembayaran' => 'required|image|max:2048', // max 2 MB
+        ]);
+
         DB::beginTransaction();
 
         try {
@@ -299,6 +316,15 @@ class PembayaranController extends Controller
                     'success' => false,
                     'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
                 ], 422);
+            }
+
+            if ($request->hasFile('gambar_bukti_pembayaran')) {
+                $file     = $request->file('gambar_bukti_pembayaran');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                // simpan ke public/gambar_bukti_pembayaran
+                $file->move(public_path('gambar_bukti_pembayaran'), $fileName);
+                // simpan path ke kolom yang sesuai
+                $pembayaran->gambar_bukti_pembayaran = 'gambar_bukti_pembayaran/' . $fileName;
             }
 
             // 4. Ambil booking treatment & harga akhir treatment

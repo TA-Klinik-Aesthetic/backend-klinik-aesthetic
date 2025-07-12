@@ -39,11 +39,13 @@ class RekamMedisController extends Controller
 
         // Ambil data konsultasi yang berkaitan dengan user, termasuk dokter
         $konsultasi = Konsultasi::where('id_user', $id_user)
+        ->where('status_booking_konsultasi', 'Selesai')
             ->with(['detail_konsultasi', 'detail_konsultasi.treatment', 'dokter'])  // Mengambil detail konsultasi dan dokter
             ->get();
 
         // Ambil data booking treatment yang berkaitan dengan user, termasuk dokter dan beautician
         $bookingTreatment = BookingTreatment::where('id_user', $id_user)
+        ->where('status_booking_treatment', 'Selesai')
             ->with(['detailBooking', 'dokter', 'beautician', 'detailBooking.treatment'])  // Mengambil detail booking treatment, dokter, dan beautician
             ->get();
 
