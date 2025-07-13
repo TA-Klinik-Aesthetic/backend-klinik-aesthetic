@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\KompensasiDiberikan;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ExpireKompensasiCommand extends Command
 {
@@ -28,6 +29,7 @@ class ExpireKompensasiCommand extends Command
     public function handle()
     {
         $now = Carbon::now();
+        Log::info("[kompensasi:expire] running at {$now}");
 
         $expired = KompensasiDiberikan::whereNotNull('tanggal_berakhir_kompensasi')
             ->where('tanggal_berakhir_kompensasi', '<=', $now)
@@ -36,8 +38,14 @@ class ExpireKompensasiCommand extends Command
 
         foreach ($expired as $k) {
             $k->update(['status_kompensasi' => 'Sudah Kadaluwarsa']);
+            Log::info("[kompensasi:expire] kompensasi id {$k->id_kompensasi_diberikan} kadaluarsa");
         }
 
         $this->info(count($expired) . ' kompensasi telah ditandai Kadaluarsa.');
+
+        Log::info(sprintf(
+            "[kompensasi:expire] selesai, total %d kompensasi ditandai kadaluarsa",
+            $expired->count()
+        ));
     }
 }
