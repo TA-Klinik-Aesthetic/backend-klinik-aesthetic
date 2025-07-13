@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon; // Import Carbon untuk timestamp
 
 class UsersSeeder extends Seeder
 {
@@ -20,9 +21,10 @@ class UsersSeeder extends Seeder
                 'no_telp' => '081234567890',
                 'email' => 'johndoe@example.com',
                 'password' => Hash::make('password123'),
-                'foto_profil' => 'https://images.unsplash.com/photo-1639747280804-dd2d6b3d88ac?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 'tanggal_lahir' => '1990-05-15',
+                'jenis_kelamin' => 'Laki-laki',
                 'role' => 'pelanggan',
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -31,9 +33,10 @@ class UsersSeeder extends Seeder
                 'no_telp' => '089765452765',
                 'email' => 'ezra@gmail.com',
                 'password' => Hash::make('password123'),
-                'foto_profil' => 'https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 'tanggal_lahir' => '1995-08-22',
+                'jenis_kelamin' => 'Laki-laki',
                 'role' => 'pelanggan',
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -42,9 +45,10 @@ class UsersSeeder extends Seeder
                 'no_telp' => '082345678901',
                 'email' => 'natanara@gmail.com',
                 'password' => Hash::make('password456'),
-                'foto_profil' => 'https://images.unsplash.com/photo-1649057349440-38c14e985208?q=80&w=2660&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 'tanggal_lahir' => '1988-12-03',
+                'jenis_kelamin' => 'Perempuan',
                 'role' => 'pelanggan',
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -53,9 +57,10 @@ class UsersSeeder extends Seeder
                 'no_telp' => '083456789012',
                 'email' => 'alicejohnson@example.com',
                 'password' => Hash::make('password789'),
-                'foto_profil' => 'https://images.unsplash.com/photo-1598550880863-4e8aa3d0edb4?q=80&w=2727&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 'tanggal_lahir' => '1992-03-30',
+                'jenis_kelamin' => 'Perempuan',
                 'role' => 'front office',
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -64,9 +69,10 @@ class UsersSeeder extends Seeder
                 'no_telp' => '083456789013',
                 'email' => 'alicejohn@example.com',
                 'password' => Hash::make('alice123'),
-                'foto_profil' => 'https://images.unsplash.com/photo-1598550880863-4e8aa3d0edb4?q=80&w=2727&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 'tanggal_lahir' => '1992-03-30',
+                'jenis_kelamin' => 'Perempuan',
                 'role' => 'kasir',
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

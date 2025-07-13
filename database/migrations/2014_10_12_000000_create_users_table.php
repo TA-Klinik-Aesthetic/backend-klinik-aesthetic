@@ -17,9 +17,10 @@ return new class extends Migration
             $table->string('no_telp')->unique();
             $table->string('email')->unique();
             $table->date('tanggal_lahir')->nullable();
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
             $table->string('password');
-            $table->string('foto_profil')->nullable();
-            $table->enum('role', ['pelanggan', 'dokter', 'beautician', 'front office', 'kasir', 'admin'])->default('pelanggan');
+            $table->enum('role', ['pelanggan', 'front office', 'kasir', 'admin'])->default('pelanggan');
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

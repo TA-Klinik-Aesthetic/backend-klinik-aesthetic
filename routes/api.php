@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DokterController;
 use App\Http\Controllers\BeauticianController;
@@ -47,18 +51,77 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\NotifikasiController;
 
-// Authentikasi
-// Endpoint untuk register
-
+// Authentikasi Pelanggan
 Route::post('/register', [AuthController::class, 'register']);
-Route::put('users/{id}/password',[AuthController::class, 'updatePassword']);
-
-// Endpoint untuk login
 Route::post('/login', [AuthController::class, 'login']);
 
-// Route::middleware('auth:sanctum')->group(function () {
-// Logout
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+// Forgot Password Routes
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset');
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+    // Find the user by ID
+    $user = App\Models\User::find($request->route('id'));
+
+    // If the user is not found or the hash is invalid
+    if (! $user || ! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+        return response()->json(['message' => 'Tautan verifikasi tidak valid atau kadaluarsa.'], 403);
+    }
+
+    // If the email is already verified, return a message
+    if ($user->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email Anda sudah diverifikasi.'], 200);
+    }
+
+    // Mark the email as verified
+    if ($user->markEmailAsVerified()) {
+        event(new \Illuminate\Auth\Events\Verified($user)); // Trigger the Verified event
+    }
+
+    return response()->json(['message' => 'Email Anda berhasil diverifikasi!'], 200);
+})->middleware(['signed'])->name('verification.verify');
+
+
+// Resend Email Verification Route
+Route::post('/email/resend', function (Request $request) {
+    $user = $request->user(); // Get the currently logged-in user
+
+    // If the user is not found or the email is already verified
+    if (!$user || ($user->role === 'pelanggan' && $user->hasVerifiedEmail())) {
+        return response()->json(['message' => 'Email sudah diverifikasi atau tidak perlu verifikasi.'], 400);
+    }
+
+    // Resend the verification notification
+    $user->sendEmailVerificationNotification();
+
+    return response()->json(['message' => 'Tautan verifikasi baru telah dikirim ke email Anda.'], 200);
+})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.resend');
+
+
+
+// Routes that require authentication (using Sanctum)
+Route::middleware('auth:sanctum')->group(function () {
+    // Logout route with auth:sanctum middleware
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']); // Use PUT for updates
+
+    // Routes that can only be accessed by verified customers
+    Route::middleware([EnsureEmailIsVerified::class])->group(function () {
+        Route::get('/pelanggan/dashboard', function (Request $request) {
+            // Logic for the verified customer dashboard
+            return response()->json(['message' => 'Selamat datang di dashboard pelanggan Anda yang terverifikasi!'], 200);
+        });
+        // Add other routes here that are only for verified customers
+    });
+
+    // Example route that can be accessed by all logged-in users (including non-customers or unverified customers)
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+});
 
 //informasi tiap entitas{
 Route::get('/users', [UserController::class, 'index']);
@@ -344,3 +407,24 @@ Route::get('/notifications/{idUser}', [NotifikasiController::class, 'getUserNoti
 Route::post('/notifications/read/{id}', [NotifikasiController::class, 'markAsRead']);
 Route::post('/notifications/read-all/{idUser}', [NotifikasiController::class, 'markAllAsRead']);
 Route::post('/notifications/test', [NotifikasiController::class, 'sendTestNotification']);
+
+Route::get('/debug/fcm', function() {
+    return response()->json([
+        'fcm_config' => [
+            'server_key_exists' => !empty(config('services.fcm.server_key')),
+            'server_key_length' => strlen(config('services.fcm.server_key') ?? ''),
+        ],
+        'models_exist' => [
+            'FcmToken' => class_exists('App\\Models\\FcmToken'),
+            'Notifikasi' => class_exists('App\\Models\\Notifikasi'),
+        ],
+        'database' => [
+            'fcm_token_table' => \Illuminate\Support\Facades\Schema::hasTable('tb_fcm_token'),
+            'notifikasi_table' => \Illuminate\Support\Facades\Schema::hasTable('tb_notifikasi'),
+        ],
+        'environment' => [
+            'app_debug' => env('APP_DEBUG'),
+            'php_version' => PHP_VERSION,
+        ]
+    ]);
+});

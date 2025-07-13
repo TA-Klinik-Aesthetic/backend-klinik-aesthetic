@@ -12,7 +12,7 @@
 //     protected $table = 'tb_komplain_treatment'; // Nama tabel
 
 //     protected $fillable = [
-//         'id_komplain', 
+//         'id_komplain',
 //         'id_detail_booking_treatment',
 //     ];
 
