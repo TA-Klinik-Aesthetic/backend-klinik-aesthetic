@@ -55,6 +55,9 @@ use App\Http\Controllers\NotifikasiController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// update password khusus front office
+Route::put('users/{id}/password',[AuthController::class, 'updatePassword']);
+
 // Forgot Password Routes
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset');
