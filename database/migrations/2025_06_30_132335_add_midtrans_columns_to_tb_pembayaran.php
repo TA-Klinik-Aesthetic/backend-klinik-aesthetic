@@ -4,35 +4,56 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class AddMidtransColumnsToTbPembayaran extends Migration
 {
-    /**
-     * Tambahkan kolom untuk mendukung integrasi Midtrans (VA, GoPay, ShopeePay, QRIS).
-     */
-    public function up(): void
+    public function up()
     {
         Schema::table('tb_pembayaran', function (Blueprint $table) {
-            $table->string('order_id')->nullable();
-            $table->string('snap_token')->nullable();
-            $table->string('transaction_id')->nullable();
-            $table->string('transaction_status')->nullable();
-            $table->string('payment_type')->nullable();
-            $table->string('va_number')->nullable();
-            $table->string('bank')->nullable();
-            $table->string('qr_url')->nullable();
-            $table->string('pdf_url')->nullable();
-            $table->string('payment_code')->nullable();
-            $table->decimal('gross_amount', 15, 2)->nullable();
-            $table->string('currency', 10)->default('IDR');
-            $table->longText('midtrans_response')->nullable();
+            // Cek apakah kolom sudah ada sebelum menambahkan
+            if (!Schema::hasColumn('tb_pembayaran', 'snap_token')) {
+                $table->string('snap_token')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'snap_url')) {
+                $table->text('snap_url')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'order_id')) {
+                $table->string('order_id')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'transaction_id')) {
+                $table->string('transaction_id')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'transaction_status')) {
+                $table->string('transaction_status')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'payment_type')) {
+                $table->string('payment_type')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'va_number')) {
+                $table->string('va_number')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'bank')) {
+                $table->string('bank')->nullable();
+            }
+            if (!Schema::hasColumn('tb_pembayaran', 'midtrans_response')) {
+                $table->text('midtrans_response')->nullable();
+            }
         });
     }
 
-    /**
-     * Kembalikan perubahan jika rollback.
-     */
-    public function down(): void
+    public function down()
     {
-        // Schema::dropIfExists('tb_pembayaran');
+        Schema::table('tb_pembayaran', function (Blueprint $table) {
+            $columns = [
+                'snap_token', 'snap_url', 'order_id', 'transaction_id',
+                'transaction_status', 'payment_type', 'va_number',
+                'bank', 'midtrans_response'
+            ];
+
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('tb_pembayaran', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
+        });
     }
-};
+}

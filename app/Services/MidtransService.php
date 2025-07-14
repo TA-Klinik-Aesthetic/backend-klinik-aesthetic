@@ -4,389 +4,243 @@ namespace App\Services;
 
 use Midtrans\Config;
 use Midtrans\Snap;
-use App\Models\Pembayaran;
-use App\Models\BookingTreatment;
-use App\Models\PembelianProduk;
+use Midtrans\Transaction;
 use Illuminate\Support\Facades\Log;
 
 class MidtransService
 {
     public function __construct()
     {
+        // Set konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key');
-        Config::$clientKey = config('midtrans.client_key');
-        Config::$isProduction = config('midtrans.is_production');
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+        Config::$isProduction = config('midtrans.is_production', false);
+        Config::$isSanitized = config('midtrans.is_sanitized', true);
+        Config::$is3ds = config('midtrans.is_3ds', true);
     }
 
     /**
-     * Membuat token pembayaran untuk treatment dengan metode pembayaran spesifik
-     *
-     * @param BookingTreatment $booking
-     * @param Pembayaran $pembayaran
-     * @param string $paymentMethod
-     * @return array|null
+     * Membuat Snap URL untuk treatment
      */
-
-    public function createTransactionTokenTreatment(BookingTreatment $booking, Pembayaran $pembayaran, $paymentMethod = null)
+    public function createSnapUrlTreatment($booking, $pembayaran)
     {
         try {
-            $user = $booking->user;
+            $orderId = 'TRT-' . $pembayaran->id_pembayaran . '-' . time();
 
-            if (!$user) {
-                Log::error('User tidak ditemukan untuk BookingTreatment ID: ' . $booking->id_booking_treatment);
-                return null;
-            }
-
-            $item_details = [
-                [
-                    'id' => 'treatment-' . $booking->id_booking_treatment,
-                    'price' => intval($booking->harga_akhir_treatment),
-                    'quantity' => 1,
-                    'name' => 'Treatment Booking #' . $booking->id_booking_treatment,
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $orderId,
+                    'gross_amount' => (int) $booking->harga_akhir_treatment,
+                ],
+                'customer_details' => [
+                    'first_name' => $booking->user->nama_user,
+                    'email' => $booking->user->email,
+                    'phone' => $booking->user->no_telp,
+                ],
+                'item_details' => [
+                    [
+                        'id' => 'treatment-' . $booking->id_booking_treatment,
+                        'price' => (int) $booking->harga_akhir_treatment,
+                        'quantity' => 1,
+                        'name' => $booking->treatment->nama_treatment ?? 'Treatment Booking',
+                        'category' => 'Treatment'
+                    ]
+                ],
+                'callbacks' => [
+                    'finish' => config('app.url') . '/payment/finish',
+                    'unfinish' => config('app.url') . '/payment/unfinish',
+                    'error' => config('app.url') . '/payment/error'
                 ]
             ];
 
-            // Add detail items if available
-            if ($booking->detailBooking && !$booking->detailBooking->isEmpty()) {
-                foreach ($booking->detailBooking as $detail) {
-                    if ($detail->treatmentDetail) {
-                        $item_details[] = [
-                            'id' => 'detail-' . $detail->id_detail_booking,
-                            'price' => 0,
-                            'quantity' => 1,
-                            'name' => $detail->treatmentDetail->nama_detail_treatment ?? 'Detail Treatment',
-                        ];
-                    }
-                }
-            }
+            Log::info('Creating Snap URL for treatment', $params);
 
-            $transaction_details = [
-                'order_id' => 'TRT-' . $pembayaran->id_pembayaran . '-' . time(),
-                'gross_amount' => intval($booking->harga_akhir_treatment),
-            ];
-
-            $customer_details = [
-                'first_name' => $user->nama_lengkap ?? 'Customer',
-                'email' => $user->email ?? 'customer@example.com',
-                'phone' => $user->nomor_telepon ?? '08123456789',
-            ];
-
-            // Konfigurasikan metode pembayaran yang spesifik
-            $enabled_payments = $this->getEnabledPaymentMethods($paymentMethod);
-
-            // Format data transaksi
-            $transaction_data = [
-                'transaction_details' => $transaction_details,
-                'item_details' => $item_details,
-                'customer_details' => $customer_details,
-                'credit_card' => [
-                    'secure' => true
-                ],
-            ];
-
-            // Tambahkan enabled_payments jika ada
-            if (!empty($enabled_payments)) {
-                $transaction_data['enabled_payments'] = $enabled_payments;
-            }
-
-            // Tambahkan konfigurasi spesifik berdasarkan metode pembayaran
-            $this->addPaymentSpecificConfig($transaction_data, $paymentMethod);
-
-            // Log transaction data untuk debugging
-            Log::info('Mengirim data treatment ke Midtrans', [
-                'transaction_data' => $transaction_data,
-                'payment_method' => $paymentMethod
-            ]);
-
-            $transactionToken = Snap::getSnapToken($transaction_data);
-
-            $pembayaran->update([
-                'order_id' => $transaction_details['order_id'],
-                'snap_token' => $transactionToken,
-            ]);
-
-            Log::info('Token treatment berhasil dibuat', [
-                'token' => $transactionToken
-            ]);
+            $snapToken = Snap::getSnapToken($params);
+            $snapUrl = Snap::getSnapUrl($params);
 
             return [
-                'token' => $transactionToken,
-                'client_key' => config('midtrans.client_key'),
-                'order_id' => $transaction_details['order_id'],
-                'gross_amount' => $transaction_details['gross_amount'],
+                'token' => $snapToken,
+                'redirect_url' => $snapUrl,
+                'order_id' => $orderId
             ];
+
         } catch (\Exception $e) {
-            Log::error('Error di createTransactionTokenTreatment: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return null;
+            Log::error('Error creating Snap URL for treatment: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     /**
-     * Membuat token pembayaran untuk produk dengan metode pembayaran spesifik
-     *
-     * @param PembelianProduk $penjualan
-     * @param Pembayaran $pembayaran
-     * @param string $paymentMethod
-     * @return array|null
+     * Membuat Snap URL untuk produk - MENGGUNAKAN HARGA AKHIR SEBAGAI GROSS AMOUNT
      */
-    public function createTransactionTokenProduk(PembelianProduk $penjualan, Pembayaran $pembayaran, $paymentMethod = null)
+    public function createSnapUrlProduk($penjualan, $pembayaran)
     {
         try {
-            Log::info('Membuat token untuk produk', [
-                'id_penjualan' => $penjualan->id_penjualan_produk,
-                'payment_method' => $paymentMethod,
-                'config' => [
-                    'server_key_exists' => !empty(config('midtrans.server_key')),
-                    'client_key_exists' => !empty(config('midtrans.client_key')),
-                    'is_production' => config('midtrans.is_production')
-                ]
-            ]);
+            $orderId = 'PRD-' . $pembayaran->id_pembayaran . '-' . time();
 
-            $user = $penjualan->user;
-            if (!$user) {
-                Log::error('User tidak ditemukan untuk PembelianProduk ID: ' . $penjualan->id_penjualan_produk);
-                return null;
+            // Validasi data penjualan berdasarkan model yang ada
+            if (!$penjualan->detailPembelian || $penjualan->detailPembelian->count() == 0) {
+                throw new \Exception('Detail pembelian produk tidak ditemukan');
             }
 
-            $item_details = [];
+            if (!$penjualan->harga_akhir || $penjualan->harga_akhir <= 0) {
+                throw new \Exception('Harga akhir tidak valid: ' . $penjualan->harga_akhir);
+            }
 
-            // Cek apakah detailPembelian ada dan tidak kosong
-            if (!$penjualan->detailPembelian || $penjualan->detailPembelian->isEmpty()) {
-                $item_details[] = [
-                    'id' => 'produk-' . $penjualan->id_penjualan_produk,
-                    'price' => intval($penjualan->harga_akhir),
-                    'quantity' => 1,
-                    'name' => 'Pembelian Produk #' . $penjualan->id_penjualan_produk,
+            // Gunakan harga_akhir sebagai total pembayaran
+            $totalPayment = (int) $penjualan->harga_akhir;
+
+            // Buat item details yang balance dengan total payment
+            $itemDetails = [];
+
+            // Method 1: Gunakan item individual dengan proporsi harga akhir
+            $totalItemValue = 0;
+            $tempItems = [];
+
+            foreach ($penjualan->detailPembelian as $detail) {
+                if (!$detail->jumlah_produk || $detail->jumlah_produk <= 0) {
+                    throw new \Exception('Jumlah produk harus lebih dari 0');
+                }
+
+                if (!$detail->harga_penjualan_produk || $detail->harga_penjualan_produk <= 0) {
+                    throw new \Exception('Harga penjualan produk tidak valid');
+                }
+
+                $itemSubtotal = $detail->harga_penjualan_produk * $detail->jumlah_produk;
+                $totalItemValue += $itemSubtotal;
+
+                $tempItems[] = [
+                    'id' => 'product-' . $detail->id_produk,
+                    'original_price' => $detail->harga_penjualan_produk,
+                    'quantity' => (int) $detail->jumlah_produk,
+                    'subtotal' => $itemSubtotal,
+                    'name' => $detail->produk->nama_produk ?? 'Produk',
+                    'category' => 'Product'
                 ];
-            } else {
-                foreach ($penjualan->detailPembelian as $detail) {
-                    if (!$detail->produk) continue;
+            }
 
-                    $item_details[] = [
-                        'id' => 'produk-' . $detail->id_detail_penjualan_produk,
-                        'price' => intval($detail->harga_penjualan_produk),
-                        'quantity' => $detail->jumlah_produk,
-                        'name' => $detail->produk->nama_produk ?? 'Produk',
+            // Hitung proporsi untuk setiap item agar total = harga_akhir
+            if ($totalItemValue > 0) {
+                $lastIndex = count($tempItems) - 1;
+                $runningTotal = 0;
+
+                foreach ($tempItems as $index => $item) {
+                    if ($index === $lastIndex) {
+                        // Item terakhir: sisa dari total payment
+                        $adjustedPrice = $totalPayment - $runningTotal;
+                    } else {
+                        // Proportional price based on harga_akhir
+                        $proportion = $item['subtotal'] / $totalItemValue;
+                        $adjustedPrice = (int) round($totalPayment * $proportion);
+                        $runningTotal += $adjustedPrice;
+                    }
+
+                    $itemDetails[] = [
+                        'id' => $item['id'],
+                        'price' => $adjustedPrice,
+                        'quantity' => 1, // Set quantity 1 dengan harga yang sudah disesuaikan
+                        'name' => $item['name'],
+                        'category' => $item['category']
                     ];
                 }
-            }
-
-            if (empty($item_details)) {
-                $item_details[] = [
-                    'id' => 'produk-' . $penjualan->id_penjualan_produk,
-                    'price' => intval($penjualan->harga_akhir),
+            } else {
+                // Fallback: single item dengan total harga akhir
+                $itemDetails[] = [
+                    'id' => 'product-bundle-' . $penjualan->id_penjualan_produk,
+                    'price' => $totalPayment,
                     'quantity' => 1,
                     'name' => 'Pembelian Produk #' . $penjualan->id_penjualan_produk,
+                    'category' => 'Product'
                 ];
             }
 
-            $transaction_details = [
-                'order_id' => 'PRD-' . $pembayaran->id_pembayaran . '-' . time(),
-                'gross_amount' => intval($penjualan->harga_akhir),
-            ];
+            // Validasi final: pastikan total item details = gross amount
+            $calculatedTotal = array_sum(array_map(function($item) {
+                return $item['price'] * $item['quantity'];
+            }, $itemDetails));
 
-            $customer_details = [
-                'first_name' => $user->nama_user ?? 'Customer',
-                'email' => $user->email ?? 'customer@example.com',
-                'phone' => $user->no_telp ?? '08123456789',
-            ];
-
-            // Data transaksi
-            $transaction_data = [
-                'transaction_details' => $transaction_details,
-                'item_details' => $item_details,
-                'customer_details' => $customer_details,
-            ];
-
-            // Tambahkan pengaturan metode pembayaran jika ditentukan
-            if ($paymentMethod) {
-                switch ($paymentMethod) {
-                    case 'bca':
-                    case 'bni':
-                    case 'bri':
-                        $transaction_data['enabled_payments'] = [$paymentMethod . '_va'];
-                        break;
-                    case 'mandiri':
-                        $transaction_data['enabled_payments'] = ['echannel'];
-                        break;
-                    case 'gopay':
-                    case 'shopeepay':
-                    case 'qris':
-                        $transaction_data['enabled_payments'] = [$paymentMethod];
-                        break;
-                }
-            }
-
-            // Log transaction data untuk debugging
-            Log::info('Data transaksi Midtrans', $transaction_data);
-
-            // Cek konfigurasi Midtrans
-            $serverKey = config('midtrans.server_key');
-            $clientKey = config('midtrans.client_key');
-            $isProduction = config('midtrans.is_production');
-
-            Log::info('Konfigurasi Midtrans', [
-                'server_key_exists' => !empty($serverKey),
-                'client_key_exists' => !empty($clientKey),
-                'is_production' => $isProduction,
-            ]);
-
-            // Ambil token dari Midtrans
-            try {
-                // Explicitly set Midtrans configuration
-                \Midtrans\Config::$serverKey = config('midtrans.server_key');
-                \Midtrans\Config::$clientKey = config('midtrans.client_key');
-                \Midtrans\Config::$isProduction = config('midtrans.is_production');
-                \Midtrans\Config::$isSanitized = true;
-                \Midtrans\Config::$is3ds = true;
-
-                Log::info('Mengirim data ke Midtrans Snap API', [
-                    'transaction_data' => $transaction_data,
+            if ($calculatedTotal != $totalPayment) {
+                Log::warning('Item details total mismatch, using bundle item', [
+                    'calculated' => $calculatedTotal,
+                    'expected' => $totalPayment
                 ]);
 
-                $snapToken = \Midtrans\Snap::getSnapToken($transaction_data);
-
-                if (empty($snapToken)) {
-                    Log::error('Snap token kosong');
-                    return null;
-                }
-
-                Log::info('Token berhasil dibuat', ['token' => $snapToken]);
-
-                // Update pembayaran dengan token dan order_id
-                $pembayaran->update([
-                    'order_id' => $transaction_details['order_id'],
-                    'snap_token' => $snapToken,
-                ]);
-
-                return [
-                    'token' => $snapToken,
-                    'client_key' => config('midtrans.client_key'),
-                    'order_id' => $transaction_details['order_id'],
-                    'gross_amount' => $transaction_details['gross_amount'],
-                ];
-            } catch (\Exception $snapException) {
-                Log::error('Error di Midtrans Snap: ' . $snapException->getMessage(), [
-                    'file' => $snapException->getFile(),
-                    'line' => $snapException->getLine(),
-                    'trace' => $snapException->getTraceAsString()
-                ]);
-                return null;
-            }
-        } catch (\Exception $e) {
-            Log::error('Error di createTransactionTokenProduk: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return null;
-        }
-    }
-
-    /**
-     * Mendapatkan daftar metode pembayaran yang diaktifkan berdasarkan pilihan
-     *
-     * @param string $paymentMethod
-     * @return array
-     */
-    private function getEnabledPaymentMethods($paymentMethod = null)
-    {
-        // Jika tidak ada metode pembayaran yang dipilih, kembalikan semua yang didukung
-        if (!$paymentMethod) {
-            return ['bca_va', 'bni_va', 'bri_va', 'echannel', 'gopay', 'shopeepay', 'qris'];
-        }
-
-        // Jika ada metode pembayaran yang spesifik
-        switch ($paymentMethod) {
-            case 'bca':
-                return ['bca_va'];
-            case 'bni':
-                return ['bni_va'];
-            case 'bri':
-                return ['bri_va'];
-            case 'mandiri':
-                return ['echannel'];
-            case 'gopay':
-                return ['gopay'];
-            case 'shopeepay':
-                return ['shopeepay'];
-            case 'qris':
-                return ['qris'];
-            default:
-                return [];
-        }
-    }
-
-    /**
-     * Menambahkan konfigurasi spesifik untuk metode pembayaran tertentu
-     *
-     * @param array $transaction_data
-     * @param string $paymentMethod
-     */
-    private function addPaymentSpecificConfig(&$transaction_data, $paymentMethod)
-    {
-        if (!$paymentMethod) {
-            return;
-        }
-
-        switch ($paymentMethod) {
-            case 'bca':
-                $transaction_data['bca_va'] = [
-                    'va_number' => rand(100000000000, 999999999999),
-                    'free_text' => [
-                        'inquiry' => [
-                            [
-                                'id' => 'text-id',
-                                'en' => 'text-en'
-                            ]
-                        ],
-                        'payment' => [
-                            [
-                                'id' => 'text-id',
-                                'en' => 'text-en'
-                            ]
-                        ]
+                // Fallback: gunakan single bundle item
+                $itemDetails = [
+                    [
+                        'id' => 'product-bundle-' . $penjualan->id_penjualan_produk,
+                        'price' => $totalPayment,
+                        'quantity' => 1,
+                        'name' => 'Pembelian Produk #' . $penjualan->id_penjualan_produk . ' (Total)',
+                        'category' => 'Product'
                     ]
                 ];
-                break;
+            }
 
-            case 'bni':
-                $transaction_data['bni_va'] = [
-                    'va_number' => rand(100000000000, 999999999999),
-                ];
-                break;
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $orderId,
+                    'gross_amount' => $totalPayment,
+                ],
+                'customer_details' => [
+                    'first_name' => $penjualan->user->nama_user,
+                    'email' => $penjualan->user->email,
+                    'phone' => $penjualan->user->no_telp,
+                ],
+                'item_details' => $itemDetails,
+                'callbacks' => [
+                    'finish' => config('app.url') . '/payment/finish',
+                    'unfinish' => config('app.url') . '/payment/unfinish',
+                    'error' => config('app.url') . '/payment/error'
+                ]
+            ];
 
-            case 'bri':
-                $transaction_data['bri_va'] = [
-                    'va_number' => rand(100000000000, 999999999999),
-                ];
-                break;
+            Log::info('Creating Snap URL for product', [
+                'penjualan_id' => $penjualan->id_penjualan_produk,
+                'order_id' => $orderId,
+                'gross_amount' => $totalPayment,
+                'harga_total' => $penjualan->harga_total,
+                'potongan_harga' => $penjualan->potongan_harga,
+                'besaran_pajak' => $penjualan->besaran_pajak,
+                'harga_akhir' => $penjualan->harga_akhir,
+                'item_details' => $itemDetails
+            ]);
 
-            case 'mandiri':
-                $transaction_data['echannel'] = [
-                    'bill_info1' => 'Payment for:',
-                    'bill_info2' => 'Klinik Aesthetic'
-                ];
-                break;
+            $snapToken = Snap::getSnapToken($params);
+            $snapUrl = Snap::getSnapUrl($params);
 
-            case 'gopay':
-                $transaction_data['gopay'] = [
-                    'enable_callback' => true,
-                    'callback_url' => url('/api/midtrans/gopay-callback')
-                ];
-                break;
+            return [
+                'token' => $snapToken,
+                'redirect_url' => $snapUrl,
+                'order_id' => $orderId
+            ];
 
-            case 'shopeepay':
-                $transaction_data['shopeepay'] = [
-                    'callback_url' => url('/api/midtrans/shopeepay-callback')
-                ];
-                break;
+        } catch (\Exception $e) {
+            Log::error('Error creating Snap URL for product: ' . $e->getMessage(), [
+                'penjualan_id' => $penjualan->id_penjualan_produk ?? 'unknown',
+                'harga_akhir' => $penjualan->harga_akhir ?? 'unknown',
+                'detail_count' => $penjualan->detailPembelian ? $penjualan->detailPembelian->count() : 0
+            ]);
+            throw $e;
+        }
+    }
+
+    public function getTransactionStatus($orderId)
+    {
+        try {
+            $status = Transaction::status($orderId);
+
+            Log::info('Midtrans transaction status', [
+                'order_id' => $orderId,
+                'status' => $status
+            ]);
+
+            return $status;
+
+        } catch (\Exception $e) {
+            Log::error('Error getting transaction status: ' . $e->getMessage(), [
+                'order_id' => $orderId
+            ]);
+            throw $e;
         }
     }
 }

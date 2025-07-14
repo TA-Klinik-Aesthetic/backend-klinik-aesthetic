@@ -355,30 +355,31 @@ Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProdu
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 
 
-// Midtrans Payment Routes
+// Midtrans Payment Routes - UPDATED
 Route::prefix('midtrans')->group(function () {
+    // Test endpoint
     Route::get('/info', [PembayaranMidtransController::class, 'getApiInfo']);
 
-    // Treatment Payment
-    Route::post('/treatment', [PembayaranMidtransController::class, 'createTreatmentPayment']);
+    // Debug endpoint - tanpa auth
+    Route::get('/debug/{id}', [PembayaranMidtransController::class, 'debugPaymentDetail']);
 
-    // Product Payment
-    Route::post('/product', [PembayaranMidtransController::class, 'createProductPayment']);
-
-    // Notification Handler (Webhook)
+    // Webhook - tidak perlu auth karena dari Midtrans
     Route::post('/notification', [PembayaranMidtransController::class, 'handleNotification']);
 
-    // Check Payment Status
-    Route::post('/status', [PembayaranMidtransController::class, 'checkStatus']);
+    // Authenticated routes
+    Route::middleware('auth:sanctum')->group(function () {
+        // Treatment Payment
+        Route::post('/treatment', [PembayaranMidtransController::class, 'createTreatmentPayment']);
 
-    // Get Payment Detail
-    Route::get('/detail/{id}', [PembayaranMidtransController::class, 'getDetail']);
+        // Product Payment
+        Route::post('/product', [PembayaranMidtransController::class, 'createProductPayment']);
 
-    // Get Payment List
-    Route::get('/payments', [PembayaranMidtransController::class, 'getAll']);
+        // Check Payment Status
+        Route::post('/status', [PembayaranMidtransController::class, 'checkPaymentStatus']);
 
-    // Get Available Payment Methods
-    Route::get('/payment-methods', [PembayaranMidtransController::class, 'getAvailablePaymentMethods']);
+        // Get Payment Detail
+        Route::get('/detail/{id}', [PembayaranMidtransController::class, 'getPaymentDetail']);
+    });
 });
 
 // Produk
