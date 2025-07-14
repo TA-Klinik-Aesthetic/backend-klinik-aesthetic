@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User; // Pastikan ini mengarah ke model User Anda
+use App\Models\FcmToken; // Import model FcmToken
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule; // Import Rule untuk validasi enum
@@ -46,12 +47,10 @@ class AuthController extends Controller
             $user->sendEmailVerificationNotification();
         }
 
-        $token = $user->createToken('API Token')->plainTextToken;
-
         return response()->json([
             'message' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi akun.',
+            'status' => 'Menunggu Verifikasi',
             'user' => $user,
-            'token' => $token,
         ], 201);
     }
 
@@ -63,6 +62,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string',
+            'device_type' => 'nullable|string|in:android,ios,web', // Device type opsional
         ]);
 
         if ($validator->fails()) {
@@ -81,13 +81,16 @@ class AuthController extends Controller
              return response()->json(['message' => 'Akun Anda belum diverifikasi. Silakan cek email Anda.'], 403);
         }
 
-
         $token = $user->createToken('API Token')->plainTextToken;
+
+        // Generate FCM Token otomatis oleh sistem
+        $fcmToken = $this->generateFcmToken($user->id_user, $request->device_type);
 
         return response()->json([
             'message' => 'Login berhasil',
             'user' => $user,
             'token' => $token,
+            'fcm_token' => $fcmToken, // Tampilkan FCM token yang dibuat sistem
         ], 200);
     }
 
@@ -96,10 +99,54 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = $request->user();
+
+        // Validator untuk FCM token yang akan dinonaktifkan
+        $validator = Validator::make($request->all(), [
+            'fcm_token' => 'nullable|string', // FCM token opsional untuk logout spesifik
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Nonaktifkan FCM token jika disediakan
+        if ($request->fcm_token) {
+            FcmToken::where('id_user', $user->id_user)
+                ->where('device_token', $request->fcm_token)
+                ->update(['is_active' => false]);
+        } else {
+            // Jika tidak ada FCM token spesifik, nonaktifkan semua token user
+            FcmToken::where('id_user', $user->id_user)
+                ->update(['is_active' => false]);
+        }
+
+        // Hapus token sanctum
         $request->user()->tokens()->delete();
 
         return response()->json([
             'message' => 'Logout berhasil',
         ], 200);
+    }
+
+    /**
+     * Generate FCM Token otomatis oleh sistem
+     */
+    private function generateFcmToken($userId, $deviceType = null)
+    {
+        // Generate unique FCM token dengan kombinasi user ID, timestamp, dan random string
+        $timestamp = time();
+        $randomString = bin2hex(random_bytes(16));
+        $generatedToken = base64_encode("fcm_{$userId}_{$timestamp}_{$randomString}");
+
+        // Buat record FCM token baru
+        $fcmToken = FcmToken::create([
+            'id_user' => $userId,
+            'device_token' => $generatedToken,
+            'device_type' => $deviceType ?? 'web',
+            'is_active' => true
+        ]);
+
+        return $generatedToken;
     }
 }
