@@ -16,7 +16,7 @@ class FeedbackTreatmentApiController extends Controller
     public function index()
     {
         try {
-            $feedback = FeedbackTreatment::with('detailBooking')->get();
+            $feedback = FeedbackTreatment::with('detailBooking.treatment')->get();
             return response()->json(['data' => $feedback], 200);
         } catch (QueryException $e) {
             return response()->json(['message' => 'Gagal mengambil data feedback', 'error' => $e->getMessage()], 500);
@@ -58,7 +58,7 @@ class FeedbackTreatmentApiController extends Controller
     public function show($id)
     {
         try {
-            $feedback = FeedbackTreatment::with('detailBooking')->find($id);
+            $feedback = FeedbackTreatment::with('detailBooking.treatment')->find($id);
             // $feedback = FeedbackTreatment::with('detailBooking.booking.user')->find($id);
 
             if (!$feedback) {
