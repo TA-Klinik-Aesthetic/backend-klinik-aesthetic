@@ -195,10 +195,16 @@ class TreatmentController extends Controller
     public function destroy($id)
     {
         try {
-            $treatment = Treatment::find($id);
+            $treatment = Treatment::withCount('detail_booking_treatment')->findOrFail($id);
 
             if (!$treatment) {
                 return response()->json(['message' => 'Treatment tidak ditemukan'], 404);
+            }
+
+            if ($treatment->detail_booking_treatment_count > 0) {
+                return response()->json([
+                    'message' => 'Tidak dapat menghapus: treatment ini sudah dipakai di booking.'
+                ], 422);
             }
 
             // Hapus gambar jika ada

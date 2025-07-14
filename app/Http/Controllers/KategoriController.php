@@ -104,8 +104,14 @@ class KategoriController extends Controller
     {
         try {
             // Cari kategori berdasarkan ID
-            $kategori = Kategori::findOrFail($id);
+            $kategori = Kategori::withCount('produk')->findOrFail($id);
 
+            if ($kategori->produk_count > 0) {
+                return response()->json([
+                    'message' => 'Tidak dapat menghapus: kategori ini sudah dipakai oleh produk.'
+                ], 422);
+            }
+        
             // Hapus kategori
             $kategori->delete();
 

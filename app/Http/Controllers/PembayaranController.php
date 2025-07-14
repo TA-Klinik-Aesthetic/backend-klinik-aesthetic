@@ -182,11 +182,17 @@ class PembayaranController extends Controller
                 $penjualan->detailPembelian->each(function ($detail) {
                     $produk = Produk::findOrFail($detail->id_produk);
                     // Pastikan stok cukup (bisa juga di-handle di front/backend saat storeKasir)
-                    if ($produk->stok_produk < $detail->jumlah_produk) {
+
+                    $stokBaru = $produk->stok_produk - $detail->jumlah_produk;
+                    if ($stokBaru < 0) {
                         throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi saat pembayaran.");
                     }
-                    // Kurangi stok
-                    $produk->decrement('stok_produk', $detail->jumlah_produk);
+
+                    // update stok & status_produk
+                    $produk->update([
+                        'stok_produk'   => $stokBaru,
+                        'status_produk' => $stokBaru > 0 ? 'Tersedia' : 'Habis',
+                    ]);
                 });
                 // ──────────────────────────────────────────
             }
@@ -259,11 +265,16 @@ class PembayaranController extends Controller
             // 4. Kurangi stok untuk tiap produk di detail penjualan
             foreach ($penjualan->detailPembelian as $detail) {
                 $produk = Produk::findOrFail($detail->id_produk);
-                if ($produk->stok_produk < $detail->jumlah_produk) {
+
+                $stokBaru = $produk->stok_produk - $detail->jumlah_produk;
+                if ($stokBaru < 0) {
                     throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi.");
                 }
-                // decrement stok
-                $produk->decrement('stok_produk', $detail->jumlah_produk);
+
+                $produk->update([
+                    'stok_produk'   => $stokBaru,
+                    'status_produk' => $stokBaru > 0 ? 'Tersedia' : 'Habis',
+                ]);
             }
 
             // 5. Tandai sudah dibayar, set waktu, uang & kembalian
@@ -359,62 +370,54 @@ class PembayaranController extends Controller
     /** PUT  /api/pembayaran-produk/{id} */
     public function updateProduk(Request $request, $id)
     {
-        // kopi paste dari PembayaranProdukController@update
         $request->validate([
-            'metode_pembayaran' => 'required|string|in:Tunai,Non Tunai',
-            'uang'               => 'nullable|numeric|min:0',
+            'uang' => 'required|numeric|min:0',
         ]);
-
+    
         DB::beginTransaction();
         try {
-            $pembayaran = Pembayaran::findOrFail($id);
-
-            if (! $pembayaran->penjualanProduk) {
-                return response()->json([
-                    'message' => 'Data penjualan produk tidak ditemukan pada pembayaran ini.',
-                ], 400);
-            }
-
-            $wasPaid = $pembayaran->status_pembayaran === 'Sudah Dibayar';
-            $hargaAkhir = $pembayaran->penjualanProduk->harga_akhir;
-
-            // Set metode
-            $pembayaran->metode_pembayaran = $request->metode_pembayaran;
-
-            if ($request->metode_pembayaran === 'Tunai') {
-                // Untuk Tunai: wajib ada uang
-                $pembayaran->uang      = $request->uang;
-                $pembayaran->kembalian = $request->uang - $hargaAkhir;
-                $pembayaran->status_pembayaran = 'Sudah Dibayar';
-                $pembayaran->waktu_pembayaran  = now();
-
-                // Kurangi stok hanya sekali (ketika status berganti dari belum ke sudah)
-                if (! $wasPaid) {
-                    foreach ($pembayaran->penjualanProduk->detailPembelian as $item) {
-                        Produk::where('id_produk', $item->id_produk)
-                            ->decrement('stok_produk', $item->jumlah_produk);
-                    }
-                }
-            } else {
-                // Untuk Non Tunai: skip uang & kembalian, kembalikan status ke Belum Dibayar
-                $pembayaran->uang              = null;
-                $pembayaran->kembalian         = null;
-                $pembayaran->status_pembayaran = 'Belum Dibayar';
-                $pembayaran->waktu_pembayaran  = null;
-            }
-
+            $pembayaran  = Pembayaran::findOrFail($id);
+            $penjualan   = $pembayaran->penjualanProduk;
+            $hargaAkhir  = $penjualan->harga_akhir;
+    
+            // 1) Hitung kembalian & tandai sudah dibayar
+            $pembayaran->uang              = $request->uang;
+            $pembayaran->kembalian         = $request->uang - $hargaAkhir;
+            $pembayaran->status_pembayaran = 'Sudah Dibayar';
+            $pembayaran->waktu_pembayaran  = now();
             $pembayaran->save();
+    
+            // 2) Kurangi stok sekaligus update status_produk
+            foreach ($penjualan->detailPembelian as $item) {
+                $produk   = Produk::findOrFail($item->id_produk);
+                $newStock = $produk->stok_produk - $item->jumlah_produk;
+    
+                if ($newStock < 0) {
+                    throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi.");
+                }
+    
+                $produk->update([
+                    'stok_produk'   => $newStock,
+                    'status_produk' => $newStock > 0 ? 'Tersedia' : 'Habis',
+                ]);
+            }
+    
             DB::commit();
-
+    
             return response()->json([
                 'pembayaran_produk' => $pembayaran,
-                'message' => 'Pembayaran produk berhasil diperbarui',
+                'message'           => 'Pembayaran produk berhasil diperbarui',
             ], 200);
+    
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Error while updating pembayaran produk', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Error while updating pembayaran produk',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
     }
+    
 
     /** GET  /api/pembayaran-produk/total-bayar */
     public function totalBayarProduk(Request $request)

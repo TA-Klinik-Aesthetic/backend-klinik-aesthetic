@@ -170,7 +170,14 @@ class ProdukController extends Controller
     public function destroy($id)
     {
         try {
-            $produk = Produk::findOrFail($id);
+            $produk = Produk::withCount('detail_pembelian_produk')->findOrFail($id);
+
+            // 1) Cegah hapus jika sudah dipakai di penjualan
+            if ($produk->detail_pembelian_produk_count > 0) {
+                return response()->json([
+                    'message' => 'Tidak dapat menghapus: produk ini sudah dipakai di penjualan.'
+                ], 422);
+            }
 
             // Hapus gambar dari storage jika ada
             if (!empty($produk->gambar_produk)) {

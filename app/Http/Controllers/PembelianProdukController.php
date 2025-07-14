@@ -29,7 +29,6 @@ class PembelianProdukController extends Controller
             'produk.*.id_produk'          => 'required|exists:tb_produk,id_produk',
             'produk.*.jumlah_produk'      => 'required|integer|min:1',
             'id_promo'                    => 'nullable|exists:tb_promo,id_promo',
-            'status_pengambilan_produk'   => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -77,9 +76,6 @@ class PembelianProdukController extends Controller
             $pajakHitung          = ($subtotalSetelahDiskon * 10) / 100;
             $hargaAkhir           = $subtotalSetelahDiskon + $pajakHitung;
 
-            // Status pengambilan + waktu pengambilan
-            $status = $request->input('status_pengambilan_produk', 'Belum diambil');
-            $waktu  = $status === 'Sudah diambil' ? now() : null;
 
             // Simpan penjualan
             $pembelian = PembelianProduk::create([
@@ -90,8 +86,8 @@ class PembelianProdukController extends Controller
                 'potongan_harga'              => $nilaiPotonganUntukDisimpan,
                 'besaran_pajak'               => $pajakHitung,
                 'harga_akhir'                 => $hargaAkhir,
-                'status_pengambilan_produk'   => $status,
-                'waktu_pengambilan'           => $waktu,
+                'status_pengambilan_produk' => 'Sudah diambil',
+                'waktu_pengambilan'         => now(),
             ]);
 
             // Simpan detail produk

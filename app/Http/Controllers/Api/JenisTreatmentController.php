@@ -107,7 +107,13 @@ class JenisTreatmentController extends Controller
     public function destroy($id)
     {
         try {
-            $jenis_treatment = JenisTreatment::find($id);
+            $jenis_treatment = JenisTreatment::withCount('treatment')->findOrFail($id);
+
+            if ($jenis_treatment->treatment_count > 0) {
+                return response()->json([
+                    'message' => 'Tidak dapat menghapus: jenis treatment ini sudah dipakai oleh treatment.'
+                ], 422);
+            }
 
             if (!$jenis_treatment) {
                 return response()->json(['message' => 'Jenis Treatment tidak ditemukan'], 404);

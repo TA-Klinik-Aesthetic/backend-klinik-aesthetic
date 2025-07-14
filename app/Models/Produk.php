@@ -28,6 +28,11 @@ class Produk extends Model
         return $this->belongsTo(Kategori::class, 'id_kategori', 'id_kategori');
     }
 
+    public function detail_pembelian_produk()
+    {
+        return $this->hasMany(DetailPembelianProduk::class, 'id_produk');
+    }
+
     // Relasi ke tabel inventaris stok
     // public function inventarisStok()
     // {
