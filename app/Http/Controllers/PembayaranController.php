@@ -225,7 +225,7 @@ class PembayaranController extends Controller
     public function confirmPayment(Request $request, $id)
     {
         $request->validate([
-            'gambar_bukti_pembayaran' => 'required|image|max:2048', // max 2 MB
+            'gambar_bukti_pembayaran' => 'required|image', // max 2 MB
         ]);
 
         DB::beginTransaction();
@@ -304,7 +304,7 @@ class PembayaranController extends Controller
     public function confirmPaymentTreatment(Request $request, $id)
     {
         $request->validate([
-            'gambar_bukti_pembayaran' => 'required|image|max:2048', // max 2 MB
+            'gambar_bukti_pembayaran' => 'required|image',
         ]);
 
         DB::beginTransaction();
