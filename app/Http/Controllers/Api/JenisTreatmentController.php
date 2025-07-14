@@ -16,7 +16,7 @@ class JenisTreatmentController extends Controller
     public function index()
     {
         try {
-            $jenis_treatments = JenisTreatment::with('treatment')->get();
+            $jenis_treatments = JenisTreatment::withCount('treatment')->get();
             return response()->json(['data' => $jenis_treatments], 200);
         } catch (QueryException $e) {
             return response()->json(['message' => 'Gagal mengambil data jenis treatment', 'error' => $e->getMessage()], 500);

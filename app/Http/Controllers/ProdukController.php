@@ -16,7 +16,7 @@ class ProdukController extends Controller
     {
         try {
             $userId = $request->query('id_user');
-            $produk = Produk::with('kategori')->get();
+            $produk = Produk::with('kategori')->withCount('detail_pembelian_produk')->get();
 
             if ($userId) {
                 foreach ($produk as $item) {

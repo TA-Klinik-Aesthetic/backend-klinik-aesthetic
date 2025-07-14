@@ -20,7 +20,7 @@ class TreatmentController extends Controller
     {
         try {
             $userId = $request->query('id_user');
-            $treatments = Treatment::with('jenis_treatment')->get();
+            $treatments = Treatment::with('jenis_treatment')->withCount('detail_booking_treatment')->get();
 
             if ($userId) {
                 foreach ($treatments as $treatment) {
