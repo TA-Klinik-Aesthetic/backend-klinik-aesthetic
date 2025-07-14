@@ -71,4 +71,9 @@ class Pembayaran extends Model
     {
         return $this->status_pembayaran === 'Gagal';
     }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }

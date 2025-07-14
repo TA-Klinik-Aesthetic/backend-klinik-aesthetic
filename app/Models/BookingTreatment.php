@@ -20,7 +20,6 @@ class BookingTreatment extends Model
     protected $fillable = [
         'id_user',
         'waktu_treatment',
-        'id_detail_jadwal_treatment',
         'id_dokter',
         'id_beautician',
         'status_booking_treatment',
@@ -64,11 +63,6 @@ class BookingTreatment extends Model
     public function pembayaranTreatment()
     {
         return $this->hasOne(Pembayaran::class, 'id_booking_treatment', 'id_booking_treatment');
-    }
-
-    public function jadwalDetails()
-    {
-        return $this->belongsTo(DetailJadwalTreatment::class, 'id_detail_jadwal_treatment', 'id_detail_jadwal_treatment');
     }
 
     protected function serializeDate(\DateTimeInterface $date)
