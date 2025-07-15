@@ -119,4 +119,9 @@ class Pembayaran extends Model
     {
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
     }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }
