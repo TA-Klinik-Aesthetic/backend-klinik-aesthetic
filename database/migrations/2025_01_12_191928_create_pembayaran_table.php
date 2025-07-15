@@ -19,8 +19,32 @@ return new class extends Migration
             $table->decimal('uang', 15, 2)->nullable();
             $table->decimal('kembalian', 15, 2)->nullable();
             $table->string('gambar_bukti_pembayaran', 255)->nullable();
-            $table->enum('status_pembayaran', ['Belum Dibayar', 'Sudah Dibayar', 'Menunggu Pembayaran', 'Dibatalkan'])->default('Belum Dibayar');
+            $table->enum('status_pembayaran', [
+                'Belum Dibayar',
+                'Pending',
+                'Berhasil',
+                'Gagal',
+                'Sudah Dibayar',
+                'Menunggu Pembayaran',
+                'Dibatalkan',
+                'Expired',
+                'Refund'
+            ])->default('Belum Dibayar');
             $table->dateTime('waktu_pembayaran')->nullable();
+
+            // Kolom Midtrans
+            $table->string('snap_token')->nullable();
+            $table->text('snap_url')->nullable();
+            $table->string('order_id')->nullable();
+            $table->string('transaction_id')->nullable();
+            $table->string('transaction_status')->nullable();
+            $table->string('payment_type')->nullable();
+            $table->string('va_number')->nullable();
+            $table->string('bank')->nullable();
+            $table->decimal('gross_amount', 15, 2)->nullable();
+            $table->json('payment_details')->nullable();
+            $table->json('midtrans_response')->nullable();
+
             $table->timestamps();
 
             $table->foreign('id_booking_treatment')
@@ -37,8 +61,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::dropIfExists('tb_pembayaran_treatment');
-        // Schema::dropIfExists('tb_pembayaran_produk');
         Schema::dropIfExists('tb_pembayaran');
     }
 };

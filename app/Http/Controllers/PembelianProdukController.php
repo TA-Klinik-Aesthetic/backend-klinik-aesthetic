@@ -125,7 +125,7 @@ class PembelianProdukController extends Controller
             'produk.*.id_produk' => 'required|exists:tb_produk,id_produk',
             'produk.*.jumlah_produk' => 'required|integer|min:1',
             'id_promo' => 'nullable|exists:tb_promo,id_promo',
-            'status_pengambilan_produk'    => 'nullable|string',
+            'status_pengambilan_produk' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -152,7 +152,7 @@ class PembelianProdukController extends Controller
             }
 
             $nilaiPotonganUntukDisimpan = 0;
-            $nilaiPotonganDihitung     = 0;
+            $nilaiPotonganDihitung = 0;
 
             if ($request->id_promo) {
                 $promo = Promo::findOrFail($request->id_promo);
@@ -204,7 +204,7 @@ class PembelianProdukController extends Controller
                 // simpan status apa adanya (null jika tidak dikirim)
                 'status_pengambilan_produk' => $status,
                 // hanya set waktu jika benar-benar di‐request dan "Sudah diambil"
-                'waktu_pengambilan'          => $status === 'Sudah diambil' ? now() : null,
+                'waktu_pengambilan' => $status === 'Sudah diambil' ? now() : null,
             ]);
 
             foreach ($detail_produk as $detail) {
@@ -216,15 +216,16 @@ class PembelianProdukController extends Controller
                 ]);
             }
 
-            // ✨ Baru: Buat record pembayaran untuk penjualan produk
-            Pembayaran::create([
+            // ✨ UBAH: Buat record pembayaran dengan status Pending (bukan 'Belum Dibayar')
+            $pembayaran = Pembayaran::create([
                 'id_booking_treatment' => null,
-                'id_penjualan_produk'  => $pembelian->id_penjualan_produk,
-                'uang'                 => null,
-                'kembalian'            => null,
-                'metode_pembayaran'    => 'Tunai',
-                'status_pembayaran'    => 'Belum Dibayar',
-                'waktu_pembayaran'     => null,
+                'id_penjualan_produk' => $pembelian->id_penjualan_produk,
+                'uang' => null,
+                'kembalian' => null,
+                'metode_pembayaran' => 'Non Tunai', // UBAH: default Non Tunai untuk mobile
+                'status_pembayaran' => 'Pending', // UBAH: status Pending untuk siap diproses Midtrans
+                'waktu_pembayaran' => null,
+                'gross_amount' => $hargaAkhir, // TAMBAH: set gross amount
             ]);
 
             DB::commit();
@@ -232,7 +233,10 @@ class PembelianProdukController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Penjualan berhasil disimpan',
-                'data' => $pembelian,
+                'data' => [
+                    'pembelian' => $pembelian,
+                    'pembayaran' => $pembayaran, // TAMBAH: return pembayaran juga
+                ]
             ]);
         } catch (Exception $e) {
             DB::rollBack();

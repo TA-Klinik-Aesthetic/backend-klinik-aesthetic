@@ -357,8 +357,10 @@ Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'tota
 
 // Midtrans Payment Routes - UPDATED
 Route::prefix('midtrans')->group(function () {
-    // Test endpoint
+    // Test endpoints
     Route::get('/info', [PembayaranMidtransController::class, 'getApiInfo']);
+    Route::get('/config-debug', [PembayaranMidtransController::class, 'debugMidtransConfig']);
+    Route::get('/status-mapping', [PembayaranMidtransController::class, 'debugStatusMapping']);
 
     // Debug endpoint - tanpa auth
     Route::get('/debug/{id}', [PembayaranMidtransController::class, 'debugPaymentDetail']);
