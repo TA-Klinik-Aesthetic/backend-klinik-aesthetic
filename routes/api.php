@@ -359,8 +359,10 @@ Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'tota
 Route::prefix('midtrans')->group(function () {
     // Test endpoints
     Route::get('/info', [PembayaranMidtransController::class, 'getApiInfo']);
-    Route::get('/config-debug', [PembayaranMidtransController::class, 'debugMidtransConfig']);
     Route::get('/status-mapping', [PembayaranMidtransController::class, 'debugStatusMapping']);
+
+    // BARU: Auto-sync endpoint - tanpa auth untuk kemudahan testing
+    Route::get('/check/{id}', [PembayaranMidtransController::class, 'checkPaymentWithSync']);
 
     // Debug endpoint - tanpa auth
     Route::get('/debug/{id}', [PembayaranMidtransController::class, 'debugPaymentDetail']);
@@ -376,10 +378,10 @@ Route::prefix('midtrans')->group(function () {
         // Product Payment
         Route::post('/product', [PembayaranMidtransController::class, 'createProductPayment']);
 
-        // Check Payment Status
+        // Check Payment Status (original method)
         Route::post('/status', [PembayaranMidtransController::class, 'checkPaymentStatus']);
 
-        // Get Payment Detail
+        // Get Payment Detail (original method)
         Route::get('/detail/{id}', [PembayaranMidtransController::class, 'getPaymentDetail']);
     });
 });

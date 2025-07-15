@@ -109,6 +109,31 @@ class Pembayaran extends Model
         ]);
     }
 
+    /**
+     * TAMBAHAN: Cek apakah status adalah final (tidak akan berubah lagi)
+     */
+    public function isFinalStatus()
+    {
+        return in_array($this->status_pembayaran, [
+            self::STATUS_BERHASIL,
+            self::STATUS_SUDAH_DIBAYAR,
+            self::STATUS_GAGAL,
+            self::STATUS_DIBATALKAN,
+            self::STATUS_EXPIRED,
+            self::STATUS_REFUND
+        ]);
+    }
+
+    /**
+     * TAMBAHAN: Cek apakah pembayaran masih bisa di-sync
+     */
+    public function canBeSync()
+    {
+        return $this->order_id &&
+               !$this->isFinalStatus() &&
+               $this->created_at->diffInHours(now()) <= 48; // Sync dalam 48 jam
+    }
+
     // Relasi
     public function penjualanProduk()
     {

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Services\MidtransService;
 use Midtrans\Config;
 use Midtrans\Notification;
+use Midtrans\Transaction;
 
 class PembayaranMidtransController extends Controller
 {
@@ -350,47 +351,329 @@ class PembayaranMidtransController extends Controller
     }
 
     /**
-     * TAMBAHAN: Handle successful payment - update related models
+     * UPDATE: Enhanced handleSuccessfulPayment method
      */
     private function handleSuccessfulPayment(Pembayaran $pembayaran)
     {
         try {
-            // Jika pembayaran untuk treatment
-            if ($pembayaran->id_booking_treatment) {
-                $booking = BookingTreatment::find($pembayaran->id_booking_treatment);
-                if ($booking) {
-                    // Update status booking treatment jika field tersedia
-                    $booking->update([
-                        'status_booking' => 'Dikonfirmasi'
-                    ]);
-
-                    Log::info('Booking treatment status updated', [
-                        'id_booking' => $booking->id_booking_treatment,
-                        'status' => 'Dikonfirmasi'
-                    ]);
-                }
-            }
+            DB::beginTransaction();
 
             // Jika pembayaran untuk produk
             if ($pembayaran->id_penjualan_produk) {
                 $penjualan = PembelianProduk::find($pembayaran->id_penjualan_produk);
-                if ($penjualan) {
-                    // Update status pengambilan produk
+                if ($penjualan && $penjualan->status_pengambilan_produk === 'Belum diambil') {
                     $penjualan->update([
-                        'status_pengambilan_produk' => 'Siap Diambil'
+                        'status_pengambilan_produk' => 'Siap diambil'
                     ]);
 
-                    Log::info('Product sale status updated', [
+                    Log::info('Product status updated to ready for pickup', [
                         'id_penjualan' => $penjualan->id_penjualan_produk,
-                        'status' => 'Siap Diambil'
+                        'old_status' => 'Belum diambil',
+                        'new_status' => 'Siap diambil'
                     ]);
                 }
             }
 
+            // Jika pembayaran untuk treatment
+            if ($pembayaran->id_booking_treatment) {
+                $booking = BookingTreatment::find($pembayaran->id_booking_treatment);
+                if ($booking && in_array($booking->status_booking, ['Pending', 'Menunggu Pembayaran'])) {
+                    $booking->update([
+                        'status_booking' => 'Dikonfirmasi'
+                    ]);
+
+                    Log::info('Booking treatment status updated to confirmed', [
+                        'id_booking' => $booking->id_booking_treatment,
+                        'old_status' => $booking->getOriginal('status_booking'),
+                        'new_status' => 'Dikonfirmasi'
+                    ]);
+                }
+            }
+
+            DB::commit();
+
         } catch (\Exception $e) {
-            Log::error('Error handling successful payment: ' . $e->getMessage(), [
-                'id_pembayaran' => $pembayaran->id_pembayaran
+            DB::rollBack();
+            Log::error('Error handling successful payment', [
+                'id_pembayaran' => $pembayaran->id_pembayaran,
+                'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * BARU: Check pembayaran dengan auto-sync dari Midtrans
+     * GET /api/midtrans/check/{id_pembayaran}
+     */
+    public function checkPaymentWithSync($id)
+    {
+        try {
+            Log::info('Requesting payment detail with auto-sync', ['id_pembayaran' => $id]);
+
+            // Load pembayaran dengan relasi
+            $pembayaran = Pembayaran::with(['penjualanProduk.user', 'penjualanProduk.detailPembelian.produk', 'bookingTreatment.user', 'bookingTreatment.detailBooking'])
+                ->find($id);
+
+            if (!$pembayaran) {
+                return response()->json([
+                    'message' => 'Data Pembayaran tidak ditemukan'
+                ], 404);
+            }
+
+            $syncInfo = null;
+
+            // AUTO-SYNC: Cek status terbaru dari Midtrans jika ada order_id dan belum final
+            if ($pembayaran->order_id && !$pembayaran->isFinalStatus()) {
+                Log::info('Auto-syncing payment status from Midtrans', [
+                    'order_id' => $pembayaran->order_id,
+                    'current_status' => $pembayaran->status_pembayaran,
+                    'current_transaction_status' => $pembayaran->transaction_status
+                ]);
+
+                $syncResult = $this->syncPaymentStatusFromMidtrans($pembayaran);
+
+                if ($syncResult['updated']) {
+                    // Reload pembayaran setelah update dengan fresh relations
+                    $pembayaran = $pembayaran->fresh(['penjualanProduk.user', 'penjualanProduk.detailPembelian.produk', 'bookingTreatment.user', 'bookingTreatment.detailBooking']);
+
+                    Log::info('Payment status auto-synced successfully', [
+                        'order_id' => $pembayaran->order_id,
+                        'old_status' => $syncResult['old_status'],
+                        'new_status' => $pembayaran->status_pembayaran,
+                        'transaction_status' => $pembayaran->transaction_status
+                    ]);
+
+                    $syncInfo = [
+                        'synced' => true,
+                        'old_status' => $syncResult['old_status'],
+                        'new_status' => $pembayaran->status_pembayaran,
+                        'old_transaction_status' => $syncResult['old_transaction_status'] ?? null,
+                        'new_transaction_status' => $pembayaran->transaction_status,
+                        'last_sync' => now(),
+                        'sync_source' => 'midtrans_transaction_api'
+                    ];
+                } else {
+                    $syncInfo = [
+                        'synced' => false,
+                        'error' => $syncResult['error'] ?? 'Unknown sync error',
+                        'current_status' => $pembayaran->status_pembayaran,
+                        'last_sync_attempt' => now(),
+                        'sync_source' => 'midtrans_transaction_api'
+                    ];
+                }
+            } else {
+                $syncInfo = [
+                    'synced' => false,
+                    'reason' => $pembayaran->order_id ?
+                        'Status pembayaran sudah final (tidak perlu sync)' :
+                        'Tidak ada order_id untuk sync',
+                    'current_status' => $pembayaran->status_pembayaran,
+                    'is_final_status' => $pembayaran->isFinalStatus(),
+                    'has_order_id' => !empty($pembayaran->order_id)
+                ];
+            }
+
+            // Determine response message based on payment type
+            $message = 'Data Pembayaran ditemukan';
+            if ($pembayaran->id_penjualan_produk) {
+                $message = 'Data Pembayaran Produk ditemukan';
+            } elseif ($pembayaran->id_booking_treatment) {
+                $message = 'Data Pembayaran Treatment ditemukan';
+            }
+
+            return response()->json([
+                'message' => $message,
+                'data' => $pembayaran,
+                'sync_info' => $syncInfo,
+                'payment_info' => [
+                    'type' => $pembayaran->id_penjualan_produk ? 'product' : 'treatment',
+                    'order_id' => $pembayaran->order_id,
+                    'transaction_id' => $pembayaran->transaction_id,
+                    'status_pembayaran' => $pembayaran->status_pembayaran,
+                    'transaction_status' => $pembayaran->transaction_status,
+                    'payment_type' => $pembayaran->payment_type,
+                    'gross_amount' => $pembayaran->gross_amount,
+                    'va_number' => $pembayaran->va_number,
+                    'bank' => $pembayaran->bank,
+                    'waktu_pembayaran' => $pembayaran->waktu_pembayaran,
+                    'is_success' => $pembayaran->isSuccess(),
+                    'is_pending' => $pembayaran->isPending(),
+                    'is_failed' => $pembayaran->isFailed()
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in checkPaymentWithSync: ' . $e->getMessage(), [
+                'id_pembayaran' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'Gagal mengambil data pembayaran dengan sync',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * BARU: Sync status pembayaran dari Midtrans Transaction API
+     */
+    private function syncPaymentStatusFromMidtrans(Pembayaran $pembayaran)
+    {
+        try {
+            Log::info('Starting sync from Midtrans', [
+                'order_id' => $pembayaran->order_id,
+                'current_status' => $pembayaran->status_pembayaran
+            ]);
+
+            // Cek status langsung dari Midtrans Transaction API
+            $midtransStatus = Transaction::status($pembayaran->order_id);
+
+            Log::info('Midtrans status response received', [
+                'order_id' => $pembayaran->order_id,
+                'transaction_status' => $midtransStatus->transaction_status ?? 'unknown',
+                'payment_type' => $midtransStatus->payment_type ?? 'unknown',
+                'gross_amount' => $midtransStatus->gross_amount ?? 'unknown'
+            ]);
+
+            $oldStatus = $pembayaran->status_pembayaran;
+            $oldTransactionStatus = $pembayaran->transaction_status;
+
+            $updateData = [
+                'transaction_id' => $midtransStatus->transaction_id ?? null,
+                'transaction_status' => $midtransStatus->transaction_status ?? null,
+                'payment_type' => $midtransStatus->payment_type ?? null,
+                'midtrans_response' => json_encode($midtransStatus),
+                'gross_amount' => $midtransStatus->gross_amount ?? $pembayaran->gross_amount,
+            ];
+
+            // Extract VA number dan bank info jika ada
+            $this->extractVirtualAccountInfo($midtransStatus, $updateData);
+
+            // Mapping status dari Midtrans ke status internal
+            $transactionStatus = $midtransStatus->transaction_status ?? 'pending';
+            $fraudStatus = $midtransStatus->fraud_status ?? null;
+
+            $this->mapMidtransStatusToInternal($transactionStatus, $fraudStatus, $updateData);
+
+            Log::info('Updating payment with new data', [
+                'order_id' => $pembayaran->order_id,
+                'old_status' => $oldStatus,
+                'new_status' => $updateData['status_pembayaran'],
+                'old_transaction_status' => $oldTransactionStatus,
+                'new_transaction_status' => $updateData['transaction_status']
+            ]);
+
+            // Update pembayaran
+            $pembayaran->update($updateData);
+
+            // Jika status berubah ke berhasil, update status terkait
+            if ($pembayaran->isSuccess() && $oldStatus !== Pembayaran::STATUS_BERHASIL) {
+                $this->handleSuccessfulPayment($pembayaran);
+            }
+
+            return [
+                'updated' => true,
+                'old_status' => $oldStatus,
+                'new_status' => $updateData['status_pembayaran'],
+                'old_transaction_status' => $oldTransactionStatus,
+                'new_transaction_status' => $updateData['transaction_status'],
+                'transaction_id' => $updateData['transaction_id'],
+                'payment_type' => $updateData['payment_type'],
+                'midtrans_data' => $midtransStatus
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error syncing payment status from Midtrans', [
+                'order_id' => $pembayaran->order_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'updated' => false,
+                'error' => $e->getMessage(),
+                'old_status' => $pembayaran->status_pembayaran,
+                'new_status' => $pembayaran->status_pembayaran
+            ];
+        }
+    }
+
+    /**
+     * HELPER: Extract Virtual Account information
+     */
+    private function extractVirtualAccountInfo($midtransStatus, &$updateData)
+    {
+        if (isset($midtransStatus->va_numbers) && is_array($midtransStatus->va_numbers) && count($midtransStatus->va_numbers) > 0) {
+            $updateData['va_number'] = $midtransStatus->va_numbers[0]->va_number ?? null;
+            $updateData['bank'] = $midtransStatus->va_numbers[0]->bank ?? null;
+        } elseif (isset($midtransStatus->permata_va_number)) {
+            $updateData['va_number'] = $midtransStatus->permata_va_number;
+            $updateData['bank'] = 'permata';
+        } elseif (isset($midtransStatus->bca_va_number)) {
+            $updateData['va_number'] = $midtransStatus->bca_va_number;
+            $updateData['bank'] = 'bca';
+        } elseif (isset($midtransStatus->bill_key)) {
+            $updateData['va_number'] = $midtransStatus->bill_key;
+            $updateData['bank'] = 'mandiri';
+        }
+    }
+
+    /**
+     * HELPER: Map Midtrans status to internal status
+     */
+    private function mapMidtransStatusToInternal($transactionStatus, $fraudStatus, &$updateData)
+    {
+        switch ($transactionStatus) {
+            case 'capture':
+                if ($fraudStatus == 'accept') {
+                    $updateData['status_pembayaran'] = Pembayaran::STATUS_BERHASIL;
+                    $updateData['waktu_pembayaran'] = now();
+                    $updateData['metode_pembayaran'] = 'Non Tunai';
+                } elseif ($fraudStatus == 'challenge') {
+                    $updateData['status_pembayaran'] = Pembayaran::STATUS_PENDING;
+                } else {
+                    $updateData['status_pembayaran'] = Pembayaran::STATUS_GAGAL;
+                }
+                break;
+
+            case 'settlement':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_BERHASIL;
+                $updateData['waktu_pembayaran'] = now();
+                $updateData['metode_pembayaran'] = 'Non Tunai';
+                break;
+
+            case 'pending':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_PENDING;
+                break;
+
+            case 'deny':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_GAGAL;
+                break;
+
+            case 'expire':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_EXPIRED;
+                break;
+
+            case 'cancel':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_DIBATALKAN;
+                break;
+
+            case 'refund':
+            case 'partial_refund':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_REFUND;
+                break;
+
+            case 'failure':
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_GAGAL;
+                break;
+
+            default:
+                $updateData['status_pembayaran'] = Pembayaran::STATUS_PENDING;
+                Log::warning('Unknown transaction status', [
+                    'transaction_status' => $transactionStatus
+                ]);
+                break;
         }
     }
 
