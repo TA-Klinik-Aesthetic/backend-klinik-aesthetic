@@ -262,23 +262,18 @@ Route::prefix('jenisTreatments')->group(function () {
         ->parameters(['' => 'jenisTreatment']);
 });
 
+Route::get('bookingTreatments/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']);
+Route::get('/bookingTreatments/user/{id_user}', [DetailBookingTreatmentController::class, 'getByUser']);
+
+
 Route::prefix('bookingTreatments')->group(function () {
-    Route::apiResource('/', BookingTreatmentController::class)
-        ->parameters(['' => 'bookingTreatment']);
-});
-
-Route::get('detailBookingTreatments/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']);
-Route::get('/detailBookingTreatments/user/{id_user}', [DetailBookingTreatmentController::class, 'getByUser']);
-
-
-Route::prefix('detailBookingTreatments')->group(function () {
     Route::apiResource('/', DetailBookingTreatmentController::class)
-        ->parameters(['' => 'detailBookingTreatment']);
+        ->parameters(['' => 'bookingTreatments']);
 });
 
 Route::put('statusBookingTreatments/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']);
 
-Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
+// Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
 
 // Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);
 
