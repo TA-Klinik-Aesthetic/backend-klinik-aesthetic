@@ -56,7 +56,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // update password khusus front office
-Route::put('users/{id}/password',[AuthController::class, 'updatePassword']);
+Route::put('user/{id}/password',[AuthController::class, 'updatePassword']); // tanpa s
 
 // Forgot Password Routes
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -127,19 +127,19 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 //informasi tiap entitas{
-Route::get('/users', [UserController::class, 'index']);
-Route::get('/users/{id}', [UserController::class, 'show']);
-Route::put('/users/{id}', [UserController::class, 'update']);
+Route::get('/user', [UserController::class, 'index']); // tanpa s
+Route::get('/user/{id}', [UserController::class, 'show']); // tanpa s
+Route::put('/user/{id}', [UserController::class, 'update']); // tanpa s
 
 // Route untuk mendapatkan informasi pengguna yang sedang login
 // Route::get('/user/me', [UserController::class, 'me']);
 
 // Route untuk mendapatkan semua dokter
-Route::get('/dokters', [DokterController::class, 'index']);
+Route::get('/dokter', [DokterController::class, 'index']); // tanpa s
 //}
 
 // Route untuk mendapatkan semua dokter
-Route::get('/beauticians', [BeauticianController::class, 'index']);
+Route::get('/beautician', [BeauticianController::class, 'index']); // tanpa s
 //}
 
 
@@ -226,15 +226,6 @@ Route::prefix('penjualan-produk')->group(function () {
 
 Route::delete('/detail-penjualan-produk/{id}', [DetailPembelianProdukController::class, 'destroy']);
 
-
-Route::prefix('promos')->group(function () {
-    Route::get('/', [PromoController::class, 'index']); // Menampilkan semua promo
-    Route::post('/', [PromoController::class, 'store']); // Menambahkan promo baru
-    Route::get('/{id}', [PromoController::class, 'show']); // Menampilkan detail promo berdasarkan ID
-    Route::put('/{id}', [PromoController::class, 'update']); // Memperbarui promo berdasarkan ID
-    Route::delete('/{id}', [PromoController::class, 'destroy']); // Menghapus promo berdasarkan ID
-});
-
 // Routes untuk Favorit
 Route::prefix('favorites')->group(function () {
     // Get All Favorites
@@ -252,26 +243,26 @@ Route::post('/products/toggle-favorite', [ProdukController::class, 'toggleFavori
 Route::post('/treatments/toggle-favorite', [TreatmentController::class, 'toggleFavorite']);
 
 //ALL about TREATMENTSSSSSSS
-Route::prefix('treatments')->group(function () {
+Route::prefix('treatment')->group(function () { // tanpa s
     Route::apiResource('/', TreatmentController::class)
         ->parameters(['' => 'treatment']);
 });
 
-Route::prefix('jenisTreatments')->group(function () {
+Route::prefix('jenisTreatment')->group(function () { // tanpa s
     Route::apiResource('/', JenisTreatmentController::class)
         ->parameters(['' => 'jenisTreatment']);
 });
 
-Route::get('bookingTreatments/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']);
-Route::get('/bookingTreatments/user/{id_user}', [DetailBookingTreatmentController::class, 'getByUser']);
+Route::get('bookingTreatment/total-verifikasi', [DetailBookingTreatmentController::class, 'totalVerifikasi']); // tanpa s
+Route::get('/bookingTreatment/user/{id_user}', [DetailBookingTreatmentController::class, 'getByUser']); // tanpa s
 
 
-Route::prefix('bookingTreatments')->group(function () {
+Route::prefix('bookingTreatment')->group(function () { // tanpa s
     Route::apiResource('/', DetailBookingTreatmentController::class)
         ->parameters(['' => 'bookingTreatments']);
 });
 
-Route::put('statusBookingTreatments/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']);
+Route::put('statusBookingTreatment/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']); // tanpa s
 
 // Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
 
@@ -279,14 +270,14 @@ Route::put('statusBookingTreatments/{bookingTreatment}', [DetailBookingTreatment
 
 
 //ALL ABOUTTT FEEDBACKK
-Route::prefix('feedbacks')->group(function () {
+Route::prefix('feedbackKonsultasi')->group(function () { // tanpa s dan ada tambahan nama konsultasi
     Route::apiResource('/', FeedbackControllerKonsultasi::class)
-        ->parameters(['' => 'feedback']);
+        ->parameters(['' => 'feedbackKonsultasi']);
 });
 
-Route::prefix('feedbackTreatments')->group(function () {
+Route::prefix('feedbackTreatment')->group(function () { // tanpa s
     Route::apiResource('/', FeedbackTreatmentApiController::class)
-        ->parameters(['' => 'feedbackTreatment']);
+        ->parameters(['' => 'feedbackTreatment']); 
 });
 
 Route::prefix('jadwal-dokter')->group(function () {
