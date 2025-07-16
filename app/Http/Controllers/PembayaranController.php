@@ -32,14 +32,14 @@ class PembayaranController extends Controller
         $pembayaran = Pembayaran::with('bookingTreatment.user', 'bookingTreatment.detailBooking')->find($id);
 
         if (!$pembayaran) {
-            return response()->json(['message' => 'Pembayaran Treatment tidak ditemukan'], 404);
+            return response()->json(['message' => 'Pembayaran treatment tidak ditemukan'], 404);
         }
         if (is_null($pembayaran->id_booking_treatment)) {
             return response()->json(['message' => 'Pembayaran ini bukan pembayaran treatment'], 400);
         }
 
         return response()->json([
-            'message' => 'Data Pembayaran Treatment ditemukan',
+            'message' => 'Data pembayaran treatment ditemukan',
             'data'    => $pembayaran
         ]);
     }
@@ -140,14 +140,14 @@ class PembayaranController extends Controller
         $pembayaran = Pembayaran::with('penjualanProduk.user', 'penjualanProduk.detailPembelian')->find($id);
 
         if (!$pembayaran) {
-            return response()->json(['message' => 'Pembayaran Treatment tidak ditemukan'], 404);
+            return response()->json(['message' => 'Pembayaran produk tidak ditemukan'], 404);
         }
         if (is_null($pembayaran->id_penjualan_produk)) {
             return response()->json(['message' => 'Pembayaran ini bukan pembayaran produk'], 400);
         }
 
         return response()->json([
-            'message' => 'Data Pembayaran Treatment ditemukan',
+            'message' => 'Data pembayaran produk ditemukan',
             'data' => $pembayaran
         ]);
     }
