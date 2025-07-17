@@ -15,14 +15,14 @@ class FeedbackKonsultasiSeeder extends Seeder
     public function run(): void
     {
         DB::table('tb_feedback_konsultasi')->insert([
-            [
-                'id_konsultasi' => 1,
-                'rating' => 5,
-                'teks_feedback' => 'Pelayanan dokter sangat baik dan ramah.',
-                'status_feedback' => 'Sudah terisi',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
+            // [
+            //     'id_konsultasi' => 1,
+            //     'rating' => 5,
+            //     'teks_feedback' => 'Pelayanan dokter sangat baik dan ramah.',
+            //     'status_feedback' => 'Sudah terisi',
+            //     'created_at' => now(),
+            //     'updated_at' => now()
+            // ],
             // Tambahkan data dummy lainnya jika diperlukan
         ]);
     }

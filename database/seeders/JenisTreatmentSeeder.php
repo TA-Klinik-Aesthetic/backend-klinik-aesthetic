@@ -20,6 +20,7 @@ class JenisTreatmentSeeder extends Seeder
             ['nama_jenis_treatment' => 'Eye Treatment', 'created_at' => now(), 'updated_at' => now()],
             ['nama_jenis_treatment' => 'Lip Treatment', 'created_at' => now(), 'updated_at' => now()],
             ['nama_jenis_treatment' => 'Injection', 'created_at' => now(), 'updated_at' => now()],
+            ['nama_jenis_treatment' => 'Treatment By Doctor',    'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }

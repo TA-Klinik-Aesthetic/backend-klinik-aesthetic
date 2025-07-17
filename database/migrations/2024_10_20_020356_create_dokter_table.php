@@ -20,18 +20,6 @@ return new class extends Migration
             $table->string('foto_dokter', 255);
             $table->timestamps();
         });
-
-        Schema::create('tb_jadwal_praktik_dokter', function (Blueprint $table) {
-            $table->increments('id_jadwal_praktik_dokter');
-            $table->unsignedInteger('id_dokter'); // Relasi ke tabel tb_dokter
-            $table->date('tgl_kerja');
-            $table->time('jam_mulai');
-            $table->time('jam_selesai');
-            $table->timestamps();
-
-            $table->foreign('id_dokter')->references('id_dokter')->on('tb_dokter')->onDelete('cascade');
-        });
-
     }
 
     /**

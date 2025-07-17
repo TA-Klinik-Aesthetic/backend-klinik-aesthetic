@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
 
             DokterSeeder::class,
-            JadwalPraktikDokterSeeder::class,
 
             JenisTreatmentSeeder::class,
             KategoriSeeder::class,
@@ -33,7 +32,6 @@ class DatabaseSeeder extends Seeder
             PromoSeeder::class,
             KeranjangPembelianSeeder::class,
             BeauticianSeeder::class,
-            JadwalPraktikBeauticianSeeder::class,
             BookingTreatmentSeeder::class,
             DetailBookingTreatmentSeeder::class,
             // DetailBookingProdukSeeder::class,

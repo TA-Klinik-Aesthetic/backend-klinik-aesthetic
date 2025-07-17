@@ -15,20 +15,20 @@ class DetailBookingTreatmentSeeder extends Seeder
     {
          // Seeder untuk tb_detail_booking_treatment
          DB::table('tb_detail_booking_treatment')->insert([
-            [
-                'id_booking_treatment' => 1, 
-                'id_treatment' => 1, 
-                'biaya_treatment' => 250000, 
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'id_booking_treatment' => 1, 
-                'id_treatment' => 2, 
-                'biaya_treatment' => 300000, 
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
+            // [
+            //     'id_booking_treatment' => 1, 
+            //     'id_treatment' => 1, 
+            //     'biaya_treatment' => 250000, 
+            //     'created_at' => now(),
+            //     'updated_at' => now()
+            // ],
+            // [
+            //     'id_booking_treatment' => 1, 
+            //     'id_treatment' => 2, 
+            //     'biaya_treatment' => 300000, 
+            //     'created_at' => now(),
+            //     'updated_at' => now()
+            // ],
         ]);
     }
 }

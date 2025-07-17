@@ -15,17 +15,17 @@ class BeauticianSeeder extends Seeder
     {
         DB::table('tb_beautician')->insert([
             [
-                'nama_beautician' => 'Rian Rahmat',
+                'nama_beautician' => 'Dr. Carmelia Putri',
                 'no_telp' => '081234567789',
-                'email_beautician' => 'rianrr@gmail.com',
+                'email_beautician' => 'carmelia@gmail.com',
                 'NIP' => '1234567891',
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
-                'nama_beautician' => 'Syafrul Hadiguna',
+                'nama_beautician' => 'Dr. Sinta Hadiguna',
                 'no_telp' => '089765463546',
-                'email_beautician' => 'syaf@gmail.com',
+                'email_beautician' => 'sinta@gmail.com',
                 'NIP' => '12309878987',
                 'created_at' => now(),
                 'updated_at' => now()

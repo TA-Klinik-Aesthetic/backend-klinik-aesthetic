@@ -19,18 +19,6 @@ return new class extends Migration
             $table->string('NIP', 50);
             $table->timestamps();
         });
-
-        Schema::create('tb_jadwal_praktik_beautician', function (Blueprint $table) {
-            $table->increments('id_jadwal_praktik_beautician');
-            $table->unsignedInteger('id_beautician'); // Relasi ke tabel tb_dokter
-            $table->enum('hari', ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu']);
-            $table->date('tgl_kerja'); 
-            $table->time('jam_mulai');
-            $table->time('jam_selesai');
-            $table->timestamps();
-            
-            $table->foreign('id_beautician')->references('id_beautician')->on('tb_beautician')->onDelete('cascade');
-        });
     }
 
     /**

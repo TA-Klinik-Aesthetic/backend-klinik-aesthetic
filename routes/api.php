@@ -280,19 +280,19 @@ Route::prefix('feedbackTreatment')->group(function () { // tanpa s
         ->parameters(['' => 'feedbackTreatment']); 
 });
 
-Route::prefix('jadwal-dokter')->group(function () {
-    Route::get('/', [JadwalPraktikDokterController::class, 'index']); // Get all categories
-    Route::post('/', [JadwalPraktikDokterController::class, 'store']); // Create a new category
-    Route::put('/{id}', [JadwalPraktikDokterController::class, 'update']); // Update a category
-    Route::delete('/{id}', [JadwalPraktikDokterController::class, 'destroy']); // Delete a category
-});
+// Route::prefix('jadwal-dokter')->group(function () {
+//     Route::get('/', [JadwalPraktikDokterController::class, 'index']); // Get all categories
+//     Route::post('/', [JadwalPraktikDokterController::class, 'store']); // Create a new category
+//     Route::put('/{id}', [JadwalPraktikDokterController::class, 'update']); // Update a category
+//     Route::delete('/{id}', [JadwalPraktikDokterController::class, 'destroy']); // Delete a category
+// });
 
-Route::prefix('jadwal-beautician')->group(function () {
-    Route::get('/', [JadwalPraktikBeauticianController::class, 'index']); // Get all categories
-    Route::post('/', [JadwalPraktikBeauticianController::class, 'store']); // Create a new category
-    Route::put('/{id}', [JadwalPraktikBeauticianController::class, 'update']); // Update a category
-    Route::delete('/{id}', [JadwalPraktikBeauticianController::class, 'destroy']); // Delete a category
-});
+// Route::prefix('jadwal-beautician')->group(function () {
+//     Route::get('/', [JadwalPraktikBeauticianController::class, 'index']); // Get all categories
+//     Route::post('/', [JadwalPraktikBeauticianController::class, 'store']); // Create a new category
+//     Route::put('/{id}', [JadwalPraktikBeauticianController::class, 'update']); // Update a category
+//     Route::delete('/{id}', [JadwalPraktikBeauticianController::class, 'destroy']); // Delete a category
+// });
 
 Route::get('promo', [PromoController::class, 'index']);
 Route::get('/promo/{id}', [PromoController::class, 'show']);
