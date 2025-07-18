@@ -38,7 +38,9 @@ class DatabaseSeeder extends Seeder
             FeedbackTreatmentSeeder::class,
 
             PenjualanProdukSeeder::class,
-            DetailPenjualanProdukSeeder::class
+            DetailPenjualanProdukSeeder::class,
+
+            KompensasiSeeder::class
         ]);
     }
 }

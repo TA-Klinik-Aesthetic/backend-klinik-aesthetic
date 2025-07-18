@@ -46,7 +46,7 @@ class UsersSeeder extends Seeder
                 'email' => 'natanara@gmail.com',
                 'password' => Hash::make('password456'),
                 'tanggal_lahir' => '1988-12-03',
-                'jenis_kelamin' => 'Perempuan',
+                'jenis_kelamin' => 'Laki-laki',
                 'role' => 'pelanggan',
                 'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
