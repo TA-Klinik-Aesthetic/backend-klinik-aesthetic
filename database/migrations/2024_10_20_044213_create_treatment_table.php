@@ -23,7 +23,7 @@ return new class extends Migration
         Schema::create('tb_kompensasi', function (Blueprint $table) {
             $table->increments('id_kompensasi');
             $table->unsignedInteger('id_treatment');
-            $table->string('nama_kompensasi');
+            $table->string('nama_kompensasi', 50);
             $table->text('deskripsi_kompensasi')->nullable();
             $table->timestamps();
         });
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->increments('id_kompensasi_diberikan');
             $table->unsignedInteger('id_komplain')->nullable();
             $table->unsignedInteger('id_kompensasi')->nullable();
-            $table->string('kode_kompensasi')->unique()->nullable();
+            $table->string('kode_kompensasi', 50)->unique()->nullable();
             $table->date('tanggal_berakhir_kompensasi')->nullable();
             $table->enum('status_kompensasi', ['Belum Digunakan', 'Sudah Digunakan', 'Sudah Kadaluwarsa'])->default('Belum Digunakan');
             $table->dateTime('tanggal_pemakaian_kompensasi')->nullable();

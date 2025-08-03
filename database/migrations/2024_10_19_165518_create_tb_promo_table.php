@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tb_promo', function (Blueprint $table) {
             $table->increments('id_promo');
-            $table->string('nama_promo');
+            $table->string('nama_promo', 100);
             $table->enum('jenis_promo', ['Treatment', 'Produk']);
             $table->text('deskripsi_promo');
             $table->enum('tipe_potongan', ['Diskon', 'Rupiah']); // Jenis potongan harga baru
