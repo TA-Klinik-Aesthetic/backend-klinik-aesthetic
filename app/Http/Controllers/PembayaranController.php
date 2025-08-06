@@ -100,13 +100,15 @@ class PembayaranController extends Controller
         // kopi paste dari PembayaranTreatmentController@totalBayar
         $year = $request->query('year', date('Y'));
 
+        $statuses = ['Sudah Dibayar', 'Berhasil'];
+
         $total = Pembayaran::whereNotNull('id_booking_treatment')
-            ->where('status_pembayaran', 'Sudah Dibayar')
+        ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->count();
 
         $perbulan = Pembayaran::whereNotNull('id_booking_treatment')
-            ->where('status_pembayaran', 'Sudah Dibayar')
+        ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->selectRaw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan, COUNT(*) AS total")
             ->groupBy('bulan')
@@ -424,13 +426,15 @@ class PembayaranController extends Controller
     {
         $year = $request->query('year', date('Y'));
 
+        $statuses = ['Sudah Dibayar', 'Berhasil'];
+
         $total = Pembayaran::whereNotNull('id_penjualan_produk')
-            ->where('status_pembayaran', 'Sudah Dibayar')
+        ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->count();
 
         $perbulan = Pembayaran::whereNotNull('id_penjualan_produk')
-            ->where('status_pembayaran', 'Sudah Dibayar')
+        ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->select(
                 DB::raw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan"),

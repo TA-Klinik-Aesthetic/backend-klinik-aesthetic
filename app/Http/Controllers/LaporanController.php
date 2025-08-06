@@ -24,8 +24,8 @@ class LaporanController extends Controller
             'detailBooking.treatment', // Mendapatkan informasi treatment untuk setiap detail booking
             'promo' // Mendapatkan informasi promo yang diterapkan
         ])
-            ->whereHas('pembayaranTreatment', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');
+            ->whereHas('pembayaranTreatment', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
             })
             ->get();
 
@@ -96,8 +96,8 @@ class LaporanController extends Controller
             'pembayaranTreatment' // Mengambil data pembayaran treatment yang sudah ada
         ])
             ->whereDate('waktu_treatment', $tanggal)  // Filter berdasarkan tanggal
-            ->whereHas('pembayaranTreatment', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');
+            ->whereHas('pembayaranTreatment', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
             })
             ->get();
 
@@ -195,8 +195,8 @@ class LaporanController extends Controller
         ])
             ->whereYear('waktu_treatment', $tahun)
             ->whereMonth('waktu_treatment', $bulan)
-            ->whereHas('pembayaranTreatment', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');
+            ->whereHas('pembayaranTreatment', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
             })
             ->get();
 
@@ -283,9 +283,9 @@ class LaporanController extends Controller
             'promo', // Mendapatkan informasi promo yang diterapkan
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
-            ->whereHas('pembayaranProduk', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');
-            })
+        ->whereHas('pembayaranProduk', function ($q) {
+            $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
+        })
             ->get();
 
         // Data laporan
@@ -349,8 +349,8 @@ class LaporanController extends Controller
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
             ->whereDate('tanggal_pembelian', $tanggal)  // Filter berdasarkan tanggal
-            ->whereHas('pembayaranProduk', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');
+            ->whereHas('pembayaranProduk', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
             })
             ->get();
 
@@ -425,8 +425,8 @@ class LaporanController extends Controller
         ])
             ->whereYear('tanggal_pembelian', $tahun)  // Filter berdasarkan tahun
             ->whereMonth('tanggal_pembelian', $bulan) // Filter berdasarkan bulan
-            ->whereHas('pembayaranProduk', function ($query) {
-                $query->where('status_pembayaran', 'Sudah Dibayar');  // Pastikan hanya yang sudah dibayar
+            ->whereHas('pembayaranProduk', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
             })
             ->get();
 
