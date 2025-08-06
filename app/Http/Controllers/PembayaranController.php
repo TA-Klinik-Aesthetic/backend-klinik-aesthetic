@@ -103,12 +103,12 @@ class PembayaranController extends Controller
         $statuses = ['Sudah Dibayar', 'Berhasil'];
 
         $total = Pembayaran::whereNotNull('id_booking_treatment')
-        ->whereIn('status_pembayaran', $statuses)
+            ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->count();
 
         $perbulan = Pembayaran::whereNotNull('id_booking_treatment')
-        ->whereIn('status_pembayaran', $statuses)
+            ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->selectRaw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan, COUNT(*) AS total")
             ->groupBy('bulan')
@@ -375,42 +375,41 @@ class PembayaranController extends Controller
         $request->validate([
             'uang' => 'required|numeric|min:0',
         ]);
-    
+
         DB::beginTransaction();
         try {
             $pembayaran  = Pembayaran::findOrFail($id);
             $penjualan   = $pembayaran->penjualanProduk;
             $hargaAkhir  = $penjualan->harga_akhir;
-    
+
             // 1) Hitung kembalian & tandai sudah dibayar
             $pembayaran->uang              = $request->uang;
             $pembayaran->kembalian         = $request->uang - $hargaAkhir;
             $pembayaran->status_pembayaran = 'Sudah Dibayar';
             $pembayaran->waktu_pembayaran  = now();
             $pembayaran->save();
-    
+
             // 2) Kurangi stok sekaligus update status_produk
             foreach ($penjualan->detailPembelian as $item) {
                 $produk   = Produk::findOrFail($item->id_produk);
                 $newStock = $produk->stok_produk - $item->jumlah_produk;
-    
+
                 if ($newStock < 0) {
                     throw new \Exception("Stok produk {$produk->nama_produk} tidak mencukupi.");
                 }
-    
+
                 $produk->update([
                     'stok_produk'   => $newStock,
                     'status_produk' => $newStock > 0 ? 'Tersedia' : 'Habis',
                 ]);
             }
-    
+
             DB::commit();
-    
+
             return response()->json([
                 'pembayaran_produk' => $pembayaran,
                 'message'           => 'Pembayaran produk berhasil diperbarui',
             ], 200);
-    
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -419,7 +418,7 @@ class PembayaranController extends Controller
             ], 500);
         }
     }
-    
+
 
     /** GET  /api/pembayaran-produk/total-bayar */
     public function totalBayarProduk(Request $request)
@@ -429,12 +428,12 @@ class PembayaranController extends Controller
         $statuses = ['Sudah Dibayar', 'Berhasil'];
 
         $total = Pembayaran::whereNotNull('id_penjualan_produk')
-        ->whereIn('status_pembayaran', $statuses)
+            ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->count();
 
         $perbulan = Pembayaran::whereNotNull('id_penjualan_produk')
-        ->whereIn('status_pembayaran', $statuses)
+            ->whereIn('status_pembayaran', $statuses)
             ->whereYear('waktu_pembayaran', $year)
             ->select(
                 DB::raw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan"),
@@ -448,6 +447,23 @@ class PembayaranController extends Controller
             'success'            => true,
             'total_produk_bayar' => $total,
             'bayar_per_bulan'    => $perbulan,
+        ]);
+    }
+
+    public function updateMetodePembayaranProduk(Request $request, $id)
+    {
+        $request->validate([
+            'metode_pembayaran' => 'required|string|in:Tunai,Non Tunai',
+        ]);
+
+        $pembayaran = Pembayaran::findOrFail($id);
+        $pembayaran->metode_pembayaran = $request->metode_pembayaran;
+        $pembayaran->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Metode pembayaran produk berhasil diperbarui.',
+            'data'    => $pembayaran,
         ]);
     }
 }
