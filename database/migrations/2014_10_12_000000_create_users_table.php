@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('tb_user', function (Blueprint $table) {
             $table->increments('id_user'); // Menggunakan tipe int untuk id
-            $table->string('nama_user');
-            $table->string('no_telp')->unique();
-            $table->string('email')->unique();
+            $table->string('nama_user', 50);
+            $table->string('no_telp', 15)->unique();
+            $table->string('email', 100)->unique();
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
-            $table->string('password');
-            $table->enum('role', ['pelanggan', 'front office', 'kasir', 'admin'])->default('pelanggan');
+            $table->string('password', 100);
+            $table->enum('role', ['pelanggan', 'front office', 'kasir'])->default('pelanggan');
             $table->timestamp('email_verified_at')->nullable();
-            $table->rememberToken();
+            // $table->rememberToken();
             $table->timestamps();
         });
     }

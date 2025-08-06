@@ -78,13 +78,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('tb_feedback_treatment', function (Blueprint $table) {
-            $table->increments('id_feedback_treatment');
-            $table->unsignedInteger('id_detail_booking_treatment');
-            $table->tinyInteger('rating')->unsigned()->nullable();
-            $table->text('teks_feedback')->nullable();
-            $table->timestamps();
-        });
+        // Schema::create('tb_feedback_treatment', function (Blueprint $table) {
+        //     $table->increments('id_feedback_treatment');
+        //     $table->unsignedInteger('id_detail_booking_treatment');
+        //     $table->tinyInteger('rating')->unsigned()->nullable();
+        //     $table->text('teks_feedback')->nullable();
+        //     $table->timestamps();
+        // });
 
         // Tambahkan Foreign Key setelah semua tabel dibuat
         Schema::table('tb_treatment', function (Blueprint $table) {
@@ -113,9 +113,9 @@ return new class extends Migration
             $table->foreign('id_booking_treatment')->references('id_booking_treatment')->on('tb_booking_treatment')->onDelete('cascade');
             $table->foreign('id_detail_booking_treatment')->references('id_detail_booking_treatment')->on('tb_detail_booking_treatment')->onDelete('cascade');
         });
-        Schema::table('tb_feedback_treatment', function (Blueprint $table) {
-            $table->foreign('id_detail_booking_treatment')->references('id_detail_booking_treatment')->on('tb_detail_booking_treatment')->onDelete('cascade');
-        });
+        // Schema::table('tb_feedback_treatment', function (Blueprint $table) {
+        //     $table->foreign('id_detail_booking_treatment')->references('id_detail_booking_treatment')->on('tb_detail_booking_treatment')->onDelete('cascade');
+        // });
     }
 
     public function down(): void

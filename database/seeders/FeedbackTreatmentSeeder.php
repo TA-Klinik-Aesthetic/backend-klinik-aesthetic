@@ -13,7 +13,7 @@ class FeedbackTreatmentSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('tb_feedback_treatment')->insert([
+        // DB::table('tb_feedback_treatment')->insert([
             // [
             //     'id_detail_booking_treatment' => 1,
             //     'rating' => 5,
@@ -22,6 +22,6 @@ class FeedbackTreatmentSeeder extends Seeder
             //     'updated_at' => now()
             // ],
             // Tambahkan data dummy lainnya jika diperlukan
-        ]);
+        // ]);
     }
 }
