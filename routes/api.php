@@ -339,6 +339,7 @@ Route::get('/pembayaran-produk/{id}', [PembayaranController::class, 'showProduk'
 Route::post('/pembayaran-produk', [PembayaranController::class, 'storeProduk']);
 Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProduk']);
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
+Route::put('/pembayaran-produk/{id}/metode',[PembayaranController::class, 'updateMetodePembayaranProduk']);
 
 
 // Midtrans Payment Routes - UPDATED
