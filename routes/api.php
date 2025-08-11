@@ -65,45 +65,12 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 // BARU: Direct reset password route
 Route::get('/password/reset-direct/{token}', [ResetPasswordController::class, 'resetDirect'])->name('password.reset.direct');
 
-Route::get('/email/verify/{id}/{hash}', function (Request $request) {
-    // Find the user by ID
-    $user = App\Models\User::find($request->route('id'));
+// Email verification routes
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
 
-    // If the user is not found or the hash is invalid
-    if (! $user || ! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-        return response()->json(['message' => 'Tautan verifikasi tidak valid atau kadaluarsa.'], 403);
-    }
-
-    // If the email is already verified, return a message
-    if ($user->hasVerifiedEmail()) {
-        return response()->json(['message' => 'Email Anda sudah diverifikasi.'], 200);
-    }
-
-    // Mark the email as verified
-    if ($user->markEmailAsVerified()) {
-        event(new \Illuminate\Auth\Events\Verified($user)); // Trigger the Verified event
-    }
-
-    return response()->json(['message' => 'Email Anda berhasil diverifikasi!'], 200);
-})->middleware(['signed'])->name('verification.verify');
-
-
-// Resend Email Verification Route
-Route::post('/email/resend', function (Request $request) {
-    $user = $request->user(); // Get the currently logged-in user
-
-    // If the user is not found or the email is already verified
-    if (!$user || ($user->role === 'pelanggan' && $user->hasVerifiedEmail())) {
-        return response()->json(['message' => 'Email sudah diverifikasi atau tidak perlu verifikasi.'], 400);
-    }
-
-    // Resend the verification notification
-    $user->sendEmailVerificationNotification();
-
-    return response()->json(['message' => 'Tautan verifikasi baru telah dikirim ke email Anda.'], 200);
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.resend');
-
-
+Route::post('/email/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 
 // Routes that require authentication (using Sanctum)
 Route::middleware('auth:sanctum')->group(function () {

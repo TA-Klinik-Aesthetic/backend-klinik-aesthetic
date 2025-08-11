@@ -116,7 +116,7 @@ class ForgotPasswordController extends Controller
             // Kirim email menggunakan Laravel Mail facade
             Mail::send([], [], function ($message) use ($user, $resetUrl, $token) {
                 $message->to($user->email, $user->nama_user)
-                        ->subject('Reset Password - Klinik Aesthetic')
+                        ->subject('Reset Password - NAVYA HUB')
                         ->from(config('mail.from.address'), config('mail.from.name'))
                         ->html($this->generateEmailTemplate($user, $resetUrl, $token));
             });
@@ -147,7 +147,7 @@ class ForgotPasswordController extends Controller
         <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Reset Password - Klinik Aesthetic</title>
+            <title>Reset Password - NAVYA HUB</title>
             <style>
                 * {
                     margin: 0;
@@ -169,7 +169,7 @@ class ForgotPasswordController extends Controller
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 }
                 .header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #B4CBB4 0%, #a1b550ff 100%);
                     color: white;
                     padding: 30px;
                     text-align: center;
@@ -219,7 +219,7 @@ class ForgotPasswordController extends Controller
                 }
                 .reset-button a {
                     display: inline-block;
-                    background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
+                    background: linear-gradient(135deg, #B4CBB4 0%, #a1b550ff 100%);
                     color: white;
                     padding: 15px 40px;
                     text-decoration: none;
@@ -320,7 +320,7 @@ class ForgotPasswordController extends Controller
                     </div>
 
                     <div class='message'>
-                        Kami menerima permintaan untuk mereset password akun Anda di <strong>Klinik Aesthetic</strong>.
+                        Kami menerima permintaan untuk mereset password akun Anda di <strong>NAVYA HUB</strong>.
                         Jika Anda tidak merasa melakukan permintaan ini, abaikan email ini dan password Anda tidak akan berubah.
                     </div>
 
@@ -359,9 +359,9 @@ class ForgotPasswordController extends Controller
                 </div>
 
                 <div class='footer'>
-                    <div class='brand'>Klinik Aesthetic</div>
+                    <div class='brand'>NAVYA HUB</div>
                     <p>Email ini dikirim secara otomatis, mohon jangan dibalas.</p>
-                    <p>&copy; 2025 Klinik Aesthetic. All rights reserved.</p>
+                    <p>&copy; 2025 NAVYA HUB. All rights reserved.</p>
                     <p>Jika Anda mengalami masalah, hubungi support kami.</p>
                 </div>
             </div>

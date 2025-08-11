@@ -71,19 +71,6 @@ class User extends Authenticatable implements MustVerifyEmail // Pastikan nama m
     }
 
     /**
-     * Send the email verification notification.
-     *
-     * @return void
-     */
-    public function sendEmailVerificationNotification()
-    {
-        // Hanya kirim notifikasi jika role-nya 'pelanggan'
-        if ($this->role === 'pelanggan') {
-            $this->notify(new \Illuminate\Auth\Notifications\VerifyEmail);
-        }
-    }
-
-    /**
      * Get the email address that should be used for verification.
      *
      * @return string

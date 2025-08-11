@@ -131,7 +131,7 @@ class ResetPasswordController extends Controller
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #B4CBB4 0%, #a1b550ff 100%);
                     min-height: 100vh;
                     display: flex;
                     align-items: center;
@@ -198,7 +198,7 @@ class ResetPasswordController extends Controller
                     font-size: 14px;
                 }
                 .button {
-                    background: #4f46e5;
+                    background: #B4CBB4;
                     color: white;
                     padding: 12px 30px;
                     border: none;
@@ -212,7 +212,7 @@ class ResetPasswordController extends Controller
                     transition: background 0.3s ease;
                 }
                 .button:hover {
-                    background: #3730a3;
+                    background: #a1b550ff;
                 }
                 .footer {
                     margin-top: 30px;
