@@ -58,9 +58,12 @@ Route::post('/login', [AuthController::class, 'login']);
 // update password khusus front office
 Route::put('user/{id}/password',[AuthController::class, 'updatePassword']); // tanpa s
 
-// Forgot Password Routes
+// Forgot Password Routes - UPDATE
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset');
+
+// BARU: Direct reset password route
+Route::get('/password/reset-direct/{token}', [ResetPasswordController::class, 'resetDirect'])->name('password.reset.direct');
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     // Find the user by ID
@@ -182,7 +185,6 @@ Route::get('/konsultasi/user/{id_user}', [KonsultasiController::class, 'getByUse
 // Kategori Routes
 Route::prefix('kategori')->group(function () {
     Route::get('/', [KategoriController::class, 'index']); // Get all categories
-    Route::get('/all', [KeranjangPembelianController::class, 'getAll']); //To get all cart items
     Route::post('/', [KategoriController::class, 'store']); // Create a new category
     Route::get('/{id}', [KategoriController::class, 'show']); // Get a single category
     Route::put('/{id}', [KategoriController::class, 'update']); // Update a category
@@ -277,7 +279,7 @@ Route::prefix('feedbackKonsultasi')->group(function () { // tanpa s dan ada tamb
 
 Route::prefix('feedbackTreatment')->group(function () { // tanpa s
     Route::apiResource('/', FeedbackTreatmentApiController::class)
-        ->parameters(['' => 'feedbackTreatment']); 
+        ->parameters(['' => 'feedbackTreatment']);
 });
 
 // Route::prefix('jadwal-dokter')->group(function () {
