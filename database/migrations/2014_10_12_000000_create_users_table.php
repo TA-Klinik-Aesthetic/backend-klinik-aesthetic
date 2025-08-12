@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
             $table->string('password', 100);
-            $table->enum('role', ['pelanggan', 'front office', 'kasir'])->default('pelanggan');
+            $table->enum('role', ['pelanggan', 'front office', 'kasir', 'dokter', 'beautician'])->default('pelanggan');
             $table->timestamp('email_verified_at')->nullable();
             // $table->rememberToken();
             $table->timestamps();

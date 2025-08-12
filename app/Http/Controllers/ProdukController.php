@@ -9,6 +9,7 @@ use App\Models\InventarisStok;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use App\Models\PembelianProduk;
 
 class ProdukController extends Controller
 {
@@ -273,5 +274,51 @@ class ProdukController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function topProducts(Request $request)
+    {
+        $limit    = (int) $request->query('limit', 5);
+        $statuses = ['Sudah Dibayar', 'Berhasil'];
+
+        // Ambil penjualan produk yang sudah dibayar/berhasil + detail & produk-nya
+        $orders = PembelianProduk::with(['detailPembelian.produk', 'pembayaranProduk'])
+            ->whereHas('pembayaranProduk', function ($q) use ($statuses) {
+                $q->whereIn('status_pembayaran', $statuses);
+            })
+            ->get();
+
+        // Hitung kuantitas terjual per produk
+        $map = [];
+        foreach ($orders as $o) {
+            foreach ($o->detailPembelian as $d) {
+                if (!$d->produk) continue;
+
+                $id   = $d->produk->id_produk ?? $d->id_produk ?? null;
+                $name = $d->produk->nama_produk ?? '—';
+                if (!$id) continue;
+
+                if (!isset($map[$id])) {
+                    $map[$id] = [
+                        'id_produk'   => $id,
+                        'nama_produk' => $name,
+                        'total_dibeli' => 0,
+                    ];
+                }
+
+                $qty = (int) ($d->jumlah_produk ?? 1);
+                $map[$id]['total_dibeli'] += $qty;
+            }
+        }
+
+        $data = collect(array_values($map))
+            ->sortByDesc('total_dibeli')
+            ->take($limit)
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
     }
 }

@@ -76,6 +76,30 @@ class UsersSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'nama_user' => 'Dr. Rani Rahmawati',
+                'no_telp' => '084938482938',
+                'email' => 'rani@gmail.com',
+                'password' => Hash::make('rani1234'),
+                'tanggal_lahir' => '1992-06-05',
+                'jenis_kelamin' => 'Perempuan',
+                'role' => 'dokter',
+                'email_verified_at' => Carbon::now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nama_user' => 'Dr. Sinta Hadiguna',
+                'no_telp' => '085948254294',
+                'email' => 'sinta@gmail.com',
+                'password' => Hash::make('sinta123'),
+                'tanggal_lahir' => '1996-11-14',
+                'jenis_kelamin' => 'Perempuan',
+                'role' => 'beautician',
+                'email_verified_at' => Carbon::now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

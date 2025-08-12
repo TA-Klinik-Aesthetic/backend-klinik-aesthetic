@@ -168,6 +168,8 @@ Route::prefix('produk')->group(function () {
     Route::get('/kategori/{id_kategori}', [ProdukController::class, 'getProdukByKategori']);
 });
 
+Route::get('/top-produk',   [ProdukController::class,   'topProducts']);
+
 // Product Cart Management
 Route::prefix('keranjang')->group(function () {
     Route::get('/', [KeranjangPembelianController::class, 'index']);
@@ -216,6 +218,8 @@ Route::prefix('treatment')->group(function () { // tanpa s
     Route::apiResource('/', TreatmentController::class)
         ->parameters(['' => 'treatment']);
 });
+
+Route::get('/top-treatment', [TreatmentController::class, 'topTreatments']);
 
 Route::prefix('jenisTreatment')->group(function () { // tanpa s
     Route::apiResource('/', JenisTreatmentController::class)

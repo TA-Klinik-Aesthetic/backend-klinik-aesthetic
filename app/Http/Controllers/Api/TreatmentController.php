@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\BookingTreatment;
 
 class TreatmentController extends Controller
 {
@@ -155,7 +156,7 @@ class TreatmentController extends Controller
             $validated = $request->validate([
                 'id_jenis_treatment' => 'exists:tb_jenis_treatment,id_jenis_treatment',
                 'nama_treatment'     => 'string|max:255',
-                'deskripsi_treatment'=> 'nullable|string',
+                'deskripsi_treatment' => 'nullable|string',
                 'biaya_treatment'    => 'numeric',
                 'estimasi_treatment' => 'nullable|string',
                 'gambar_treatment'   => 'nullable|image|mimes:jpeg,png,jpg,gif',
@@ -167,7 +168,7 @@ class TreatmentController extends Controller
                 if ($treatment->gambar_treatment && file_exists(public_path($treatment->gambar_treatment))) {
                     unlink(public_path($treatment->gambar_treatment));
                 }
-    
+
                 $file     = $request->file('gambar_treatment');
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path('treatment_images'), $fileName);
@@ -181,7 +182,6 @@ class TreatmentController extends Controller
                 'message' => 'Treatment berhasil diperbarui',
                 'data'    => $treatment,
             ], 200);
-
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Validasi data gagal', 'errors' => $e->errors()], 422);
         } catch (QueryException $e) {
@@ -233,5 +233,52 @@ class TreatmentController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan yang tidak terduga', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function topTreatments(Request $request)
+    {
+        $limit    = (int) $request->query('limit', 5);
+        $statuses = ['Sudah Dibayar', 'Berhasil'];
+
+        // Ambil booking yang sudah dibayar/berhasil + detail treatment-nya
+        $bookings = BookingTreatment::with(['detailBooking.treatment', 'pembayaranTreatment'])
+            ->whereHas('pembayaranTreatment', function ($q) use ($statuses) {
+                $q->whereIn('status_pembayaran', $statuses);
+            })
+            ->get();
+
+        // Hitung frekuensi pembelian tiap treatment
+        $map = [];
+        foreach ($bookings as $b) {
+            foreach ($b->detailBooking as $d) {
+                if (!$d->treatment) continue;
+
+                $id   = $d->treatment->id_treatment ?? $d->id_treatment ?? null;
+                $name = $d->treatment->nama_treatment ?? '—';
+                if (!$id) continue;
+
+                if (!isset($map[$id])) {
+                    $map[$id] = [
+                        'id_treatment'   => $id,
+                        'nama_treatment' => $name,
+                        'total_dibeli'   => 0,
+                    ];
+                }
+
+                // kalau ada kolom kuantitas di detail, pakai; kalau tidak, hitung 1 per baris
+                $qty = (int) ($d->jumlah ?? 1);
+                $map[$id]['total_dibeli'] += $qty;
+            }
+        }
+
+        $data = collect(array_values($map))
+            ->sortByDesc('total_dibeli')
+            ->take($limit)
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
     }
 }
