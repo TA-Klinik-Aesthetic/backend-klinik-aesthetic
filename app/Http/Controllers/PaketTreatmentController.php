@@ -167,8 +167,8 @@ class PaketTreatmentController extends Controller
         $statuses = ['Sudah Dibayar', 'Berhasil'];
 
         // Ambil penjualan paket treatment yang lunas + detail & paketnya
-        $orders = \App\Models\PenjualanPaketTreatment::with(['details.paket', 'pembayaranPaketTreatment'])
-            ->whereHas('pembayaranPaketTreatment', function ($q) use ($statuses) {
+        $orders = \App\Models\PenjualanPaketTreatment::with(['details.paket', 'pembayaran'])
+            ->whereHas('pembayaran', function ($q) use ($statuses) {
                 $q->whereIn('status_pembayaran', $statuses);
             })
             ->get();
