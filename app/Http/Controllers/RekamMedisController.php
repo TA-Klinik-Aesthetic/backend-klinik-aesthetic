@@ -6,31 +6,34 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Konsultasi;
 use App\Models\BookingTreatment;
+use App\Models\BookingTreatmentPaket;
+
 
 class RekamMedisController extends Controller
 {
     public function index()
     {
-        // Ambil seluruh data user
         $users = User::all();
-
-        // Inisialisasi array untuk data rekam medis
         $medicalRecords = [];
 
-        // Loop untuk menghitung total konsultasi dan total booking treatment untuk setiap user
         foreach ($users as $user) {
             $totalKonsultasi = Konsultasi::where('id_user', $user->id_user)
-            ->where('status_booking_konsultasi', 'Selesai')
-            ->count();
+                ->where('status_booking_konsultasi', 'Selesai')
+                ->count();
 
-            $totalBookingTreatment = BookingTreatment::where('id_user', $user->id_user)
-            ->where('status_booking_treatment', 'Selesai')
-            ->count();
+            // Hitung REGULER dan PAKET dari model yang berbeda, lalu dijumlahkan
+            $totalReguler = BookingTreatment::where('id_user', $user->id_user)
+                ->where('status_booking_treatment', 'Selesai')
+                ->count();
+
+            $totalPaket = BookingTreatmentPaket::where('id_user', $user->id_user)
+                ->where('status_booking_treatment', 'Selesai')   // ganti jika nama kolom status berbeda
+                ->count();
 
             $medicalRecords[] = [
-                'user' => $user,
-                'total_konsultasi' => $totalKonsultasi,
-                'total_booking_treatment' => $totalBookingTreatment,
+                'user'                    => $user,
+                'total_konsultasi'        => $totalKonsultasi,
+                'total_booking_treatment' => $totalReguler + $totalPaket, // ← gabungan reguler+paket
             ];
         }
 
@@ -39,28 +42,36 @@ class RekamMedisController extends Controller
 
     public function show($id_user)
     {
-        // Ambil data user berdasarkan ID
         $user = User::findOrFail($id_user);
 
-        // Ambil data konsultasi yang berkaitan dengan user, termasuk dokter
+        // Konsultasi selesai
         $konsultasi = Konsultasi::where('id_user', $id_user)
-        ->where('status_booking_konsultasi', 'Selesai')
-            ->with(['detail_konsultasi', 'detail_konsultasi.treatment', 'dokter'])  // Mengambil detail konsultasi dan dokter
+            ->where('status_booking_konsultasi', 'Selesai')
+            ->with(['detail_konsultasi', 'detail_konsultasi.treatment', 'dokter'])
             ->get();
 
-        // Ambil data booking treatment yang berkaitan dengan user, termasuk dokter dan beautician
-        $bookingTreatment = BookingTreatment::where('id_user', $id_user)
-        ->where('status_booking_treatment', 'Selesai')
-            ->with(['detailBooking', 'dokter', 'beautician', 'detailBooking.treatment'])  // Mengambil detail booking treatment, dokter, dan beautician
+        // Booking REGULER (pakai model BookingTreatment)
+        $bookingReguler = BookingTreatment::where('id_user', $id_user)
+            ->where('status_booking_treatment', 'Selesai')
+            ->with(['detailBooking', 'detailBooking.treatment', 'dokter', 'beautician'])
             ->get();
 
-        // Gabungkan data menjadi satu
-        $medicalRecord = [
-            'user' => $user,
-            'konsultasi' => $konsultasi,
-            'booking_treatment' => $bookingTreatment,
-        ];
+        // Booking DARI PAKET (pakai model BookingTreatmentPaket)
+        $bookingPaket = BookingTreatmentPaket::where('id_user', $id_user)
+            ->where('status_booking_treatment', 'Selesai') // ganti jika kolom status berbeda
+            // → tambah relasi sesuai modelmu. Contoh (sesuaikan nama relasinya):
+            // ->with(['detailBookingPaket', 'detailBookingPaket.treatment', 'dokter', 'beautician',
+            //         'penjualanPaketTreatment', 'penjualanPaketTreatment.details.paket'])
+            ->get();
 
-        return response()->json($medicalRecord);
+        return response()->json([
+            'user'               => $user,
+            'konsultasi'         => $konsultasi,
+            'booking_treatment'  => [
+                'total'   => $bookingReguler->count() + $bookingPaket->count(), // ← total gabungan
+                'reguler' => $bookingReguler,                                   // ← detail reguler
+                'paket'   => $bookingPaket,                                     // ← detail paket
+            ],
+        ]);
     }
 }

@@ -29,20 +29,20 @@ class PaketTreatmentController extends Controller
             'details:id_detail_paket_treatment,id_paket_treatment,id_treatment,jumlah_penggunaan',
             'details.treatment:id_treatment,nama_treatment',
         ])->find($id);
-    
+
         if (! $paket) {
             return response()->json([
                 'success' => false,
                 'message' => 'Paket treatment tidak ditemukan.',
             ], 404);
         }
-    
+
         return response()->json([
             'success' => true,
             'data'    => $paket,
         ]);
     }
-    
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -159,5 +159,56 @@ class PaketTreatmentController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function topPaketTreatment(Request $request)
+    {
+        $limit    = (int) $request->query('limit', 5);
+        $statuses = ['Sudah Dibayar', 'Berhasil'];
+
+        // Ambil penjualan paket treatment yang lunas + detail & paketnya
+        $orders = \App\Models\PenjualanPaketTreatment::with(['details.paket', 'pembayaranPaketTreatment'])
+            ->whereHas('pembayaranPaketTreatment', function ($q) use ($statuses) {
+                $q->whereIn('status_pembayaran', $statuses);
+            })
+            ->get();
+
+        // Hitung frekuensi per paket
+        $map = [];
+        foreach ($orders as $o) {
+            foreach ($o->details ?? [] as $d) {
+                // Ambil info paket secara defensif
+                $pkg  = $d->paket ?? null;
+                $id   = $pkg->id_paket_treatment ?? $d->id_paket_treatment ?? null;
+                $name = $pkg->nama_paket_treatment ?? '—';
+                if (!$id) continue;
+
+                if (!isset($map[$id])) {
+                    $map[$id] = [
+                        'id_paket_treatment'   => (int) $id,
+                        'nama_paket_treatment' => $name,
+                        'total_dibeli'         => 0,
+                        'total_pendapatan'     => 0, // opsional: akumulasi harga detail
+                    ];
+                }
+
+                // Di detail penjualan paket tidak ada kolom jumlah → asumsikan 1 per baris
+                $qty   = (int) ($d->jumlah ?? 1);
+                $price = (float) ($d->harga_paket_treatment ?? ($pkg->harga_paket_treatment ?? 0));
+
+                $map[$id]['total_dibeli']     += $qty;
+                $map[$id]['total_pendapatan'] += ($price * $qty);
+            }
+        }
+
+        $data = collect(array_values($map))
+            ->sortByDesc('total_dibeli')
+            ->take($limit)
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
     }
 }

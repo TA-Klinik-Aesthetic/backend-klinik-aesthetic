@@ -247,6 +247,9 @@ Route::get('/paket-treatment/{id}', [PaketTreatmentController::class, 'show']);
 Route::post('/paket-treatment', [PaketTreatmentController::class, 'store']);
 Route::put('/paket-treatment/{id}', [PaketTreatmentController::class, 'update']);
 
+Route::get('/top-paket-treatment', [PaketTreatmentController::class, 'topPaketTreatment']);
+
+
 // Penjualan Paket Treatment
 Route::get('/penjualan-paket-treatment', [PenjualanPaketTreatmentController::class, 'index']);
 Route::get('/penjualan-paket-treatment/{id}', [PenjualanPaketTreatmentController::class, 'show']);
