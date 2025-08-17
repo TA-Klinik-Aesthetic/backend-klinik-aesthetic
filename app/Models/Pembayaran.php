@@ -15,6 +15,7 @@ class Pembayaran extends Model
     protected $fillable = [
         'id_booking_treatment',
         'id_penjualan_produk',
+        'id_penjualan_paket_treatment',
         'uang',
         'kembalian',
         'metode_pembayaran',
@@ -143,6 +144,11 @@ class Pembayaran extends Model
     public function bookingTreatment()
     {
         return $this->belongsTo(BookingTreatment::class, 'id_booking_treatment', 'id_booking_treatment');
+    }
+
+    public function penjualanPaketTreatment()
+    {
+        return $this->belongsTo(PenjualanPaketTreatment::class, 'id_penjualan_paket_treatment', 'id_penjualan_paket_treatment');
     }
 
     protected function serializeDate(\DateTimeInterface $date)

@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use App\Models\PembelianProduk;
+use App\Models\PenjualanPaketTreatment;
+use App\Models\DetailPaketTreatment;
+use App\Models\PaketTreatment;
+use App\Models\PaketTreatmentPelanggan;
+use App\Models\DetailPaketTreatmentPelanggan;
+
+
 
 class PembayaranController extends Controller
 {
@@ -465,5 +472,227 @@ class PembayaranController extends Controller
             'message' => 'Metode pembayaran produk berhasil diperbarui.',
             'data'    => $pembayaran,
         ]);
+    }
+
+    /** GET /api/pembayaran-paket */
+    public function indexPaketTreatment()
+    {
+        // Mirip indexProduk, tapi untuk paket treatment
+        $list = Pembayaran::with([
+            'penjualanPaketTreatment.user:id_user,nama_user',
+            // opsional: ikutkan detail paket yang dibeli & nama paketnya
+            'penjualanPaketTreatment.details:id_detail_penjualan_paket_treatment,id_penjualan_paket_treatment,id_paket_treatment,harga_paket_treatment',
+            'penjualanPaketTreatment.details.paket:id_paket_treatment,nama_paket_treatment',
+        ])
+            ->whereNotNull('id_penjualan_paket_treatment')
+            ->get();
+
+        return response()->json($list);
+    }
+
+    public function showPaketTreatment($id)
+    {
+        $row = Pembayaran::with([
+            'penjualanPaketTreatment.user:id_user,nama_user,no_telp,email',
+            'penjualanPaketTreatment.details:id_detail_penjualan_paket_treatment,id_penjualan_paket_treatment,id_paket_treatment,harga_paket_treatment',
+            'penjualanPaketTreatment.details.paket:id_paket_treatment,nama_paket_treatment,harga_paket_treatment',
+        ])
+        ->where('id_pembayaran', $id) // ✅ PK yang ada di tb_pembayaran
+        ->whereNotNull('id_penjualan_paket_treatment')
+        ->first();
+    
+        if (!$row) {
+            return response()->json(['message' => 'Pembayaran tidak ditemukan'], 404);
+        }
+    
+        return response()->json(['data' => $row], 200);
+    }
+
+    public function storePaketTreatment(Request $request)
+    {
+        $request->validate([
+            'id_penjualan_paket_treatment' => 'required|exists:tb_penjualan_paket_treatment,id_penjualan_paket_treatment',
+            'metode_pembayaran'            => 'required|string|in:Tunai,Non Tunai',
+            'uang'                         => 'nullable|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // ambil header penjualan + detail paketnya
+            $penjualan  = PenjualanPaketTreatment::with('details')->findOrFail($request->id_penjualan_paket_treatment);
+            $hargaAkhir = (float) $penjualan->harga_akhir;
+
+            // default
+            $uang = null;
+            $kembalian = null;
+            $statusPembayaran = 'Belum Dibayar';
+            $waktuPembayaran  = null;
+
+            if ($request->metode_pembayaran === 'Tunai') {
+                $uang            = $request->uang;
+                $kembalian       = $request->uang - $hargaAkhir;
+                $statusPembayaran = 'Sudah Dibayar';
+                $waktuPembayaran = now();
+            }
+
+            // simpan pembayaran (kolom lain null)
+            $pembayaran = Pembayaran::create([
+                'id_booking_treatment'            => null,
+                'id_penjualan_produk'             => null,
+                'id_penjualan_paket_treatment'    => $penjualan->id_penjualan_paket_treatment,
+                'uang'                            => $uang,
+                'kembalian'                       => $kembalian,
+                'metode_pembayaran'               => $request->metode_pembayaran,
+                'status_pembayaran'               => $statusPembayaran,
+                'waktu_pembayaran'                => $waktuPembayaran,
+            ]);
+
+            // Jika TUNAI → langsung “beri” paket ke pelanggan
+            if ($request->metode_pembayaran === 'Tunai') {
+                foreach ($penjualan->details as $det) {
+                    // buat 1 entri paket milik pelanggan
+                    $ptp = PaketTreatmentPelanggan::create([
+                        'id_user'            => $penjualan->id_user,
+                        'id_paket_treatment' => $det->id_paket_treatment,
+                    ]);
+
+                    // copy seluruh detail (treatment & jatah) dari master paket
+                    $masterDetails = DetailPaketTreatment::where('id_paket_treatment', $det->id_paket_treatment)
+                        ->get(['id_treatment', 'jumlah_penggunaan']);
+
+                    if ($masterDetails->isEmpty()) {
+                        throw new \Exception("Paket (ID {$det->id_paket_treatment}) belum memiliki detail treatment.");
+                    }
+
+                    $rows = [];
+                    foreach ($masterDetails as $md) {
+                        $rows[] = [
+                            'id_paket_treatment_pelanggan' => $ptp->id_paket_treatment_pelanggan,
+                            'id_treatment'                 => $md->id_treatment,
+                            'jumlah_penggunaan'            => $md->jumlah_penggunaan,
+                            'created_at'                   => now(),
+                            'updated_at'                   => now(),
+                        ];
+                    }
+                    DetailPaketTreatmentPelanggan::insert($rows);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pembayaran penjualan paket treatment berhasil disimpan',
+                'data'    => $pembayaran,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error while creating pembayaran penjualan paket treatment',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function confirmPaymentPaket(Request $request, $id)
+    {
+        $request->validate([
+            'gambar_bukti_pembayaran' => 'required|image',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // 1) Ambil pembayaran
+            $pembayaran = Pembayaran::with([
+                'penjualanPaketTreatment' => function ($q) {
+                    $q->with('details'); // penting: butuh detail paket yg dibeli
+                }
+            ])->findOrFail($id);
+
+            // 2) Hanya Non Tunai
+            if ($pembayaran->metode_pembayaran !== 'Non Tunai') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya pembayaran Non Tunai yang dapat dikonfirmasi di endpoint ini.'
+                ], 422);
+            }
+
+            // 3) Pastikan belum dibayar
+            if ($pembayaran->status_pembayaran === 'Sudah Dibayar') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.'
+                ], 422);
+            }
+
+            // 4) Upload bukti
+            if ($request->hasFile('gambar_bukti_pembayaran')) {
+                $file     = $request->file('gambar_bukti_pembayaran');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('gambar_bukti_pembayaran'), $fileName);
+                $pembayaran->gambar_bukti_pembayaran = 'gambar_bukti_pembayaran/' . $fileName;
+            }
+
+            // 5) Ambil penjualan paket & harga akhir
+            $penjualan = $pembayaran->penjualanPaketTreatment; // pastikan relasi ini ada di model Pembayaran
+            if (!$penjualan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pembayaran ini tidak terkait penjualan paket treatment.',
+                ], 422);
+            }
+
+            $hargaAkhir = $penjualan->harga_akhir;
+
+            // 6) Set paid
+            $pembayaran->status_pembayaran = 'Sudah Dibayar';
+            $pembayaran->waktu_pembayaran  = now();
+            $pembayaran->uang              = $hargaAkhir;
+            $pembayaran->kembalian         = 0;
+            $pembayaran->save();
+
+            // 7) Generate paket_treatment_pelanggan + detail (copy dari master paket)
+            //    Hanya dikerjakan sekali karena kalau sudah dibayar, endpoint ini nge-block
+            foreach ($penjualan->details as $d) {
+                // buat 1 entri paket pelanggan per paket yang dibeli
+                $ptp = PaketTreatmentPelanggan::create([
+                    'id_user'            => $penjualan->id_user,
+                    'id_paket_treatment' => $d->id_paket_treatment,
+                ]);
+
+                // copy semua detail treatment dari paket master
+                $paket = PaketTreatment::with('details:id_detail_paket_treatment,id_paket_treatment,id_treatment,jumlah_penggunaan')
+                    ->findOrFail($d->id_paket_treatment);
+
+                if ($paket->details->isEmpty()) {
+                    throw new \Exception("Paket (ID: {$paket->id_paket_treatment}) belum memiliki detail treatment.");
+                }
+
+                $rows = [];
+                foreach ($paket->details as $md) {
+                    $rows[] = [
+                        'id_paket_treatment_pelanggan' => $ptp->id_paket_treatment_pelanggan,
+                        'id_treatment'                 => $md->id_treatment,
+                        'jumlah_penggunaan'            => $md->jumlah_penggunaan,
+                        'created_at'                   => now(),
+                        'updated_at'                   => now(),
+                    ];
+                }
+                DetailPaketTreatmentPelanggan::insert($rows);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran paket treatment (Non Tunai) berhasil dikonfirmasi & paket pelanggan dibuat.',
+                'data'    => $pembayaran
+            ], 200);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

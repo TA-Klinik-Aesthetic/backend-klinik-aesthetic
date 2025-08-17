@@ -15,6 +15,7 @@ return new class extends Migration
             $table->increments('id_pembayaran');
             $table->unsignedInteger('id_booking_treatment')->nullable();
             $table->unsignedInteger('id_penjualan_produk')->nullable();
+            $table->unsignedInteger('id_paket_treatment_pelanggan')->nullable();
             $table->enum('metode_pembayaran', ['Tunai', 'Non Tunai'])->default('Tunai');
             $table->decimal('uang', 15, 2)->nullable();
             $table->decimal('kembalian', 15, 2)->nullable();
@@ -53,6 +54,8 @@ return new class extends Migration
             $table->foreign('id_penjualan_produk')
                 ->references('id_penjualan_produk')->on('tb_penjualan_produk')
                 ->onDelete('cascade');
+            $table->foreign('id_paket_treatment_pelanggan')
+                ->references('id_paket_treatment_pelanggan')->on('tb_paket_treatment_pelanggan');
         });
     }
 

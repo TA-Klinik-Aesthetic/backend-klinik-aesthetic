@@ -45,6 +45,10 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PembayaranMidtransController;
 use App\Http\Controllers\RekamMedisController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\PaketTreatmentController;
+use App\Http\Controllers\PenjualanPaketTreatmentController;
+use App\Http\Controllers\PaketTreatmentPelangganController;
+use App\Http\Controllers\BookingTreatmentPaketController;
 use App\Http\Controllers\InventarisStokController;
 use App\Http\Controllers\DetailPembelianProdukController;
 use App\Http\Controllers\FavoriteController;
@@ -237,6 +241,30 @@ Route::prefix('bookingTreatment')->group(function () { // tanpa s
 
 Route::put('statusBookingTreatment/{bookingTreatment}', [DetailBookingTreatmentController::class, 'updateStatusBooking']); // tanpa s
 
+// Paket Treatment
+Route::get('/paket-treatment', [PaketTreatmentController::class, 'index']);
+Route::get('/paket-treatment/{id}', [PaketTreatmentController::class, 'show']); 
+Route::post('/paket-treatment', [PaketTreatmentController::class, 'store']);
+Route::put('/paket-treatment/{id}', [PaketTreatmentController::class, 'update']);
+
+// Penjualan Paket Treatment
+Route::get('/penjualan-paket-treatment', [PenjualanPaketTreatmentController::class, 'index']);
+Route::get('/penjualan-paket-treatment/{id}', [PenjualanPaketTreatmentController::class, 'show']);
+Route::post('/penjualan-paket-treatment', [PenjualanPaketTreatmentController::class, 'store']);
+
+// Paket Treatment
+Route::get('/paket-treatment-pelanggan', [PaketTreatmentPelangganController::class, 'index']);
+Route::get('/paket-treatment-pelanggan/{id}', [PaketTreatmentPelangganController::class, 'show']); 
+
+//booking paket treatment
+Route::prefix('booking-treatment-paket')->group(function () {
+    Route::get('/',          [BookingTreatmentPaketController::class, 'index']);
+    Route::get('{id}',       [BookingTreatmentPaketController::class, 'show']);
+    Route::post('/',         [BookingTreatmentPaketController::class, 'store']);
+    Route::put('{id}',       [BookingTreatmentPaketController::class, 'update']);           // update dokter/beautician
+    Route::put('{id}/status',[BookingTreatmentPaketController::class, 'updateStatus']);     // update status
+});
+
 // Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
 
 // Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);
@@ -314,6 +342,12 @@ Route::put('/pembayaran-produk/{id}', [PembayaranController::class, 'updateProdu
 Route::get('/pembayaran-produk/total-bayar', [PembayaranController::class, 'totalBayarProduk']);
 Route::put('/pembayaran-produk/{id}/metode',[PembayaranController::class, 'updateMetodePembayaranProduk']);
 
+// Paket Treatment Payment Routes
+Route::get('/pembayaran-paket-treatment', [PembayaranController::class, 'indexPaketTreatment']);
+Route::get('/pembayaran-paket-treatment/{id}', [PembayaranController::class, 'showPaketTreatment']);
+Route::post('/pembayaran-paket-treatment', [PembayaranController::class, 'storePaketTreatment']);
+Route::put('/pembayaran-paket-treatment/{id}/konfirmasi', [PembayaranController::class, 'confirmPaymentPaket']);
+
 
 // Midtrans Payment Routes - UPDATED
 Route::prefix('midtrans')->group(function () {
@@ -365,6 +399,11 @@ Route::get('/laporan-treatment-bulan', [LaporanController::class, 'laporanBulana
 Route::get('/laporan-penjualan-produk', [LaporanController::class, 'indexProduk']);
 Route::get('/laporan-produk-hari', [LaporanController::class, 'laporanHarianProduk']);
 Route::get('/laporan-produk-bulan', [LaporanController::class, 'laporanBulananProduk']);
+
+Route::get('/laporan-penjualan-paket-treatment',          [LaporanController::class, 'indexPaketTreatment']);
+Route::get('/laporan-paket-treatment-hari',   [LaporanController::class, 'laporanHarianPaketTreatment']);
+Route::get('/laporan-paket-treatment-bulan',  [LaporanController::class, 'laporanBulananPaketTreatment']);
+
 
 // FCM Token Routes
 Route::post('/fcm/register', [FcmTokenController::class, 'store']);

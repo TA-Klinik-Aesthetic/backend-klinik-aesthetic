@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Models\BookingTreatment;
 use App\Models\PembelianProduk;
+use App\Models\PenjualanPaketTreatment;
 use App\Models\PembayaranTreatment;
 use App\Models\DetailBookingTreatment;
 use App\Models\Treatment;
@@ -16,6 +18,13 @@ use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
+    private function fmtWIB($value, string $format = 'Y-m-d H:i:s'): ?string
+    {
+        if (!$value) return null;
+        $c = $value instanceof Carbon ? $value : Carbon::parse($value);
+        return $c->timezone('Asia/Makassar')->format($format);
+    }
+
     public function indexTreatment()
     {
         // Ambil seluruh data booking treatment dengan detail booking, kompensasi, dan promo terkait
@@ -97,7 +106,7 @@ class LaporanController extends Controller
         ])
             ->whereDate('waktu_treatment', $tanggal)  // Filter berdasarkan tanggal
             ->whereHas('pembayaranTreatment', function ($q) {
-                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
             })
             ->get();
 
@@ -196,7 +205,7 @@ class LaporanController extends Controller
             ->whereYear('waktu_treatment', $tahun)
             ->whereMonth('waktu_treatment', $bulan)
             ->whereHas('pembayaranTreatment', function ($q) {
-                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
             })
             ->get();
 
@@ -283,9 +292,9 @@ class LaporanController extends Controller
             'promo', // Mendapatkan informasi promo yang diterapkan
             'pembayaranProduk' // Mengambil data pembayaran produk yang sudah ada
         ])
-        ->whereHas('pembayaranProduk', function ($q) {
-            $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
-        })
+            ->whereHas('pembayaranProduk', function ($q) {
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
+            })
             ->get();
 
         // Data laporan
@@ -350,7 +359,7 @@ class LaporanController extends Controller
         ])
             ->whereDate('tanggal_pembelian', $tanggal)  // Filter berdasarkan tanggal
             ->whereHas('pembayaranProduk', function ($q) {
-                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
             })
             ->get();
 
@@ -426,7 +435,7 @@ class LaporanController extends Controller
             ->whereYear('tanggal_pembelian', $tahun)  // Filter berdasarkan tahun
             ->whereMonth('tanggal_pembelian', $bulan) // Filter berdasarkan bulan
             ->whereHas('pembayaranProduk', function ($q) {
-                $q->whereIn('status_pembayaran', ['Sudah Dibayar','Berhasil']);
+                $q->whereIn('status_pembayaran', ['Sudah Dibayar', 'Berhasil']);
             })
             ->get();
 
@@ -495,6 +504,226 @@ class LaporanController extends Controller
             'promo_usage_count' => $promoUsageCount,
             'penjualan_produk' => $penjualanProduk,
             'total_pendapatan' => $totalPendapatan,
+        ]);
+    }
+
+    public function indexPaketTreatment()
+    {
+        $paid = ['Sudah Dibayar', 'Berhasil'];
+
+        $penjualan = PenjualanPaketTreatment::with([
+            'details.paket:id_paket_treatment,nama_paket_treatment,harga_paket_treatment',
+            'promo:id_promo,nama_promo,tipe_potongan,potongan_harga',
+            'pembayaran:id_pembayaran,id_penjualan_paket_treatment,status_pembayaran',
+        ])
+            ->whereHas('pembayaran', function ($q) use ($paid) {
+                $q->whereIn('status_pembayaran', $paid);
+            })
+            ->get();
+
+        $laporanData     = [];
+        $promoUsageCount = [];
+        $penjualanPaket  = [];
+
+        foreach ($penjualan as $sale) {
+            // baris detail: 1 detail = 1 paket (tidak ada kolom jumlah)
+            foreach ($sale->details as $d) {
+                $nama  = $d->paket->nama_paket_treatment ?? 'Paket';
+                $harga = (float) ($d->harga_paket_treatment ?? $d->paket->harga_paket_treatment ?? 0);
+
+                $dt = $sale->tanggal_pembelian
+                    ?? $sale->tanggal_penjualan
+                    ?? $sale->created_at;
+
+                $laporanData[] = [
+                    'tanggal_pembelian'       => $this->fmtWIB($dt),
+                    'nama_paket_treatment'    => $nama,
+                    'jumlah'                  => 1,
+                    'harga_paket_treatment'   => number_format($harga, 2, '.', ''),
+                ];
+
+                // agregat per paket
+                if (! isset($penjualanPaket[$nama])) {
+                    $penjualanPaket[$nama] = ['count' => 0, 'total_biaya' => 0];
+                }
+                $penjualanPaket[$nama]['count']      += 1;
+                $penjualanPaket[$nama]['total_biaya'] += $harga;
+            }
+
+            // hitung penggunaan promo (sekali per penjualan)
+            if ($sale->promo) {
+                $pn = $sale->promo->nama_promo;
+                if (! isset($promoUsageCount[$pn])) {
+                    $promoUsageCount[$pn] = [
+                        'count'          => 1,
+                        'potongan_harga' => number_format((float)$sale->promo->potongan_harga, 2, '.', ''),
+                        'tipe_potongan'  => $sale->promo->tipe_potongan,
+                    ];
+                } else {
+                    $promoUsageCount[$pn]['count']++;
+                }
+            }
+        }
+
+        return response()->json([
+            'success'            => true,
+            'data'               => $laporanData,
+            'promo_usage_count'  => $promoUsageCount,
+            'penjualan_paket'    => $penjualanPaket,
+        ]);
+    }
+
+    /**
+     * Laporan harian (?tanggal=YYYY-MM-DD)
+     */
+    public function laporanHarianPaketTreatment(Request $request)
+    {
+        $tanggal = $request->query('tanggal');
+        $paid    = ['Sudah Dibayar', 'Berhasil'];
+
+        $penjualan = PenjualanPaketTreatment::with([
+            'details.paket:id_paket_treatment,nama_paket_treatment,harga_paket_treatment',
+            'promo:id_promo,nama_promo,tipe_potongan,potongan_harga',
+            'pembayaran:id_pembayaran,id_penjualan_paket_treatment,status_pembayaran',
+        ])
+            ->whereDate('tanggal_pembelian', $tanggal)
+            ->whereHas('pembayaran', function ($q) use ($paid) {
+                $q->whereIn('status_pembayaran', $paid);
+            })
+            ->get();
+
+        $laporanData     = [];
+        $promoUsageCount = [];
+        $penjualanPaket  = [];
+        $totalPendapatan = 0;
+
+        foreach ($penjualan as $sale) {
+            foreach ($sale->details as $d) {
+                $nama  = $d->paket->nama_paket_treatment ?? 'Paket';
+                $harga = (float) ($d->harga_paket_treatment ?? $d->paket->harga_paket_treatment ?? 0);
+
+                $dt = $sale->tanggal_pembelian
+                    ?? $sale->tanggal_penjualan
+                    ?? $sale->created_at;
+
+                $laporanData[] = [
+                    'tanggal_pembelian'       => $this->fmtWIB($dt),
+                    'nama_paket_treatment'    => $nama,
+                    'jumlah'                  => 1,
+                    'harga_paket_treatment'   => number_format($harga, 2, '.', ''),
+                ];
+
+                if (! isset($penjualanPaket[$nama])) {
+                    $penjualanPaket[$nama] = ['count' => 0, 'total_biaya' => 0];
+                }
+                $penjualanPaket[$nama]['count']      += 1;
+                $penjualanPaket[$nama]['total_biaya'] += $harga;
+            }
+
+            if ($sale->promo) {
+                $pn = $sale->promo->nama_promo;
+                if (! isset($promoUsageCount[$pn])) {
+                    $promoUsageCount[$pn] = [
+                        'count'          => 1,
+                        'potongan_harga' => number_format((float)$sale->promo->potongan_harga, 2, '.', ''),
+                        'tipe_potongan'  => $sale->promo->tipe_potongan,
+                    ];
+                } else {
+                    $promoUsageCount[$pn]['count']++;
+                }
+            }
+
+            if ($sale->pembayaran && in_array($sale->pembayaran->status_pembayaran, $paid, true)) {
+                $totalPendapatan += (float) $sale->harga_akhir;
+            }
+        }
+
+        return response()->json([
+            'success'            => true,
+            'data'               => $laporanData,
+            'promo_usage_count'  => $promoUsageCount,
+            'penjualan_paket'    => $penjualanPaket,
+            'total_pendapatan'   => number_format($totalPendapatan, 2, '.', ''),
+        ]);
+    }
+
+    /**
+     * Laporan bulanan (?bulan=MM&tahun=YYYY)
+     */
+    public function laporanBulananPaketTreatment(Request $request)
+    {
+        $bulan = $request->query('bulan');
+        $tahun = $request->query('tahun');
+        $paid  = ['Sudah Dibayar', 'Berhasil'];
+
+        $penjualan = PenjualanPaketTreatment::with([
+            'details.paket:id_paket_treatment,nama_paket_treatment,harga_paket_treatment',
+            'promo:id_promo,nama_promo,tipe_potongan,potongan_harga',
+            'pembayaran:id_pembayaran,id_penjualan_paket_treatment,status_pembayaran',
+        ])
+            ->whereYear('tanggal_pembelian', $tahun)
+            ->whereMonth('tanggal_pembelian', $bulan)
+            ->whereHas('pembayaran', function ($q) use ($paid) {
+                $q->whereIn('status_pembayaran', $paid);
+            })
+            ->get();
+
+        $laporanData     = [];
+        $promoUsageCount = [];
+        $penjualanPaket  = [];
+        $totalPendapatan = 0;
+
+        foreach ($penjualan as $sale) {
+            $promoName = null;
+            if ($sale->promo) {
+                $promoName = $sale->promo->nama_promo;
+            }
+
+            foreach ($sale->details as $d) {
+                $nama  = $d->paket->nama_paket_treatment ?? 'Paket';
+                $harga = (float) ($d->harga_paket_treatment ?? $d->paket->harga_paket_treatment ?? 0);
+
+                $dt = $sale->tanggal_pembelian
+                    ?? $sale->tanggal_penjualan
+                    ?? $sale->created_at;
+
+                $laporanData[] = [
+                    'tanggal_pembelian'       => $this->fmtWIB($dt),
+                    'nama_paket_treatment'    => $nama,
+                    'jumlah'                  => 1,
+                    'harga_paket_treatment'   => number_format($harga, 2, '.', ''),
+                ];
+
+                if (! isset($penjualanPaket[$nama])) {
+                    $penjualanPaket[$nama] = ['count' => 0, 'total_biaya' => 0];
+                }
+                $penjualanPaket[$nama]['count']      += 1;
+                $penjualanPaket[$nama]['total_biaya'] += $harga;
+            }
+
+            if ($promoName) {
+                if (! isset($promoUsageCount[$promoName])) {
+                    $promoUsageCount[$promoName] = [
+                        'count'          => 1,
+                        'potongan_harga' => (float) $sale->promo->potongan_harga,
+                        'tipe_potongan'  => $sale->promo->tipe_potongan,
+                    ];
+                } else {
+                    $promoUsageCount[$promoName]['count']++;
+                }
+            }
+
+            if ($sale->pembayaran && in_array($sale->pembayaran->status_pembayaran, $paid, true)) {
+                $totalPendapatan += (float) $sale->harga_akhir;
+            }
+        }
+
+        return response()->json([
+            'success'            => true,
+            'data'               => $laporanData,
+            'promo_usage_count'  => $promoUsageCount,
+            'penjualan_paket'    => $penjualanPaket,
+            'total_pendapatan'   => number_format($totalPendapatan, 2, '.', ''),
         ]);
     }
 }
