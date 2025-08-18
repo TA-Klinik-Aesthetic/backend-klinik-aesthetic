@@ -268,6 +268,8 @@ Route::prefix('booking-treatment-paket')->group(function () {
     Route::put('{id}/status',[BookingTreatmentPaketController::class, 'updateStatus']);     // update status
 });
 
+Route::get('/booking-treatments-paket/total-verifikasi', [BookingTreatmentPaketController::class, 'totalVerifikasi']);
+
 // Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
 
 // Route::get('/detail-booking-produk/{id_detail_booking_treatment}', [DetailBookingTreatmentController::class, 'showDetailBookingProduk']);

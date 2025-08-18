@@ -60,8 +60,7 @@ class RekamMedisController extends Controller
         $bookingPaket = BookingTreatmentPaket::where('id_user', $id_user)
             ->where('status_booking_treatment', 'Selesai') // ganti jika kolom status berbeda
             // → tambah relasi sesuai modelmu. Contoh (sesuaikan nama relasinya):
-            // ->with(['detailBookingPaket', 'detailBookingPaket.treatment', 'dokter', 'beautician',
-            //         'penjualanPaketTreatment', 'penjualanPaketTreatment.details.paket'])
+            ->with(['details', 'details.paketPelanggan.paket', 'details.treatment', 'dokter', 'beautician'])
             ->get();
 
         return response()->json([

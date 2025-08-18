@@ -10,6 +10,7 @@ use App\Models\Treatment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class BookingTreatmentPaketController extends Controller
 {
@@ -287,6 +288,24 @@ class BookingTreatmentPaketController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function totalVerifikasi()
+    {
+        try {
+            $total = BookingTreatmentPaket::where('status_booking_treatment', 'Verifikasi')->count();
+
+            return response()->json([
+                'success'          => true,
+                'total_verifikasi' => $total,
+            ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung booking treatment paket',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
