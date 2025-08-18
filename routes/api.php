@@ -260,6 +260,11 @@ Route::get('/paket-treatment-pelanggan', [PaketTreatmentPelangganController::cla
 Route::get('/paket-treatment-pelanggan/{id}', [PaketTreatmentPelangganController::class, 'show']); 
 
 //booking paket treatment
+Route::get(
+    '/booking-treatment-paket/total-verifikasi',
+    [BookingTreatmentPaketController::class, 'totalVerifikasi']
+)->name('api.booking-treatment-paket.total-verifikasi');
+
 Route::prefix('booking-treatment-paket')->group(function () {
     Route::get('/',          [BookingTreatmentPaketController::class, 'index']);
     Route::get('{id}',       [BookingTreatmentPaketController::class, 'show']);
@@ -268,7 +273,6 @@ Route::prefix('booking-treatment-paket')->group(function () {
     Route::put('{id}/status',[BookingTreatmentPaketController::class, 'updateStatus']);     // update status
 });
 
-Route::get('/booking-treatments-paket/total-verifikasi', [BookingTreatmentPaketController::class, 'totalVerifikasi']);
 
 // Route::get('/detail-booking-treatment', [DetailBookingTreatmentController::class, 'indexDetail']);
 
