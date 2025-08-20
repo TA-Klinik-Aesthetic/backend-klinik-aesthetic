@@ -30,6 +30,148 @@ class PembayaranMidtransController extends Controller
     }
 
     // ...existing createTreatmentPayment method tetap sama...
+    /**
+     * Create Midtrans Snap for Treatment booking
+     * body: { "id_booking_treatment": <int> }
+     */
+    public function createTreatmentPayment(Request $request)
+    {
+        $request->validate([
+            'id_booking_treatment' => 'required|integer|exists:tb_booking_treatment,id_booking_treatment',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Ambil booking + user (tanpa relasi Eloquent pun aman)
+            $booking = BookingTreatment::lockForUpdate()
+                ->where('id_booking_treatment', $request->id_booking_treatment)
+                ->firstOrFail();
+
+            $user = null;
+            if (isset($booking->id_user)) {
+                $user = User::find($booking->id_user);
+            }
+
+            // Hitung nominal akhir (fallback jika kolom null)
+            $hargaTotal      = (float) ($booking->harga_total ?? 0);
+            $potongan        = (float) ($booking->potongan_harga ?? 0);
+            $pajak           = (float) ($booking->besaran_pajak ?? 0);
+            $hargaAkhirField = (float) ($booking->harga_akhir_treatment ?? 0);
+
+            $grossAmount = $hargaAkhirField > 0
+                ? $hargaAkhirField
+                : max(0, $hargaTotal - $potongan + $pajak);
+
+            if ($grossAmount <= 0) {
+                return response()->json([
+                    'message' => 'Nominal pembayaran treatment tidak valid (<= 0).',
+                    'data' => [
+                        'harga_total' => $booking->harga_total,
+                        'potongan_harga' => $booking->potongan_harga,
+                        'besaran_pajak' => $booking->besaran_pajak,
+                        'harga_akhir_treatment' => $booking->harga_akhir_treatment,
+                    ],
+                ], 422);
+            }
+
+            // Cek pembayaran existing
+            $pembayaran = Pembayaran::where('id_booking_treatment', $booking->id_booking_treatment)->first();
+
+            if ($pembayaran && strtolower($pembayaran->status_pembayaran) === 'berhasil') {
+                return response()->json([
+                    'message' => 'Booking treatment ini sudah dibayar.',
+                    'data' => [
+                        'id_pembayaran' => $pembayaran->id_pembayaran,
+                        'status_pembayaran' => $pembayaran->status_pembayaran,
+                    ],
+                ], 400);
+            }
+
+            if (!$pembayaran) {
+                $pembayaran = Pembayaran::create([
+                    'id_booking_treatment' => $booking->id_booking_treatment,
+                    'id_penjualan_produk'  => null,
+                    'status_pembayaran'    => 'Pending',
+                    'metode_pembayaran'    => 'Non Tunai',
+                    'waktu_pembayaran'     => null,
+                    'gross_amount'         => $grossAmount,
+                ]);
+            } else {
+                $pembayaran->update([
+                    'status_pembayaran' => 'Pending',
+                    'metode_pembayaran' => 'Non Tunai',
+                    'gross_amount'      => $grossAmount,
+                ]);
+            }
+
+            // Siapkan payload Midtrans (menyerupai createProductPayment)
+            $orderId = 'TRT-' . $booking->id_booking_treatment . '-' . now()->format('YmdHis');
+
+            $payload = [
+                'transaction_details' => [
+                    'order_id'     => $orderId,
+                    'gross_amount' => (int) round($grossAmount),
+                ],
+                'item_details' => [
+                    [
+                        'id'       => 'TRT-' . $booking->id_booking_treatment,
+                        'price'    => (int) round($grossAmount),
+                        'quantity' => 1,
+                        'name'     => 'Pembayaran Treatment #' . $booking->id_booking_treatment,
+                    ],
+                ],
+                'customer_details' => [
+                    'first_name' => $user->nama_user ?? 'Customer',
+                    'email'      => $user->email ?? 'no-reply@example.com',
+                    'phone'      => $user->no_telp ?? '',
+                ],
+                'expiry' => [
+                    'start_time' => now()->format('Y-m-d H:i:s T'),
+                    'unit'       => 'hours',
+                    'duration'   => 24,
+                ],
+            ];
+
+            // Jika project Anda sudah pakai MidtransService di createProductPayment, boleh ganti baris ini
+            // menjadi: $transaction = $this->midtransService->createTransaction($payload);
+            $transaction = Snap::createTransaction($payload);
+
+            // Update pembayaran dengan token dan URL
+            $pembayaran->update([
+                'snap_token'        => $transaction->token ?? null,
+                'snap_url'          => $transaction->redirect_url ?? null,
+                'order_id'          => $orderId,
+                'status_pembayaran' => 'Pending',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Snap URL pembayaran treatment berhasil dibuat.',
+                'data' => [
+                    'id_pembayaran'  => $pembayaran->id_pembayaran,
+                    'order_id'       => $orderId,
+                    'snap_token'     => $transaction->token ?? null,
+                    'snap_url'       => $transaction->redirect_url ?? null,
+                    'gross_amount'   => (int) round($grossAmount),
+                    'status'         => 'Pending',
+                    'id_booking_treatment' => $booking->id_booking_treatment,
+                ],
+            ], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('createTreatmentPayment error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'req'   => $request->all(),
+            ]);
+
+            return response()->json([
+                'message' => 'Gagal membuat Snap URL pembayaran treatment.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     /**
      * PERBAIKI: Membuat Snap URL pembayaran untuk produk - GUNAKAN EXISTING PAYMENT
