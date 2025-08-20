@@ -30,9 +30,8 @@ class PembayaranMidtransController extends Controller
         Config::$is3ds = config('midtrans.is_3ds', true);
     }
 
-    // ...existing createTreatmentPayment method tetap sama...
     /**
-     * Create Midtrans Snap for Treatment booking
+     * Create Midtrans Snap for Treatment booking (mirip createProductPayment)
      * body: { "id_booking_treatment": <int> }
      */
     public function createTreatmentPayment(Request $request)
@@ -43,25 +42,20 @@ class PembayaranMidtransController extends Controller
 
         DB::beginTransaction();
         try {
-            // Ambil booking + user (tanpa relasi Eloquent pun aman)
+            // Lock row supaya aman dari race condition
             $booking = BookingTreatment::lockForUpdate()
                 ->where('id_booking_treatment', $request->id_booking_treatment)
                 ->firstOrFail();
 
-            $user = null;
-            if (isset($booking->id_user)) {
-                $user = User::find($booking->id_user);
+            // Hitung nominal akhir
+            $hargaTotal = (float) ($booking->harga_total ?? 0);
+            $potongan   = (float) ($booking->potongan_harga ?? 0);
+            $pajak      = (float) ($booking->besaran_pajak ?? 0);
+
+            $grossAmount = (float) ($booking->harga_akhir_treatment ?? 0);
+            if ($grossAmount <= 0) {
+                $grossAmount = max(0, $hargaTotal - $potongan + $pajak);
             }
-
-            // Hitung nominal akhir (fallback jika kolom null)
-            $hargaTotal      = (float) ($booking->harga_total ?? 0);
-            $potongan        = (float) ($booking->potongan_harga ?? 0);
-            $pajak           = (float) ($booking->besaran_pajak ?? 0);
-            $hargaAkhirField = (float) ($booking->harga_akhir_treatment ?? 0);
-
-            $grossAmount = $hargaAkhirField > 0
-                ? $hargaAkhirField
-                : max(0, $hargaTotal - $potongan + $pajak);
 
             if ($grossAmount <= 0) {
                 return response()->json([
@@ -75,7 +69,7 @@ class PembayaranMidtransController extends Controller
                 ], 422);
             }
 
-            // Cek pembayaran existing
+            // Temukan atau buat record pembayaran
             $pembayaran = Pembayaran::where('id_booking_treatment', $booking->id_booking_treatment)->first();
 
             if ($pembayaran && strtolower($pembayaran->status_pembayaran) === 'berhasil') {
@@ -105,44 +99,20 @@ class PembayaranMidtransController extends Controller
                 ]);
             }
 
-            // Siapkan payload Midtrans (menyerupai createProductPayment)
-            $orderId = 'TRT-' . $booking->id_booking_treatment . '-' . now()->format('YmdHis');
+            // Buat Snap URL via service (tidak memanggil Snap di controller)
+            $snapData = $this->midtransService->createSnapUrlTreatment($booking, $pembayaran);
 
-            $payload = [
-                'transaction_details' => [
-                    'order_id'     => $orderId,
-                    'gross_amount' => (int) round($grossAmount),
-                ],
-                'item_details' => [
-                    [
-                        'id'       => 'TRT-' . $booking->id_booking_treatment,
-                        'price'    => (int) round($grossAmount),
-                        'quantity' => 1,
-                        'name'     => 'Pembayaran Treatment #' . $booking->id_booking_treatment,
-                    ],
-                ],
-                'customer_details' => [
-                    'first_name' => $user->nama_user ?? 'Customer',
-                    'email'      => $user->email ?? 'no-reply@example.com',
-                    'phone'      => $user->no_telp ?? '',
-                ],
-                'expiry' => [
-                    'start_time' => now()->format('Y-m-d H:i:s T'),
-                    'unit'       => 'hours',
-                    'duration'   => 24,
-                ],
-            ];
+            if (!$snapData || !isset($snapData['redirect_url'])) {
+                throw new \Exception('Gagal membuat Snap URL pembayaran treatment');
+            }
 
-            // Jika project Anda sudah pakai MidtransService di createProductPayment, boleh ganti baris ini
-            // menjadi: $transaction = $this->midtransService->createTransaction($payload);
-            $transaction = Snap::createTransaction($payload);
-
-            // Update pembayaran dengan token dan URL
+            // Simpan token, url, order_id
             $pembayaran->update([
-                'snap_token'        => $transaction->token ?? null,
-                'snap_url'          => $transaction->redirect_url ?? null,
-                'order_id'          => $orderId,
+                'snap_token'        => $snapData['token'],
+                'snap_url'          => $snapData['redirect_url'],
+                'order_id'          => $snapData['order_id'],
                 'status_pembayaran' => 'Pending',
+                'metode_pembayaran' => 'Non Tunai',
             ]);
 
             DB::commit();
@@ -150,12 +120,12 @@ class PembayaranMidtransController extends Controller
             return response()->json([
                 'message' => 'Snap URL pembayaran treatment berhasil dibuat.',
                 'data' => [
-                    'id_pembayaran'  => $pembayaran->id_pembayaran,
-                    'order_id'       => $orderId,
-                    'snap_token'     => $transaction->token ?? null,
-                    'snap_url'       => $transaction->redirect_url ?? null,
-                    'gross_amount'   => (int) round($grossAmount),
-                    'status'         => 'Pending',
+                    'id_pembayaran'        => $pembayaran->id_pembayaran,
+                    'order_id'             => $snapData['order_id'],
+                    'snap_token'           => $snapData['token'],
+                    'snap_url'             => $snapData['redirect_url'],
+                    'gross_amount'         => (int) round($grossAmount),
+                    'status'               => 'Pending',
                     'id_booking_treatment' => $booking->id_booking_treatment,
                 ],
             ], 201);
