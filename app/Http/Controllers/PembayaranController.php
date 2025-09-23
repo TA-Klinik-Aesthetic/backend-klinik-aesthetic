@@ -695,4 +695,33 @@ class PembayaranController extends Controller
             ], 500);
         }
     }
+
+    public function totalBayarPaket(Request $request)
+    {
+        $year = (int) $request->query('year', date('Y'));
+        // samakan persis dengan nilai di DB
+        $paidStatuses = ['Sudah Dibayar', 'Berhasil'];
+
+        // basis query: pembayaran yang terkait PENJUALAN PAKET treatment
+        $base = Pembayaran::query()
+            ->whereNotNull('id_penjualan_paket_treatment')
+            ->whereIn('status_pembayaran', $paidStatuses)
+            ->whereYear('waktu_pembayaran', $year);
+
+        // total transaksi sukses di tahun tsb
+        $total = (clone $base)->count();
+
+        // agregasi per-bulan (YYYY-MM -> COUNT)
+        $perBulan = (clone $base)
+            ->selectRaw("DATE_FORMAT(waktu_pembayaran, '%Y-%m') AS bulan, COUNT(*) AS total")
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get();
+
+        return response()->json([
+            'success'                 => true,
+            'total_paket_bayar'       => $total,
+            'bayar_perbulan'          => $perBulan,
+        ]);
+    }
 }
